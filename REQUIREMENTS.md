@@ -2,31 +2,56 @@
 
 ## Project Overview
 
-The **MCP Backend Generator Server** (codename: mc-pea) is a Model Context Protocol server that automatically creates and maintains backend services for frontend applications. It analyzes frontend code to understand data flow, form structures, and API requirements, then generates corresponding Golang backend services with database integration and file storage capabilities.
+The **MCP Ecosystem Conductor** (codename: mc-pea) is a self-managing Model Context Protocol server that orchestrates, generates, and evolves entire MCP ecosystems. It functions as the **conductor of a microservices architecture for MCP servers**, automatically creating backends, MCP servers, and managing their lifecycle while continuously optimizing and consolidating the ecosystem.
+
+**Core Philosophy**: Self-improving, self-managing, self-cleaning meta-system that transforms frontend requirements into a sophisticated, orchestrated ecosystem of specialized MCP servers and backends.
+
+**Meta-Meta Programming**: The system can modify and improve itself, learning from usage patterns and automatically refactoring its own codebase and generated servers.
 
 ## Core Objectives
 
-1. **Frontend Analysis**: Parse frontend applications to understand:
+1. **Ecosystem Orchestration**: Act as the central conductor for entire MCP server ecosystems:
+   - Coordinate multiple specialized MCP servers
+   - Manage inter-server communication and dependencies
+   - Optimize resource allocation and workload distribution
+   - Maintain ecosystem health and performance
+
+2. **Frontend Analysis**: Parse frontend applications to understand:
    - Form structures and data schemas
    - API endpoint requirements
    - Data processing needs
    - File upload/download requirements
+   - Authentication and authorization patterns
 
-2. **Backend Generation**: Create Golang backend services that:
+3. **Backend Generation**: Create Golang backend services that:
    - Handle form data processing
    - Implement database operations (PostgreSQL)
    - Manage file storage (NAS CDN)
    - Provide RESTful APIs matching frontend expectations
 
-3. **Continuous Evolution**: Update backends as frontends change:
-   - Detect frontend modifications
-   - Adapt backend schemas and endpoints
-   - Maintain backward compatibility when possible
+4. **MCP Server Generation & Evolution**: Create and maintain specialized MCP servers:
+   - Domain-specific servers (auth, payments, analytics, etc.)
+   - Integration servers (external API wrappers)
+   - Utility servers (file processing, notifications)
+   - Self-modification capabilities for continuous improvement
 
-4. **Repository Management**: Integrate with Git workflows:
-   - Create new repositories for generated backends
-   - Commit and push changes
-   - Manage deployment configurations
+5. **Ecosystem Consolidation & Cleanup**: Continuously optimize the ecosystem:
+   - Identify and merge redundant functionality
+   - Remove unused or obsolete servers
+   - Refactor servers for better performance
+   - Clean up test artifacts and temporary resources
+
+6. **Self-Improvement (Meta-Meta Programming)**: Evolve its own capabilities:
+   - Analyze its own codebase for optimization opportunities
+   - Generate new tools and resources for itself
+   - Learn from usage patterns to improve generation algorithms
+   - Update its own architecture as the ecosystem grows
+
+7. **Repository & Deployment Management**: Comprehensive lifecycle management:
+   - Create and manage Git repositories
+   - Handle deployment automation
+   - Manage versioning and rollbacks
+   - Coordinate updates across the ecosystem
 
 ## Functional Requirements
 
@@ -105,6 +130,122 @@ The **MCP Backend Generator Server** (codename: mc-pea) is a Model Context Proto
 - **Infrastructure as Code**: Terraform/Helm templates
 - **Environment Management**: Dev/staging/prod configs
 
+### 5. MCP Server Generation & Management
+
+#### 5.1 MCP Server Analysis
+- **Existing Server Inspection**: Parse current MCP servers to understand:
+  - Tool definitions and implementations
+  - Resource structures and data sources
+  - Configuration patterns and dependencies
+  - Integration points with external services
+
+#### 5.2 MCP Server Templates & Patterns
+```
+mcp-server-template/
+├── src/
+│   ├── tools/
+│   │   ├── {domain}_operations.ts
+│   │   └── index.ts
+│   ├── resources/
+│   │   ├── {domain}_resources.ts
+│   │   └── index.ts
+│   ├── services/
+│   │   ├── {external_service}_client.ts
+│   │   └── database_service.ts
+│   ├── types/
+│   │   └── {domain}_types.ts
+│   └── index.ts
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+#### 5.3 Generated MCP Server Types
+- **Data Layer Servers**: Database operations, file storage, caching
+- **Integration Servers**: External API wrappers, webhook handlers
+- **Business Logic Servers**: Domain-specific workflows and processing
+- **Utility Servers**: File processing, data transformation, notifications
+
+#### 5.4 MCP Server Evolution Capabilities
+- **Tool Addition**: Add new tools based on frontend requirements
+- **Resource Updates**: Modify resource schemas and data sources
+- **Integration Changes**: Update external service integrations
+- **Performance Optimization**: Optimize based on usage patterns
+
+#### 5.5 MCP Server Deployment
+- **NPM Publishing**: Automated package publishing
+- **Docker Containerization**: Containerized MCP servers
+- **Configuration Management**: Environment-specific configs
+- **Health Monitoring**: Server health and performance metrics
+
+#### 5.6 Ecosystem Consolidation Engine
+- **Redundancy Detection**: Identify overlapping functionality across servers
+- **Automatic Merging**: Combine similar tools and resources
+- **Cleanup Automation**: Remove unused tests, artifacts, and temporary resources
+- **Performance Optimization**: Refactor based on usage analytics
+- **Dependency Management**: Optimize server communication patterns
+
+#### 5.7 Self-Modification Capabilities  
+- **Code Analysis**: Parse and understand its own codebase
+- **Algorithm Improvement**: Optimize generation algorithms based on success metrics
+- **Tool Evolution**: Generate new tools for itself based on emerging patterns
+- **Architecture Adaptation**: Modify its own structure as the ecosystem scales
+- **Learning System**: Machine learning from usage patterns and outcomes
+
+## MCP Server Management Use Cases
+
+### 1. **Data Layer Server Evolution**
+Your existing MCP server could be automatically enhanced:
+```typescript
+// Current: Basic database operations
+// Generated Addition: NAS CDN integration
+tools.push({
+  name: "nas_upload_file",
+  description: "Upload file to NAS CDN with automatic optimization",
+  inputSchema: {
+    type: "object",
+    properties: {
+      file: { type: "string", format: "base64" },
+      path: { type: "string" },
+      contentType: { type: "string" },
+      optimize: { type: "boolean", default: true }
+    }
+  }
+});
+```
+
+### 2. **Domain-Specific Server Generation**
+Based on frontend analysis, generate specialized MCP servers:
+- **E-commerce Server**: Product catalog, inventory, payment processing
+- **CMS Server**: Content management, media handling, SEO tools
+- **Analytics Server**: Event tracking, reporting, dashboard data
+- **Authentication Server**: User management, permissions, sessions
+
+### 3. **Integration Server Creation**
+Generate MCP servers that wrap external APIs:
+```typescript
+// Auto-generated Stripe payment server
+// Auto-generated SendGrid email server  
+// Auto-generated Twilio SMS server
+```
+
+### 4. **Workflow Orchestration Server**
+Create servers that coordinate multiple other MCP servers:
+```typescript
+// Order processing workflow:
+// 1. Validate payment (payment-server)
+// 2. Update inventory (inventory-server)
+// 3. Send confirmation (email-server)
+// 4. Schedule delivery (logistics-server)
+```
+
+### 5. **Development & Testing Servers**
+Generate utility servers for development:
+- **Mock Data Server**: Generate realistic test data
+- **Testing Server**: Automated testing workflows
+- **Performance Server**: Load testing and monitoring
+- **Migration Server**: Database and schema migrations
+
 ## Technical Requirements
 
 ### 1. MCP Server Capabilities
@@ -112,15 +253,32 @@ The **MCP Backend Generator Server** (codename: mc-pea) is a Model Context Proto
 #### 1.1 Tools
 - `analyze_frontend`: Parse frontend repository and extract requirements
 - `generate_backend`: Create new Golang backend service
+- `generate_mcp_server`: Create new MCP server based on requirements
 - `update_backend`: Modify existing backend based on frontend changes
-- `deploy_backend`: Deploy to target environment
+- `update_mcp_server`: Evolve existing MCP server capabilities
+- `analyze_mcp_server`: Inspect existing MCP server structure and capabilities
+- `orchestrate_ecosystem`: Coordinate multiple MCP servers for complex workflows
+- `consolidate_servers`: Merge redundant functionality and cleanup ecosystem
+- `self_analyze`: Analyze own codebase for improvement opportunities
+- `self_modify`: Modify own code and capabilities
+- `deploy_backend`: Deploy backend to target environment
+- `deploy_mcp_server`: Deploy MCP server (NPM/Docker)
 - `manage_repository`: Git operations and repository management
+- `cleanup_artifacts`: Remove test files, temporary resources, and unused code
 
 #### 1.2 Resources
+- `ecosystem_status`: Complete view of all managed servers and backends
+- `orchestration_map`: Visual representation of server interactions and data flows
+- `consolidation_opportunities`: Analysis of redundant functionality and optimization potential
+- `self_analysis_report`: Insights into own performance and improvement opportunities
 - `backend_status`: Current status of generated backends
+- `mcp_server_status`: Current status of generated MCP servers
 - `deployment_logs`: Deployment and runtime logs
 - `schema_definitions`: Current database schemas
 - `api_documentation`: Generated API docs
+- `mcp_server_catalog`: Registry of generated and managed MCP servers
+- `integration_map`: Visual map of system integrations
+- `cleanup_log`: History of cleanup operations and artifacts removed
 
 ### 2. External Dependencies
 
@@ -180,35 +338,35 @@ environments:
 
 ## Implementation Phases
 
-### Phase 1: Core Framework (4-6 weeks)
-- MCP server setup and basic tool structure
-- Simple form analysis for React applications
-- Basic Golang backend generation
-- PostgreSQL integration
+### Phase 1: Foundation & Setup (3-4 weeks)
+- Docker Desktop setup and local testing environment
+- Generate Keycloak Auth MCP server
+- Basic MCP server generation framework
+- Self-analysis capabilities (analyze own codebase)
 
-### Phase 2: Enhanced Analysis (3-4 weeks)
-- Multi-framework support (Vue, Angular)
-- Complex form handling (nested objects, arrays)
-- File upload detection and handling
-- API endpoint inference
+### Phase 2: Core Ecosystem Management (4-6 weeks)
+- Frontend analysis engine
+- Basic Golang backend generation  
+- NAS CDN MCP server generation
+- Ecosystem orchestration tools
 
-### Phase 3: Storage & Deployment (3-4 weeks)
-- NAS CDN integration
-- Docker containerization
-- GitHub repository management
-- Basic deployment workflows
+### Phase 3: Consolidation & Cleanup (3-4 weeks)
+- Redundancy detection algorithms
+- Automatic cleanup and consolidation tools
+- Performance optimization engine
+- Testing and artifact management
 
-### Phase 4: Advanced Features (4-6 weeks)
-- Real-time frontend monitoring
-- Automatic backend updates
-- Performance optimization
-- Comprehensive testing suite
+### Phase 4: Self-Modification (4-6 weeks)
+- Self-modification capabilities
+- Learning algorithms for improvement
+- Advanced orchestration patterns
+- Ecosystem health monitoring
 
-### Phase 5: Production Ready (2-3 weeks)
-- Security hardening
-- Documentation completion
-- Performance benchmarking
-- Beta testing with real projects
+### Phase 5: Production Ecosystem (3-4 weeks)
+- Multi-environment deployment
+- Comprehensive monitoring and logging
+- Security hardening across ecosystem
+- Documentation and knowledge base generation
 
 ## Success Metrics
 
@@ -240,17 +398,25 @@ environments:
 
 2. **Backend Architecture Flexibility**: Should we support different Golang frameworks (Gin vs Echo vs Fiber) or standardize on one?
 
-3. **Schema Migration Strategy**: How do we handle breaking changes in the frontend that require database schema changes?
+3. **MCP Server Language Choice**: Should generated MCP servers be TypeScript/Node.js (standard), or also support Python/Golang variants?
 
-4. **Authentication Integration**: Should the generator handle authentication automatically, or require manual configuration?
+4. **Schema Migration Strategy**: How do we handle breaking changes in the frontend that require database schema changes?
 
-5. **Testing Strategy**: Should we generate test suites for the backends? What level of test coverage?
+5. **Authentication Integration**: Should the generator handle authentication automatically, or require manual configuration?
 
-6. **Monitoring & Observability**: How much monitoring should be built into generated backends by default?
+6. **Testing Strategy**: Should we generate test suites for backends and MCP servers? What level of test coverage?
 
-7. **Multi-tenancy**: Should generated backends support multiple frontends/tenants, or one backend per frontend?
+7. **Monitoring & Observability**: How much monitoring should be built into generated backends/MCP servers by default?
 
-8. **File Storage Abstraction**: Should we support multiple storage providers (S3, MinIO, local filesystem) or focus on your specific NAS CDN?
+8. **Multi-tenancy**: Should generated backends support multiple frontends/tenants, or one backend per frontend?
+
+9. **File Storage Abstraction**: Should we support multiple storage providers (S3, MinIO, local filesystem) or focus on your specific NAS CDN?
+
+10. **MCP Server Versioning**: How do we handle breaking changes in MCP server interfaces? Semantic versioning? Migration tools?
+
+11. **Server Orchestration**: Should we generate a "master MCP server" that orchestrates calls to multiple specialized servers, or let clients manage multiple server connections?
+
+12. **Development Workflow**: How should developers iterate on generated MCP servers? Direct editing vs. regeneration vs. configuration-driven customization?
 
 ## Next Steps
 
@@ -263,3 +429,174 @@ environments:
 ---
 
 *This requirements document is a living document and will be updated as the project evolves and requirements are refined.*
+
+## Advanced Architecture: MCP Ecosystem Management
+
+### Meta-MCP Server Concept
+The mc-pea server becomes a **meta-MCP server** that:
+
+1. **Analyzes Requirements**: Frontend needs → Required capabilities
+2. **Capability Mapping**: Capabilities → Existing MCP servers or new ones needed
+3. **Server Composition**: Orchestrate multiple specialized MCP servers
+4. **Evolution Management**: Update the entire MCP ecosystem as needs change
+
+### Example Ecosystem Evolution:
+
+```
+Initial State:
+Frontend (Simple Contact Form) → [mc-pea] → Basic Backend + Data Layer MCP Server
+
+Evolved State:
+Frontend (Full E-commerce) → [mc-pea] → 
+  ├── Product Backend + Product MCP Server
+  ├── Order Backend + Order MCP Server  
+  ├── Payment Backend + Payment MCP Server
+  ├── Shipping Backend + Shipping MCP Server
+  └── Analytics Backend + Analytics MCP Server
+```
+
+### MCP Server Dependency Management
+- **Server Discovery**: Detect existing MCP servers in your ecosystem
+- **Dependency Resolution**: Ensure compatible versions and interfaces
+- **Update Coordination**: Update dependent servers when base servers change
+- **Conflict Resolution**: Handle overlapping functionality between servers
+
+## Immediate Setup Requirements
+
+### 1. Development Environment Setup
+- **Docker Desktop for Windows**: Required for local testing and containerization
+- **Keycloak Integration**: Auth MCP server for existing Keycloak instance
+- **Development Workflow**: Local testing environment for MCP server development
+
+### 2. Priority MCP Servers to Generate
+1. **Keycloak Auth MCP Server**: Integration with existing Keycloak setup
+2. **NAS CDN MCP Server**: File storage and CDN functionality  
+3. **Docker Management MCP Server**: Container lifecycle management
+4. **Testing & Cleanup MCP Server**: Automated testing and artifact cleanup
+
+## Priority Implementation: Keycloak Auth MCP Server
+
+### Keycloak Integration Requirements
+Your existing Keycloak setup needs an MCP server that provides:
+
+#### Tools:
+- `keycloak_authenticate`: Validate tokens and get user info
+- `keycloak_create_user`: Create new user accounts
+- `keycloak_assign_roles`: Manage user roles and permissions
+- `keycloak_get_user_roles`: Retrieve user's current roles
+- `keycloak_create_client`: Create new OAuth2 clients
+- `keycloak_manage_realm`: Realm configuration management
+- `keycloak_refresh_token`: Handle token refresh workflows
+
+#### Resources:
+- `user_directory`: Current users and their roles
+- `realm_config`: Realm settings and configurations
+- `client_registry`: OAuth2 clients and their settings
+- `role_definitions`: Available roles and permissions
+- `token_status`: Active tokens and sessions
+
+#### Configuration:
+```yaml
+keycloak:
+  server_url: "https://your-keycloak.domain.com"
+  admin_realm: "master"
+  target_realm: "your-app-realm" 
+  client_id: "mcp-server-client"
+  client_secret: "${KEYCLOAK_CLIENT_SECRET}"
+```
+
+This auth server can then be integrated into all generated backends automatically!
+
+## Immediate Next Steps
+
+### 1. Docker Setup for Windows
+```bash
+# Install Docker Desktop for Windows
+# Enable WSL2 backend for better performance
+# Configure for MCP server development workflow
+```
+
+### 2. Keycloak Auth MCP Server (First Priority)
+This will be the **first generated MCP server** - a perfect test case for the generation system:
+- Analyze your existing Keycloak setup
+- Generate TypeScript MCP server with Keycloak integration
+- Test authentication workflows
+- Use as foundation for auth in all future generated backends
+
+### 3. Initial mc-pea Framework
+- Basic MCP server structure for mc-pea itself
+- Self-analysis tool (analyze own package.json, tsconfig, etc.)
+- Simple MCP server template system
+- Repository management integration
+
+### 4. NAS CDN MCP Server (Second Priority)  
+- Integrate with your existing NAS setup
+- File upload/download/optimization tools
+- CDN URL generation and management
+- Storage quota and organization tools
+
+This creates your **initial ecosystem**:
+```
+mc-pea (conductor) 
+├── keycloak-auth-server (authentication)
+├── nas-cdn-server (file storage)  
+└── data-layer-server (existing - to be enhanced)
+```
+
+Would you like me to help you with the Docker setup first, or should we start designing the Keycloak Auth MCP server structure?
+
+## Prioritized Existing MCP Servers for Integration
+
+### Immediate High-Value Servers
+These existing servers should be integrated into the mc-pea ecosystem:
+
+#### 1. **File & Search Infrastructure**
+- **`mcp-everything-search`** 🪟 - Fast Windows file search using Everything SDK
+- **`mcp-server-opendal`** - Universal storage access (S3, NAS, local, etc.)
+- **`markitdown-mcp`** (Microsoft) - Convert any file format to Markdown
+
+#### 2. **Developer Workflow**
+- **`vscode-mcp-server`** - VS Code integration for reading/editing code
+- **`docker-mcp`** / **`mcp-server-docker`** - Container management
+- **`openapi-mcp-server`** - API specification management
+- **`postman-mcp-server`** - API testing and collection management
+
+#### 3. **Git & Repository Management**
+- **`github-mcp-server`** (Official) - GitHub operations
+- **`gitlab-mr-mcp`** - GitLab integration
+- **`git-mcp`** - Direct Git operations
+
+#### 4. **Infrastructure & Monitoring**
+- **`grafana-mcp`** (Official) - Dashboard and monitoring access
+- **`k8s-mcp-server`** - Kubernetes cluster management (multiple options)
+- **`aws-mcp-server`** - AWS operations
+
+#### 5. **Database Integration**
+- **`postgres-mcp`** (Multiple implementations available)
+- **`redis-mcp`** (Official Redis server)
+- **`sqlite-mcp`** - Local database operations
+
+### Integration Strategy for mc-pea
+
+#### Server Discovery & Management
+mc-pea should be able to:
+- **Discover** existing MCP servers in the ecosystem
+- **Analyze** their capabilities and tools
+- **Orchestrate** calls between multiple servers
+- **Generate new servers** that complement existing ones
+- **Avoid duplication** by leveraging existing functionality
+
+#### Example Workflow:
+```
+Frontend Analysis → mc-pea detects file upload needs →
+  Checks for existing file servers →
+  Finds mcp-server-opendal →
+  Generates backend that uses opendal server →
+  Configures integration with NAS storage
+```
+
+#### Consolidation Rules:
+- **Use existing servers** when they provide 80%+ of needed functionality
+- **Generate complementary servers** for domain-specific logic
+- **Create orchestrator servers** when complex workflows need multiple existing servers
+- **Avoid generating** servers that duplicate existing mature implementations
