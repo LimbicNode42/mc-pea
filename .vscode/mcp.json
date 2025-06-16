@@ -5,6 +5,12 @@
       "id": "github_token",
       "description": "GitHub Personal Access Token",
       "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "db_url",
+      "description": "Database URL",
+      "password": true
     }
   ],
   "servers": {
@@ -22,6 +28,17 @@
         "@modelcontextprotocol/server-filesystem",
         "D:\\HobbyProjects"
       ]
+    },    
+    "db": {
+      "command": "npx",
+      "args": [
+        "-y", 
+        "@modelcontextprotocol/client-stdio",
+        "${input:db_url}"
+      ],
+      "env": {
+        "DB_URL": "${input:db_url}"
+      }
     }
   }
 }
