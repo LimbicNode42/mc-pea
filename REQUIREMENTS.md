@@ -545,58 +545,134 @@ mc-pea (conductor)
 
 Would you like me to help you with the Docker setup first, or should we start designing the Keycloak Auth MCP server structure?
 
-## Prioritized Existing MCP Servers for Integration
+## Alternative Development Approaches (Docker-Free)
 
-### Immediate High-Value Servers
-These existing servers should be integrated into the mc-pea ecosystem:
+### 1. **Native MCP Server Execution**
+Most MCP servers are designed to run natively without containers:
 
-#### 1. **File & Search Infrastructure**
-- **`mcp-everything-search`** 🪟 - Fast Windows file search using Everything SDK
-- **`mcp-server-opendal`** - Universal storage access (S3, NAS, local, etc.)
-- **`markitdown-mcp`** (Microsoft) - Convert any file format to Markdown
-
-#### 2. **Developer Workflow**
-- **`vscode-mcp-server`** - VS Code integration for reading/editing code
-- **`docker-mcp`** / **`mcp-server-docker`** - Container management
-- **`openapi-mcp-server`** - API specification management
-- **`postman-mcp-server`** - API testing and collection management
-
-#### 3. **Git & Repository Management**
-- **`github-mcp-server`** (Official) - GitHub operations
-- **`gitlab-mr-mcp`** - GitLab integration
-- **`git-mcp`** - Direct Git operations
-
-#### 4. **Infrastructure & Monitoring**
-- **`grafana-mcp`** (Official) - Dashboard and monitoring access
-- **`k8s-mcp-server`** - Kubernetes cluster management (multiple options)
-- **`aws-mcp-server`** - AWS operations
-
-#### 5. **Database Integration**
-- **`postgres-mcp`** (Multiple implementations available)
-- **`redis-mcp`** (Official Redis server)
-- **`sqlite-mcp`** - Local database operations
-
-### Integration Strategy for mc-pea
-
-#### Server Discovery & Management
-mc-pea should be able to:
-- **Discover** existing MCP servers in the ecosystem
-- **Analyze** their capabilities and tools
-- **Orchestrate** calls between multiple servers
-- **Generate new servers** that complement existing ones
-- **Avoid duplication** by leveraging existing functionality
-
-#### Example Workflow:
-```
-Frontend Analysis → mc-pea detects file upload needs →
-  Checks for existing file servers →
-  Finds mcp-server-opendal →
-  Generates backend that uses opendal server →
-  Configures integration with NAS storage
+#### Node.js/TypeScript Servers
+```bash
+# Install and run MCP servers directly
+npm install -g some-mcp-server
+npx some-mcp-server --port 3000
 ```
 
-#### Consolidation Rules:
-- **Use existing servers** when they provide 80%+ of needed functionality
-- **Generate complementary servers** for domain-specific logic
-- **Create orchestrator servers** when complex workflows need multiple existing servers
-- **Avoid generating** servers that duplicate existing mature implementations
+#### Python Servers  
+```bash
+# Use virtual environments
+python -m venv mcp-env
+mcp-env\Scripts\activate
+pip install mcp-server-name
+python -m mcp_server_name
+```
+
+### 2. **Windows Services for Infrastructure**
+Instead of containerized services:
+- **PostgreSQL**: Install as Windows service
+- **Redis**: Windows native version available
+- **Keycloak**: Can run as standalone JAR
+- **Your NAS**: Already running externally
+
+### 3. **Development Orchestration Without Docker**
+
+#### Process Manager Approach
+```bash
+# Use a process manager like PM2 or supervisor
+npm install -g pm2
+
+# ecosystem.config.js
+module.exports = {
+  apps: [
+    { name: 'mc-pea-conductor', script: './src/conductor.js', port: 3000 },
+    { name: 'keycloak-mcp', script: './servers/keycloak/index.js', port: 3001 },
+    { name: 'file-mcp', script: './servers/files/index.js', port: 3002 },
+    { name: 'postgres-mcp', script: './servers/db/index.js', port: 3003 }
+  ]
+}
+
+pm2 start ecosystem.config.js
+```
+
+#### Network Configuration
+```yaml
+# Simple service discovery via config
+services:
+  conductor: http://localhost:3000
+  keycloak_mcp: http://localhost:3001  
+  file_mcp: http://localhost:3002
+  postgres_mcp: http://localhost:3003
+  keycloak_server: http://your-keycloak:8080
+  nas_storage: http://your-nas:9000
+```
+
+### 4. **WSL2 Alternative (Best of Both Worlds)**
+If you want container-like isolation without Docker Desktop:
+
+```bash
+# Install WSL2 (much lighter than Docker Desktop)
+wsl --install Ubuntu
+
+# Inside WSL2 - use native Linux tooling
+sudo apt install nodejs npm python3 postgresql-client
+# Run everything in Linux environment
+# Access Windows files via /mnt/c/
+```
+
+#### Benefits:
+- **Lightweight**: No Docker Desktop overhead
+- **Native Linux**: Better MCP server compatibility  
+- **File System**: Easy access to Windows files
+- **Network**: Simple localhost communication
+
+### 5. **Hybrid Approach: Essential Services Only**
+Run only critical infrastructure as services:
+
+```bash
+# Core services (one-time setup)
+- PostgreSQL (Windows service)
+- Redis (Windows service)  
+- Keycloak (standalone JAR)
+
+# MCP servers (development)
+- Run natively with hot reload
+- Easy debugging and iteration
+- Fast startup times
+```
+
+## Recommended Quick Start Path
+
+### Step 1: Install Core Infrastructure
+```bash
+# PostgreSQL (Windows installer)
+# Redis (Windows port)
+# Node.js LTS
+# Python 3.x
+```
+
+### Step 2: Clone and Test Existing MCP Server
+```bash
+git clone https://github.com/modelcontextprotocol/servers
+cd servers/src/filesystem
+npm install
+npm start
+# Test basic MCP functionality
+```
+
+### Step 3: Build First Custom Server (Keycloak)
+```bash
+# Create Keycloak MCP server
+mkdir keycloak-mcp-server
+cd keycloak-mcp-server
+npm init -y
+npm install @modelcontextprotocol/sdk
+# Implement Keycloak integration
+```
+
+### Step 4: Network Discovery
+```bash
+# Simple service registry
+echo '{"services": {"keycloak": "http://localhost:3001"}}' > services.json
+# MCP servers can read this for cross-communication
+```
+
+This approach gets you **running immediately** without Docker complexity, while still maintaining the microservices architecture you want for the full system.

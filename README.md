@@ -40,7 +40,40 @@ Frontend Repository → [Analysis Engine] → Backend Specification → [Generat
 
 This project is in the early planning stages. Contributions to requirements gathering, architecture design, and implementation are welcome!
 
-## 📄 License
+## � Quick Start (Docker-Free)
+
+For rapid local development without Docker hassles:
+
+### Option 1: Node.js MCP Servers (Recommended)
+```bash
+# Most MCP servers are Node.js/TypeScript - no containers needed
+npm install -g @modelcontextprotocol/server-filesystem
+npm install -g @modelcontextprotocol/server-github
+# Run directly on your machine
+```
+
+### Option 2: Python Virtual Environments
+```bash
+# Many servers available as Python packages
+pip install mcp-server-postgres
+pip install mcp-server-keycloak  # When we build it
+# Native execution, no virtualization
+```
+
+### Option 3: Windows Subsystem for Linux (WSL2)
+```bash
+# Lightweight Linux environment
+wsl --install
+# Better than Docker Desktop for development
+```
+
+### Cross-Service Communication
+- **HTTP APIs**: Direct service-to-service calls
+- **Shared File System**: Use Windows file sharing for data exchange
+- **Local Database**: PostgreSQL/Redis running as Windows services
+- **Message Queues**: Use local Redis for async communication
+
+## �📄 License
 
 [MIT License](LICENSE) - Feel free to use this for your own projects!
 
