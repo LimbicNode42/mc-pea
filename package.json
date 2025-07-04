@@ -1,0 +1,53 @@
+{
+  "name": "mc-pea-ecosystem",
+  "version": "1.0.0",
+  "description": "MC-PEA: MCP Backend Generator and Ecosystem Orchestrator",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:core": "npm run build -w packages/core",
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:orchestrator": "node tools/dev-server/start.js",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "publish:servers": "npm run publish --workspaces --if-present",
+    "import-server": "node tools/scripts/import-server.js",
+    "generate-server": "node tools/scripts/generate-server.js",
+    "start:ecosystem": "npm run dev:orchestrator"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "concurrently": "^8.0.0",
+    "nodemon": "^3.0.0",
+    "rimraf": "^5.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "winston": "^3.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/mc-pea.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "backend-generator",
+    "orchestration",
+    "microservices"
+  ],
+  "author": "MC-PEA Development Team",
+  "license": "MIT"
+}
