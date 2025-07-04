@@ -48,3 +48,6 @@ github-mcp-server/
 # Test outputs
 test-results/
 coverage/
+
+mcp.json
+mcp-servers.yml
