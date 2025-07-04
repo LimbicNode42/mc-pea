@@ -1,0 +1,3 @@
+[submodule "mcp-servers/auth-mcp-server"]
+	path = mcp-servers/auth-mcp-server
+	url = https://github.com/LimbicNode42/mike-cox-protracting.git
