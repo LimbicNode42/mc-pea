@@ -73,6 +73,61 @@ wsl --install
 - **Local Database**: PostgreSQL/Redis running as Windows services
 - **Message Queues**: Use local Redis for async communication
 
+## 🔐 Auth MCP Server Validation
+
+This repository includes an Auth MCP Server template that provides Keycloak and Infisical integration. To validate the deployed server:
+
+### Prerequisites
+1. Create a `.env` file with your configuration:
+```bash
+cp .env.example .env
+# Edit .env with your actual values:
+# AUTH_MCP_URL="https://your-auth-server.com/mcp"
+# AUTH_MCP_API_KEY="your-api-key"
+```
+
+### Validation Options
+
+**Option 1: Quick Node.js Validation**
+```bash
+node validate-auth-mcp-simple.js
+```
+
+**Option 2: Bash Script Validation**
+```bash
+chmod +x validate-auth-mcp.sh
+./validate-auth-mcp.sh
+```
+
+**Option 3: Manual cURL Tests**
+```bash
+# Load environment variables
+source .env
+
+# Test health endpoint (no auth)
+curl "${AUTH_MCP_URL%/mcp*}/health"
+
+# Test unauthenticated request (should return 401)
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","id":1}' \
+  "$AUTH_MCP_URL"
+
+# Test authenticated request (should work)
+curl -X POST -H "Content-Type: application/json" \
+  -H "API_KEY: $AUTH_MCP_API_KEY" \
+  -d '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"1.0","capabilities":{}}}' \
+  "$AUTH_MCP_URL"
+```
+
+### MCP Inspector Configuration
+
+For development with MCP Inspector, use the environment-based config:
+```bash
+# Copy the environment-based MCP config
+cp .vscode/mcp-env.json .vscode/mcp.json
+# Ensure AUTH_MCP_API_KEY is in your environment
+```
+
 ## �📄 License
 
 [MIT License](LICENSE) - Feel free to use this for your own projects!

@@ -5,14 +5,18 @@
  * Detailed debugging of the HTTP requests to understand why we're getting 404
  */
 
+// Load environment variables
+require('dotenv').config();
+
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 
 class HTTPDebugger {
     constructor() {
-        this.dbUrl = 'https://dbmcp.wheeler-network.com/mcp/';
-        this.authUrl = 'https://authmcp.wheeler-network.com/mcp/';
+        this.dbUrl = (process.env.DB_MCP_URL || 'http://localhost:8001/') + 'mcp';
+        this.authUrl = (process.env.AUTH_MCP_URL || 'http://localhost:8000/') + 'mcp';
+        this.authApiKey = process.env.AUTH_MCP_API_KEY;
     }
 
     async debugRequests() {
