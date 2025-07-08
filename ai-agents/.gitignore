@@ -1,0 +1,45 @@
+# AI Agents Specific Exclusions
+# (Core Python exclusions are handled in root .gitignore)
+
+# Local development
+.env.local
+.env.development
+
+# Agent-specific data
+agent_state/
+conversation_history/
+cached_responses/
+workflow_data/
+
+# Generated MCP servers (local development)
+output/
+generated/
+temp/
+tmp/
+
+# Streamlit specific
+.streamlit/
+
+# AI/ML models and data
+models/
+data/
+datasets/
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.pb
+*.onnx
+*.tflite
+
+# Local secrets (even though they should be in env vars)
+secrets.json
+api_keys.txt
+credentials.json
+.secrets/
+
+# Generated documentation
+docs/generated/
+
+# IDE and OS files (additional to root)
+*.code-workspace
