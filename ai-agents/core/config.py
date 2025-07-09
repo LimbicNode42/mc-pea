@@ -5,7 +5,7 @@ Supports dynamic configuration updates and hot reloading.
 
 import json
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -45,6 +45,217 @@ class AnthropicConfig:
     # Function calling configuration
     max_completion_tokens: Optional[int] = None  # Alternative to max_tokens
     response_format: Optional[dict] = None  # Format for the response
+
+
+@dataclass
+class AgentSpecificConfig:
+    """Agent-specific configuration that can override global settings."""
+    agent_type: str  # e.g., "mcp_generator", "validator", "analyzer", "orchestrator"
+    anthropic_overrides: Optional[Dict[str, Any]] = None  # Override specific Anthropic settings
+    max_iterations: Optional[int] = None  # Override global max iterations
+    verbose: Optional[bool] = None  # Override global verbose setting
+    allow_delegation: Optional[bool] = None  # Override global delegation setting
+    memory: Optional[bool] = None  # Override global memory setting
+    step_callback: Optional[str] = None  # Agent-specific callback
+    custom_settings: Optional[Dict[str, Any]] = None  # Agent-specific custom settings
+
+
+@dataclass
+class AgentProfilesConfig:
+    """Predefined agent profiles with optimized settings."""
+    # Agent profiles with different LLM configurations
+    profiles: Dict[str, AgentSpecificConfig] = None
+    
+    def __post_init__(self):
+        if self.profiles is None:
+            self.profiles = self._create_default_profiles()
+    
+    def _discover_agent_types(self) -> List[str]:
+        """Dynamically discover agent types from the agents directory."""
+        agents_dir = Path(__file__).parent.parent / "agents"
+        agent_types = []
+        
+        if agents_dir.exists():
+            for item in agents_dir.iterdir():
+                if (item.is_dir() and 
+                    not item.name.startswith('_') and 
+                    item.name != '__pycache__'):
+                    agent_types.append(item.name)
+        
+        # Fallback to known agent types if directory scan fails
+        if not agent_types:
+            agent_types = ["mcp_generator", "validator", "api_analyzer", "orchestrator"]
+        
+        return sorted(agent_types)
+    
+    def _get_default_config_for_agent(self, agent_type: str) -> AgentSpecificConfig:
+        """Get default configuration for a specific agent type."""
+        
+        # Predefined optimized configurations for known agent types
+        known_configs = {
+            "mcp_generator": AgentSpecificConfig(
+                agent_type="mcp_generator",
+                anthropic_overrides={
+                    "model": "claude-opus-4-20250514",  # Most capable for complex generation
+                    "temperature": 0.8,  # Higher creativity for code generation
+                    "max_tokens": 8000,  # Larger output for complete files
+                    "presence_penalty": 0.1,  # Slight penalty to avoid repetition
+                    "reasoning_effort": "high"  # Maximum reasoning for complex tasks
+                },
+                max_iterations=10,  # More iterations for complex generation
+                verbose=True,
+                allow_delegation=True,
+                memory=True
+            ),
+            "validator": AgentSpecificConfig(
+                agent_type="validator",
+                anthropic_overrides={
+                    "model": "claude-3-5-haiku-20241022",  # Fast and efficient for validation
+                    "temperature": 0.2,  # Low temperature for consistent validation
+                    "max_tokens": 2000,  # Smaller output for validation reports
+                    "reasoning_effort": "medium"  # Balanced reasoning for checks
+                },
+                max_iterations=3,  # Quick validation cycles
+                verbose=False,
+                allow_delegation=False,
+                memory=False
+            ),
+            "api_analyzer": AgentSpecificConfig(
+                agent_type="api_analyzer",
+                anthropic_overrides={
+                    "model": "claude-3-5-sonnet-20241022",  # Balanced for analysis
+                    "temperature": 0.5,  # Moderate creativity for analysis
+                    "max_tokens": 4000,  # Medium output for analysis reports
+                    "reasoning_effort": "medium"
+                },
+                max_iterations=5,
+                verbose=True,
+                allow_delegation=False,
+                memory=True
+            ),
+            "orchestrator": AgentSpecificConfig(
+                agent_type="orchestrator",
+                anthropic_overrides={
+                    "model": "claude-sonnet-4-20250514",  # Latest model for coordination
+                    "temperature": 0.3,  # Lower temperature for consistent coordination
+                    "max_tokens": 3000,  # Medium output for coordination tasks
+                    "reasoning_effort": "high"  # High reasoning for orchestration decisions
+                },
+                max_iterations=8,
+                verbose=True,
+                allow_delegation=True,
+                memory=True
+            )
+        }
+        
+        # Return predefined config if available, otherwise create a sensible default
+        if agent_type in known_configs:
+            return known_configs[agent_type]
+        else:
+            # Create default config for unknown agent types
+            return self._create_default_agent_config(agent_type)
+    
+    def _create_default_agent_config(self, agent_type: str) -> AgentSpecificConfig:
+        """Create a sensible default configuration for unknown agent types."""
+        
+        # Determine default settings based on agent type patterns
+        if "generator" in agent_type.lower() or "creator" in agent_type.lower():
+            # Generator-type agents need more creativity and output capacity
+            default_config = {
+                "model": "claude-3-5-sonnet-20241022",
+                "temperature": 0.7,
+                "max_tokens": 6000,
+                "reasoning_effort": "high"
+            }
+            max_iterations = 8
+            verbose = True
+            allow_delegation = True
+            memory = True
+        elif "validator" in agent_type.lower() or "checker" in agent_type.lower():
+            # Validator-type agents need consistency and speed
+            default_config = {
+                "model": "claude-3-5-haiku-20241022",
+                "temperature": 0.2,
+                "max_tokens": 2000,
+                "reasoning_effort": "medium"
+            }
+            max_iterations = 3
+            verbose = False
+            allow_delegation = False
+            memory = False
+        elif "analyzer" in agent_type.lower() or "parser" in agent_type.lower():
+            # Analyzer-type agents need balanced capabilities
+            default_config = {
+                "model": "claude-3-5-sonnet-20241022",
+                "temperature": 0.4,
+                "max_tokens": 4000,
+                "reasoning_effort": "medium"
+            }
+            max_iterations = 5
+            verbose = True
+            allow_delegation = False
+            memory = True
+        elif "orchestrator" in agent_type.lower() or "coordinator" in agent_type.lower():
+            # Orchestrator-type agents need high reasoning for coordination
+            default_config = {
+                "model": "claude-sonnet-4-20250514",
+                "temperature": 0.3,
+                "max_tokens": 3000,
+                "reasoning_effort": "high"
+            }
+            max_iterations = 8
+            verbose = True
+            allow_delegation = True
+            memory = True
+        else:
+            # Generic default for unknown agent types
+            default_config = {
+                "model": "claude-3-5-sonnet-20241022",
+                "temperature": 0.5,
+                "max_tokens": 4000,
+                "reasoning_effort": "medium"
+            }
+            max_iterations = 5
+            verbose = True
+            allow_delegation = False
+            memory = True
+        
+        return AgentSpecificConfig(
+            agent_type=agent_type,
+            anthropic_overrides=default_config,
+            max_iterations=max_iterations,
+            verbose=verbose,
+            allow_delegation=allow_delegation,
+            memory=memory
+        )
+    
+    def _create_default_profiles(self) -> Dict[str, AgentSpecificConfig]:
+        """Create default profiles for all discovered agent types."""
+        discovered_agents = self._discover_agent_types()
+        profiles = {}
+        
+        for agent_type in discovered_agents:
+            profiles[agent_type] = self._get_default_config_for_agent(agent_type)
+        
+        return profiles
+    
+    def add_agent_profile(self, agent_type: str) -> AgentSpecificConfig:
+        """Add a new agent profile for a newly discovered agent type."""
+        if agent_type not in self.profiles:
+            self.profiles[agent_type] = self._get_default_config_for_agent(agent_type)
+        return self.profiles[agent_type]
+    
+    def refresh_profiles(self) -> bool:
+        """Refresh profiles to include any newly discovered agent types."""
+        discovered_agents = self._discover_agent_types()
+        updated = False
+        
+        for agent_type in discovered_agents:
+            if agent_type not in self.profiles:
+                self.profiles[agent_type] = self._get_default_config_for_agent(agent_type)
+                updated = True
+        
+        return updated
 
 
 @dataclass
@@ -111,6 +322,7 @@ class MCPEAConfig:
     validation: ValidationConfig
     generation: GenerationConfig
     ui: UIConfig
+    agent_profiles: AgentProfilesConfig
     
     # Metadata
     version: str = "1.0.0"
@@ -120,6 +332,57 @@ class MCPEAConfig:
     def __post_init__(self):
         if not self.last_updated:
             self.last_updated = datetime.now().isoformat()
+        if self.agent_profiles is None:
+            self.agent_profiles = AgentProfilesConfig()
+    
+    def get_agent_config(self, agent_type: str) -> Dict[str, Any]:
+        """Get effective configuration for a specific agent type."""
+        # Ensure the agent profile exists (auto-create if new agent discovered)
+        if agent_type not in self.agent_profiles.profiles:
+            self.agent_profiles.add_agent_profile(agent_type)
+        
+        # Start with global settings
+        base_config = {
+            "anthropic": asdict(self.anthropic),
+            "agent": asdict(self.agent)
+        }
+        
+        # Apply agent-specific overrides if they exist
+        if agent_type in self.agent_profiles.profiles:
+            profile = self.agent_profiles.profiles[agent_type]
+            
+            # Override Anthropic settings
+            if profile.anthropic_overrides:
+                base_config["anthropic"].update(profile.anthropic_overrides)
+            
+            # Override agent settings
+            agent_overrides = {}
+            if profile.max_iterations is not None:
+                agent_overrides["max_iterations"] = profile.max_iterations
+            if profile.verbose is not None:
+                agent_overrides["verbose"] = profile.verbose
+            if profile.allow_delegation is not None:
+                agent_overrides["allow_delegation"] = profile.allow_delegation
+            if profile.memory is not None:
+                agent_overrides["memory"] = profile.memory
+            if profile.step_callback is not None:
+                agent_overrides["step_callback"] = profile.step_callback
+                
+            base_config["agent"].update(agent_overrides)
+            
+            # Add custom settings
+            if profile.custom_settings:
+                base_config["custom"] = profile.custom_settings
+        
+        return base_config
+    
+    def refresh_agent_profiles(self) -> bool:
+        """Refresh agent profiles to include any newly discovered agent types."""
+        return self.agent_profiles.refresh_profiles()
+    
+    def get_available_agent_types(self) -> List[str]:
+        """Get list of all available agent types (discovered + configured)."""
+        return list(self.agent_profiles.profiles.keys())
 
 
 class ConfigManager:
@@ -145,6 +408,7 @@ class ConfigManager:
                     validation=ValidationConfig(**data.get('validation', {})),
                     generation=GenerationConfig(**data.get('generation', {})),
                     ui=UIConfig(**data.get('ui', {})),
+                    agent_profiles=AgentProfilesConfig(),  # Always use defaults for profiles
                     version=data.get('version', '1.0.0'),
                     last_updated=data.get('last_updated', ''),
                     config_file_path=str(self.config_path)
@@ -167,6 +431,7 @@ class ConfigManager:
             validation=ValidationConfig(),
             generation=GenerationConfig(),
             ui=UIConfig(),
+            agent_profiles=AgentProfilesConfig(),
             config_file_path=str(self.config_path)
         )
         self.save_config(config)
@@ -188,6 +453,7 @@ class ConfigManager:
                 'validation': asdict(config.validation),
                 'generation': asdict(config.generation),
                 'ui': asdict(config.ui),
+                'agent_profiles': asdict(config.agent_profiles),
                 'version': config.version,
                 'last_updated': config.last_updated,
                 'config_file_path': config.config_file_path

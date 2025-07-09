@@ -63,7 +63,72 @@
     "auto_refresh_interval": 5,
     "enable_hot_reload": true
   },
+  "agent_profiles": {
+    "profiles": {
+      "api_analyzer": {
+        "agent_type": "api_analyzer",
+        "anthropic_overrides": {
+          "model": "claude-3-5-sonnet-20241022",
+          "temperature": 0.5,
+          "max_tokens": 4000,
+          "reasoning_effort": "medium"
+        },
+        "max_iterations": 5,
+        "verbose": true,
+        "allow_delegation": false,
+        "memory": true,
+        "step_callback": null,
+        "custom_settings": null
+      },
+      "mcp_generator": {
+        "agent_type": "mcp_generator",
+        "anthropic_overrides": {
+          "model": "claude-opus-4-20250514",
+          "temperature": 0.8,
+          "max_tokens": 8000,
+          "presence_penalty": 0.1,
+          "reasoning_effort": "high"
+        },
+        "max_iterations": 10,
+        "verbose": true,
+        "allow_delegation": true,
+        "memory": true,
+        "step_callback": null,
+        "custom_settings": null
+      },
+      "orchestrator": {
+        "agent_type": "orchestrator",
+        "anthropic_overrides": {
+          "model": "claude-sonnet-4-20250514",
+          "temperature": 0.3,
+          "max_tokens": 3000,
+          "reasoning_effort": "high"
+        },
+        "max_iterations": 8,
+        "verbose": true,
+        "allow_delegation": true,
+        "memory": true,
+        "step_callback": null,
+        "custom_settings": null
+      },
+      "validator": {
+        "agent_type": "validator",
+        "anthropic_overrides": {
+          "model": "claude-3-5-haiku-20241022",
+          "temperature": 0.2,
+          "max_tokens": 2000,
+          "reasoning_effort": "medium"
+        },
+        "max_iterations": 3,
+        "verbose": false,
+        "allow_delegation": false,
+        "memory": false,
+        "step_callback": null,
+        "custom_settings": null
+      }
+    }
+  },
   "version": "1.0.0",
-  "last_updated": "2025-07-09T22:19:59.509055",
+  "last_updated": "2025-07-09T23:17:41.879222",
   "config_file_path": "config.json"
 }

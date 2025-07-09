@@ -6,7 +6,7 @@ Provides real-time configuration editing and hot reload functionality.
 import streamlit as st
 import json
 from typing import Dict, Any
-from core.config import get_config_manager, MCPEAConfig
+from core.config import get_config_manager, MCPEAConfig, AgentProfilesConfig
 
 
 def render_config_panel():
@@ -40,7 +40,7 @@ def render_config_panel():
     show_advanced = st.sidebar.checkbox(
         "Show Advanced Options", 
         value=config.ui.show_advanced_options,
-        help="Show all configuration options"
+        help="Show all configuration options including agent profiles, workflow settings, and UI customization"
     )
     
     if show_advanced != config.ui.show_advanced_options:
@@ -49,25 +49,40 @@ def render_config_panel():
         })
         st.rerun()
     
-    # Configuration sections
-    config_sections = {
+    # Show info about what advanced options unlock
+    if not show_advanced:
+        st.sidebar.info("💡 Enable **Advanced Options** to access:\n- 🎯 Agent Profiles\n- 🔄 Workflow Settings\n- 🎨 UI Customization")
+    
+    # Configuration sections - basic sections always shown
+    basic_sections = {
         "🤖 Anthropic API": render_anthropic_config,
         "👥 Agent Settings": render_agent_config,
-        "🔄 Workflow": render_workflow_config,
         "✅ Validation": render_validation_config,
         "🏗️ Generation": render_generation_config,
+    }
+    
+    # Advanced sections only shown when advanced options are enabled
+    advanced_sections = {
+        "🎯 Agent Profiles": render_agent_profiles_config,
+        "🔄 Workflow": render_workflow_config,
         "🎨 UI Settings": render_ui_config
     }
     
-    # Render each configuration section
-    for section_name, render_func in config_sections.items():
+    # Render basic configuration sections
+    for section_name, render_func in basic_sections.items():
         with st.sidebar.expander(section_name, expanded=False):
             render_func(config, show_advanced)
+    
+    # Render advanced configuration sections only if advanced options are enabled
+    if show_advanced:
+        for section_name, render_func in advanced_sections.items():
+            with st.sidebar.expander(section_name, expanded=False):
+                render_func(config, show_advanced)
     
     # Export/Import configuration
     if show_advanced:
         with st.sidebar.expander("📁 Import/Export", expanded=False):
-            render_import_export(config_manager)
+            st.info("Import/Export functionality coming soon!")
 
 
 def render_anthropic_config(config: MCPEAConfig, show_advanced: bool):
@@ -332,6 +347,209 @@ def render_agent_config(config: MCPEAConfig, show_advanced: bool):
     # Apply updates
     if updates:
         get_config_manager().update_config({"agent": updates})
+
+
+def render_agent_profiles_config(config: MCPEAConfig, show_advanced: bool):
+    """Render agent-specific profile configuration options."""
+    
+    # Show info about advanced feature
+    st.info("🎯 **Agent Profiles** - Advanced per-agent configuration overrides for fine-tuned control")
+    
+    # Agent discovery and refresh section
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        st.markdown("**Agent Profile Configuration**")
+    
+    with col2:
+        if st.button("🔄 Refresh Agents", help="Scan for new agent types in the agents directory"):
+            if config.refresh_agent_profiles():
+                get_config_manager().save_config()
+                st.success("Found new agent types!")
+                st.rerun()
+            else:
+                st.info("No new agent types found")
+    
+    # Show discovered agent types
+    available_agents = config.get_available_agent_types()
+    st.markdown(f"**Discovered Agent Types:** {', '.join(available_agents)}")
+    
+    # Agent type selection
+    selected_agent = st.selectbox(
+        "Agent Type",
+        options=available_agents,
+        help="Select an agent type to view and modify its specific configuration"
+    )
+    
+    if selected_agent:
+        profile = config.agent_profiles.profiles[selected_agent]
+        st.markdown(f"**Configuration for {selected_agent.replace('_', ' ').title()} Agent**")
+        
+        # Show if this is a known/optimized profile or auto-generated default
+        if selected_agent in ["mcp_generator", "validator", "api_analyzer", "orchestrator"]:
+            st.info("✅ This is an optimized profile with predefined settings")
+        else:
+            st.warning("⚠️ This is an auto-generated default profile. Consider customizing for optimal performance.")
+        
+        # Show effective configuration preview
+        effective_config = config.get_agent_config(selected_agent)
+        
+        with st.expander("📊 Effective Configuration Preview", expanded=False):
+            st.json(effective_config)
+        
+        # Anthropic overrides section
+        with st.expander("🤖 Model Settings", expanded=True):
+            updates = {}
+            
+            # Model override
+            current_model = profile.anthropic_overrides.get("model", config.anthropic.model) if profile.anthropic_overrides else config.anthropic.model
+            model_options = [
+                "claude-opus-4-20250514",
+                "claude-sonnet-4-20250514", 
+                "claude-3-5-sonnet-20241022",
+                "claude-3-5-haiku-20241022",
+                "claude-3-opus-20240229",
+                "claude-3-sonnet-20240229",
+                "claude-3-haiku-20240307"
+            ]
+            
+            new_model = st.selectbox(
+                f"Model (Override)",
+                options=["Use Global Setting"] + model_options,
+                index=0 if current_model == config.anthropic.model else model_options.index(current_model) + 1,
+                help=f"Override global model setting for {selected_agent}"
+            )
+            
+            if new_model != "Use Global Setting":
+                if not profile.anthropic_overrides:
+                    profile.anthropic_overrides = {}
+                profile.anthropic_overrides["model"] = new_model
+                updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+            elif profile.anthropic_overrides and "model" in profile.anthropic_overrides:
+                del profile.anthropic_overrides["model"]
+                updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+            
+            # Temperature override
+            current_temp = profile.anthropic_overrides.get("temperature", config.anthropic.temperature) if profile.anthropic_overrides else config.anthropic.temperature
+            use_global_temp = st.checkbox("Use Global Temperature", value=(profile.anthropic_overrides is None or "temperature" not in profile.anthropic_overrides))
+            
+            if not use_global_temp:
+                new_temp = st.slider(
+                    "Temperature (Override)",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=current_temp,
+                    step=0.1,
+                    help=f"Temperature override for {selected_agent}"
+                )
+                if not profile.anthropic_overrides:
+                    profile.anthropic_overrides = {}
+                profile.anthropic_overrides["temperature"] = new_temp
+                updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+            elif profile.anthropic_overrides and "temperature" in profile.anthropic_overrides:
+                del profile.anthropic_overrides["temperature"]
+                updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+            
+            # Max tokens override
+            current_max_tokens = profile.anthropic_overrides.get("max_tokens", config.anthropic.max_tokens) if profile.anthropic_overrides else config.anthropic.max_tokens
+            use_global_tokens = st.checkbox("Use Global Max Tokens", value=(profile.anthropic_overrides is None or "max_tokens" not in profile.anthropic_overrides))
+            
+            if not use_global_tokens:
+                new_max_tokens = st.number_input(
+                    "Max Tokens (Override)",
+                    min_value=100,
+                    max_value=8192,
+                    value=current_max_tokens,
+                    step=100,
+                    help=f"Max tokens override for {selected_agent}"
+                )
+                if not profile.anthropic_overrides:
+                    profile.anthropic_overrides = {}
+                profile.anthropic_overrides["max_tokens"] = int(new_max_tokens)
+                updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+            elif profile.anthropic_overrides and "max_tokens" in profile.anthropic_overrides:
+                del profile.anthropic_overrides["max_tokens"]
+                updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+        
+        # Agent behavior overrides section
+        with st.expander("👥 Agent Behavior", expanded=True):
+            # Max iterations override
+            use_global_iterations = st.checkbox("Use Global Max Iterations", value=(profile.max_iterations is None))
+            
+            if not use_global_iterations:
+                new_max_iterations = st.slider(
+                    "Max Iterations (Override)",
+                    min_value=1,
+                    max_value=20,
+                    value=profile.max_iterations or config.agent.max_iterations,
+                    step=1,
+                    help=f"Max iterations override for {selected_agent}"
+                )
+                profile.max_iterations = new_max_iterations
+                updates[f"agent_profiles.profiles.{selected_agent}.max_iterations"] = new_max_iterations
+            else:
+                profile.max_iterations = None
+                updates[f"agent_profiles.profiles.{selected_agent}.max_iterations"] = None
+            
+            # Verbose override
+            use_global_verbose = st.checkbox("Use Global Verbose Setting", value=(profile.verbose is None))
+            
+            if not use_global_verbose:
+                new_verbose = st.checkbox(
+                    "Verbose Mode (Override)",
+                    value=profile.verbose if profile.verbose is not None else config.agent.verbose,
+                    help=f"Verbose mode override for {selected_agent}"
+                )
+                profile.verbose = new_verbose
+                updates[f"agent_profiles.profiles.{selected_agent}.verbose"] = new_verbose
+            else:
+                profile.verbose = None
+                updates[f"agent_profiles.profiles.{selected_agent}.verbose"] = None
+        
+        # Advanced settings for specific agent types
+        if show_advanced:
+            with st.expander("⚙️ Advanced Settings", expanded=False):
+                # Reasoning effort (Claude-specific)
+                if profile.anthropic_overrides:
+                    current_reasoning = profile.anthropic_overrides.get("reasoning_effort", "none")
+                    reasoning_options = ["none", "low", "medium", "high"]
+                    new_reasoning = st.selectbox(
+                        "Reasoning Effort",
+                        options=reasoning_options,
+                        index=reasoning_options.index(current_reasoning),
+                        help=f"Reasoning effort level for {selected_agent}"
+                    )
+                    profile.anthropic_overrides["reasoning_effort"] = new_reasoning
+                    updates[f"agent_profiles.profiles.{selected_agent}.anthropic_overrides"] = profile.anthropic_overrides
+                
+                # Custom settings
+                st.markdown("**Custom Settings (JSON)**")
+                custom_json = st.text_area(
+                    "Custom Settings",
+                    value=json.dumps(profile.custom_settings or {}, indent=2),
+                    help="Agent-specific custom settings in JSON format"
+                )
+                
+                try:
+                    new_custom = json.loads(custom_json) if custom_json.strip() else {}
+                    if new_custom != (profile.custom_settings or {}):
+                        profile.custom_settings = new_custom
+                        updates[f"agent_profiles.profiles.{selected_agent}.custom_settings"] = new_custom
+                except json.JSONDecodeError as e:
+                    st.error(f"Invalid JSON in custom settings: {e}")
+        
+        # Reset to defaults button
+        if st.button(f"🔄 Reset {selected_agent} to Defaults"):
+            # Reset the profile to its default configuration
+            config.agent_profiles.profiles[selected_agent] = config.agent_profiles._get_default_config_for_agent(selected_agent)
+            get_config_manager().save_config()
+            st.success(f"Reset {selected_agent} configuration to defaults")
+            st.rerun()
+        
+        # Apply updates if any
+        if updates:
+            # For complex nested updates, we need to update the config directly
+            get_config_manager().save_config()
 
 
 def render_workflow_config(config: MCPEAConfig, show_advanced: bool):
@@ -604,100 +822,3 @@ def render_ui_config(config: MCPEAConfig, show_advanced: bool):
             index=sidebar_options.index(config.ui.sidebar_state) if config.ui.sidebar_state in sidebar_options else 1,
             help="Default sidebar state"
         )
-        
-        if new_sidebar_state != config.ui.sidebar_state:
-            updates["sidebar_state"] = new_sidebar_state
-        
-        # Auto refresh interval
-        new_refresh_interval = st.number_input(
-            "Auto Refresh (seconds)",
-            min_value=1,
-            max_value=60,
-            value=config.ui.auto_refresh_interval,
-            step=1,
-            help="Auto refresh interval for real-time updates"
-        )
-        
-        if new_refresh_interval != config.ui.auto_refresh_interval:
-            updates["auto_refresh_interval"] = int(new_refresh_interval)
-        
-        # Enable hot reload
-        new_hot_reload = st.checkbox(
-            "Enable Hot Reload",
-            value=config.ui.enable_hot_reload,
-            help="Enable hot reloading of configuration changes"
-        )
-        
-        if new_hot_reload != config.ui.enable_hot_reload:
-            updates["enable_hot_reload"] = new_hot_reload
-    
-    # Apply updates
-    if updates:
-        get_config_manager().update_config({"ui": updates})
-
-
-def render_import_export(config_manager):
-    """Render import/export configuration options."""
-    
-    st.markdown("**Export Configuration**")
-    
-    export_name = st.text_input(
-        "Export Filename",
-        value="mc-pea-config-export.json",
-        help="Filename for exported configuration"
-    )
-    
-    if st.button("📥 Export Config"):
-        try:
-            if config_manager.export_config(export_name):
-                st.success(f"Configuration exported to {export_name}")
-            else:
-                st.error("Failed to export configuration")
-        except Exception as e:
-            st.error(f"Export error: {str(e)}")
-    
-    st.markdown("**Import Configuration**")
-    
-    uploaded_file = st.file_uploader(
-        "Choose config file",
-        type=['json'],
-        help="Upload a JSON configuration file"
-    )
-    
-    if uploaded_file is not None:
-        if st.button("📤 Import Config"):
-            try:
-                # Save uploaded file temporarily
-                temp_path = f"temp_{uploaded_file.name}"
-                with open(temp_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                
-                # Import configuration
-                if config_manager.import_config(temp_path):
-                    st.success("Configuration imported successfully!")
-                    st.rerun()
-                else:
-                    st.error("Failed to import configuration")
-                
-                # Clean up temp file
-                import os
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                    
-            except Exception as e:
-                st.error(f"Import error: {str(e)}")
-    
-    # Show current config as JSON
-    st.markdown("**Current Configuration**")
-    with st.expander("View JSON", expanded=False):
-        config_dict = {
-            'anthropic': config_manager.config.anthropic.__dict__,
-            'agent': config_manager.config.agent.__dict__,
-            'workflow': config_manager.config.workflow.__dict__,
-            'validation': config_manager.config.validation.__dict__,
-            'generation': config_manager.config.generation.__dict__,
-            'ui': config_manager.config.ui.__dict__,
-            'version': config_manager.config.version,
-            'last_updated': config_manager.config.last_updated
-        }
-        st.json(config_dict)
