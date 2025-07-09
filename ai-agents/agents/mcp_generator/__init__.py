@@ -10,9 +10,10 @@ from anthropic import Anthropic
 from crewai import Task
 from pydantic import BaseModel, Field
 
-from ...core.base_agent import AgentConfig, AgentMessage, AgentResult, BaseAgent
-from ...tools.file_operations import FileOperations
-from ...tools.mcp_validators import MCPValidator
+from core.base_agent import AgentConfig, AgentMessage, AgentResult, BaseAgent
+from core.config import get_config, MCPEAConfig
+from tools.file_operations import FileOperations
+from tools.mcp_validators import MCPValidator
 
 
 class ServerSpecification(BaseModel):
@@ -48,31 +49,47 @@ class MCPServerGeneratorAgent(BaseAgent):
         config: Optional[AgentConfig] = None,
         logger: Optional[logging.Logger] = None,
     ):
-        """Initialize the MCP server generator agent.
-        
-        Args:
-            anthropic_client: Anthropic client for AI interactions
-            config: Agent configuration
-            logger: Logger instance
-        """
+        # Use provided config or create default
         if config is None:
             config = AgentConfig(
                 name="mcp_generator",
-                role="MCP Server Generator",
-                goal="Generate production-ready MCP servers from specifications",
-                backstory="Expert TypeScript developer specializing in MCP protocol implementation",
+                role="MCP Server Code Generator",
+                goal="Generate production-ready MCP server code from API specifications",
+                backstory="""
+                You are an expert TypeScript developer specializing in the Model Context Protocol (MCP).
+                You have deep knowledge of MCP server architecture, TypeScript best practices, and
+                can generate clean, efficient, and well-documented code that follows MCP standards.
+                """
             )
         
         super().__init__(config, anthropic_client, logger)
         
         # Initialize tools
         self.file_ops = FileOperations()
-        self.mcp_validator = MCPValidator()
+        self.validator = MCPValidator()
         
-        # Template paths
-        self.template_path = Path("../templates/mcp-server-template")
-        self.output_path = Path("./generated_servers")
-        self.output_path.mkdir(exist_ok=True)
+        # Register for configuration updates
+        self.register_config_callback(self._on_generator_config_update)
+    
+    def _on_generator_config_update(self, new_config: MCPEAConfig) -> None:
+        """Handle generator-specific configuration updates.
+        
+        Args:
+            new_config: Updated configuration
+        """
+        # Update generation settings
+        self.generation_config = new_config.generation
+        
+        # Update validation requirements
+        self.validation_config = new_config.validation
+        
+        # Update Anthropic settings
+        self.anthropic_config = new_config.anthropic
+        
+        self.logger.info("MCP Generator configuration updated")
+        self.logger.info(f"Template usage: {self.generation_config.use_templates}")
+        self.logger.info(f"Output directory: {self.generation_config.output_directory}")
+        self.logger.info(f"Auto validation: {self.validation_config.auto_validate}")
     
     def get_tools(self) -> List[Any]:
         """Get tools available to this agent."""

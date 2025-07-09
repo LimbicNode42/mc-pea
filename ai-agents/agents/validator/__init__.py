@@ -9,9 +9,9 @@ import tempfile
 import os
 from typing import Dict, Any, List, Optional
 from pathlib import Path
-from ...core.base_agent import BaseAgent
-from ...tools.file_operations import FileOperations
-from ...tools.mcp_validators import MCPValidators
+from core.base_agent import BaseAgent
+from tools.file_operations import FileOperations
+from tools.mcp_validators import MCPValidator
 
 
 class ValidatorAgent(BaseAgent):
@@ -20,7 +20,7 @@ class ValidatorAgent(BaseAgent):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.file_ops = FileOperations()
-        self.mcp_validators = MCPValidators()
+        self.mcp_validators = MCPValidator()
         self.validation_cache = {}
     
     async def validate_mcp_server(self, server_path: str, validation_config: Dict[str, Any] = None) -> Dict[str, Any]:

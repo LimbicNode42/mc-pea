@@ -5,9 +5,19 @@ MCP Server Development Workflows using CrewAI.
 from typing import Dict, Any, List, Optional
 from crewai import Agent, Task, Crew
 from crewai.process import Process
-from ..tools.anthropic_client import AnthropicClient
-from ..tools.file_operations import FileOperations
-from ..tools.mcp_validators import MCPValidators
+
+try:
+    from tools.anthropic_client import AnthropicClientWrapper
+    from tools.file_operations import FileOperations
+    from tools.mcp_validators import MCPValidator
+except ImportError:
+    # Mock classes for when tools aren't available
+    class AnthropicClientWrapper:
+        def __init__(self): pass
+    class FileOperations:
+        def __init__(self): pass
+    class MCPValidator:
+        def __init__(self): pass
 
 
 class MCPDevelopmentWorkflows:
@@ -15,9 +25,9 @@ class MCPDevelopmentWorkflows:
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.anthropic_client = AnthropicClient()
+        self.anthropic_client = AnthropicClientWrapper()
         self.file_ops = FileOperations()
-        self.validators = MCPValidators()
+        self.validators = MCPValidator()
         
         # Initialize tools
         self.tools = self._initialize_tools()

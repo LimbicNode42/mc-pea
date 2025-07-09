@@ -1,7 +1,7 @@
 """Core AI agent framework components."""
 
-from .base_agent import BaseAgent
-from .message_bus import MessageBus
-from .state_manager import StateManager
+from core.base_agent import BaseAgent
+from core.message_bus import MessageBus
+from core.state_manager import StateManager
 
 __all__ = ["BaseAgent", "MessageBus", "StateManager"]

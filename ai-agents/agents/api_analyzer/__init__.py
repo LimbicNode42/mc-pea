@@ -7,17 +7,52 @@ import json
 from typing import Dict, Any, List, Optional
 from urllib.parse import urlparse
 import requests
-from ...core.base_agent import BaseAgent
-from ...tools.anthropic_client import AnthropicClient
+from core.base_agent import BaseAgent, AgentConfig
+from core.config import get_config, MCPEAConfig
+from tools.anthropic_client import AnthropicClientWrapper
 
 
 class APIAnalyzerAgent(BaseAgent):
     """Agent that analyzes external APIs and generates MCP server specifications."""
     
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__(config)
-        self.anthropic_client = AnthropicClient()
+    def __init__(self, anthropic_client=None):
+        # Create agent config
+        agent_config = AgentConfig(
+            name="api_analyzer",
+            role="API Analysis Specialist",
+            goal="Analyze external APIs and generate comprehensive MCP server specifications",
+            backstory="""
+            You are an expert API analyst with deep knowledge of RESTful services, authentication methods,
+            and data structures. You excel at understanding API documentation and translating complex
+            API capabilities into clear MCP server specifications.
+            """
+        )
+        
+        super().__init__(agent_config, anthropic_client)
         self.analysis_cache = {}
+        
+        # Register for configuration updates
+        self.register_config_callback(self._on_analyzer_config_update)
+    
+    def _on_analyzer_config_update(self, new_config: MCPEAConfig) -> None:
+        """Handle analyzer-specific configuration updates.
+        
+        Args:
+            new_config: Updated configuration
+        """
+        # Update Anthropic client settings for API analysis
+        if hasattr(new_config, 'anthropic'):
+            self.anthropic_config = new_config.anthropic
+        
+        self.logger.info("API Analyzer configuration updated")
+    
+    def get_tools(self) -> List[Any]:
+        """Get tools available to this agent.
+        
+        Returns:
+            List of tools for API analysis
+        """
+        return []  # API analyzer uses external tools and HTTP requests
     
     async def analyze_api(self, api_spec: Dict[str, Any]) -> Dict[str, Any]:
         """

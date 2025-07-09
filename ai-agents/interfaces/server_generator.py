@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import sys
 import time
 from typing import Any, Dict, List, Optional
 
@@ -12,9 +13,36 @@ import streamlit as st
 from streamlit.runtime.caching import cache_data
 from dotenv import load_dotenv
 
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # Import AI agents and workflows
-from ..workflows.mcp_development import MCPDevelopmentWorkflows
-from ..agents.orchestrator import OrchestratorAgent
+try:
+    # from workflows.mcp_development import MCPDevelopmentWorkflows
+    from agents.orchestrator.orchestrator import OrchestratorAgent
+    from core.config import get_config_manager, get_config
+    from interfaces.config_panel import render_config_panel
+    print("✅ Successfully imported all modules")
+    IMPORTS_AVAILABLE = True
+except ImportError as e:
+    print(f"❌ Import error: {e}")
+    # If running directly, mock these for now
+    # MCPDevelopmentWorkflows = None
+    OrchestratorAgent = None
+    IMPORTS_AVAILABLE = False
+    
+    def get_config_manager():
+        return None
+    
+    def get_config():
+        return {}
+    
+    def render_config_panel():
+        st.sidebar.write("Config panel not available")
+        st.sidebar.error(f"Import failed: {e}")
+        st.sidebar.write("Debug info:")
+        st.sidebar.code(f"Error: {e}")
+        return None
 
 # Configure page
 st.set_page_config(
@@ -159,239 +187,354 @@ def create_progress_chart(progress_data: Dict[str, float]) -> go.Figure:
 
 def main():
     """Main Streamlit application."""
+    import os
     
     # Load environment variables from .env file
     load_dotenv()
     
-    # Header
+    # Get configuration and apply UI settings
+    config = get_config()
+    if config and hasattr(config, 'ui'):
+        # Note: set_page_config must be called before other Streamlit commands
+        # So we can only apply some settings after initial page setup
+        pass
+    
+    # Render configuration panel in sidebar first
+    if IMPORTS_AVAILABLE:
+        render_config_panel()
+    else:
+        with st.sidebar:
+            st.error("Config panel unavailable")
+            st.write("Import error occurred. Please check the console for details.")
+            st.write("Current directory structure:")
+            try:
+                import os
+                current_dir = os.getcwd()
+                st.code(f"Current working directory: {current_dir}")
+                if os.path.exists("core"):
+                    st.success("✅ core/ directory found")
+                else:
+                    st.error("❌ core/ directory not found")
+                if os.path.exists("interfaces"):
+                    st.success("✅ interfaces/ directory found")  
+                else:
+                    st.error("❌ interfaces/ directory not found")
+                if os.path.exists("workflows"):
+                    st.success("✅ workflows/ directory found")
+                else:
+                    st.error("❌ workflows/ directory not found")
+            except Exception as e:
+                st.error(f"Error checking directories: {e}")
+    
+    # Main header
     st.markdown('<h1 class="main-header">🤖 MC-PEA AI Agent Interface</h1>', unsafe_allow_html=True)
-    st.markdown("Generate production-ready MCP servers using AI agents")
     
-    # Sidebar configuration
-    with st.sidebar:
-        st.header("⚙️ Configuration")
+    # Configuration status indicator
+    if config:
+        with st.expander("📊 Current Configuration Status", expanded=False):
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Model", config.anthropic.model)
+                st.metric("Temperature", f"{config.anthropic.temperature:.1f}")
+            
+            with col2:
+                st.metric("Max Iterations", config.agent.max_iterations)
+                st.metric("Parallel Execution", "✅" if config.workflow.parallel_execution else "❌")
+            
+            with col3:
+                st.metric("Auto Validate", "✅" if config.validation.auto_validate else "❌")
+                st.metric("Create Tests", "✅" if config.generation.create_tests else "❌")
         
-        # API Configuration
-        st.subheader("API Keys")
-        
-        # Check for environment variable first
-        env_anthropic_key = os.getenv('ANTHROPIC_API_KEY', '')
-        
-        if env_anthropic_key:
-            st.success("✅ Anthropic API key loaded from environment")
-            anthropic_api_key = env_anthropic_key
-            # Show masked version for confirmation
-            masked_key = f"{env_anthropic_key[:8]}...{env_anthropic_key[-4:]}" if len(env_anthropic_key) > 12 else "***"
-            st.text(f"Key: {masked_key}")
-        else:
-            st.info("💡 Set ANTHROPIC_API_KEY environment variable for production")
-            anthropic_api_key = st.text_input(
-                "Anthropic API Key",
-                type="password",
-                help="Enter your Anthropic API key for Claude access (or set ANTHROPIC_API_KEY env var)",
-            )
-        
-        # Agent Configuration
-        st.subheader("Agent Settings")
-        max_iterations = st.slider("Max Iterations", 1, 10, 5)
-        temperature = st.slider("Temperature", 0.0, 1.0, 0.7, 0.1)
-        verbose_mode = st.checkbox("Verbose Mode", value=True)
-        
-        # Workflow Configuration
-        st.subheader("Workflow Options")
-        auto_validate = st.checkbox("Auto-validate generated code", value=True)
-        create_tests = st.checkbox("Generate test files", value=True)
-        create_docs = st.checkbox("Generate documentation", value=True)
+        # Hot reload status
+        if config.ui.enable_hot_reload:
+            st.info("🔥 Hot reload is enabled - configuration changes will be applied immediately!")
     
-    # Main interface
+    # Check for required API key
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    
+    if not anthropic_api_key:
+        st.warning("⚠️ Anthropic API key not found in environment variables")
+        anthropic_api_key = st.text_input(
+            "Enter your Anthropic API Key:",
+            type="password",
+            help="Your API key is required to generate MCP servers. Get one from https://console.anthropic.com/"
+        )
+        
+        if not anthropic_api_key:
+            st.stop()
+    
+    # Main content area
     col1, col2 = st.columns([1, 1])
     
     with col1:
         st.header("📝 Server Specification")
         
-        # Server details
-        server_name = st.text_input(
-            "Server Name",
-            placeholder="my-api-server",
-            help="Name for the MCP server (lowercase, hyphens allowed)",
-        )
-        
-        server_description = st.text_area(
-            "Description",
-            placeholder="A brief description of what this MCP server does...",
-            height=100,
-        )
-        
-        # API Configuration
-        st.subheader("API Configuration")
-        
-        api_type = st.selectbox(
-            "API Type",
-            ["REST API", "GraphQL", "Database", "File System", "Custom"],
-        )
-        
-        if api_type == "REST API":
-            api_base_url = st.text_input(
-                "Base URL",
-                placeholder="https://api.example.com/v1",
+        # Server configuration form
+        with st.form("server_spec_form"):
+            server_name = st.text_input(
+                "Server Name *", 
+                value="my-api-server",
+                help="Name for your MCP server (lowercase, hyphens allowed)"
             )
             
-            api_auth_type = st.selectbox(
-                "Authentication",
-                ["None", "API Key", "Bearer Token", "OAuth2", "Basic Auth"],
+            server_description = st.text_area(
+                "Description *",
+                value="A Model Context Protocol server for API integration",
+                help="Brief description of what this server does"
             )
             
-            if api_auth_type != "None":
-                api_auth_details = st.text_area(
-                    "Auth Details",
-                    placeholder="Additional authentication configuration...",
-                    height=80,
+            api_type = st.selectbox(
+                "API Type",
+                options=["REST", "GraphQL", "gRPC", "Other"],
+                help="Type of API to integrate with"
+            )
+            
+            api_url = st.text_input(
+                "API Base URL",
+                placeholder="https://api.example.com",
+                help="Base URL for the target API (optional)"
+            )
+            
+            auth_type = st.selectbox(
+                "Authentication Type",
+                options=["none", "api_key", "bearer_token", "oauth2", "basic_auth"],
+                help="Authentication method for the API"
+            )
+            
+            # Advanced options (shown based on config)
+            with st.expander("🔧 Advanced Options", expanded=config.ui.show_advanced_options if config else False):
+                tools_list = st.text_area(
+                    "Tools to Generate",
+                    value="get_data\npost_data\nupdate_data\ndelete_data",
+                    help="One tool per line. Tools will be generated based on API endpoints."
                 )
-        
-        elif api_type == "Database":
-            db_type = st.selectbox(
-                "Database Type",
-                ["PostgreSQL", "MySQL", "MongoDB", "Redis", "InfluxDB"],
-            )
+                
+                resources_list = st.text_area(
+                    "Resources to Expose",
+                    value="api_docs\napi_status",
+                    help="One resource per line. Resources provide data without side effects."
+                )
+                
+                custom_config = st.text_area(
+                    "Custom Configuration (JSON)",
+                    value="{}",
+                    help="Additional configuration in JSON format"
+                )
             
-            connection_string = st.text_input(
-                "Connection String",
-                placeholder="postgresql://user:pass@localhost:5432/db",
-                type="password",
+            # Submit button
+            submitted = st.form_submit_button(
+                "🚀 Generate MCP Server",
+                type="primary",
+                use_container_width=True
             )
         
-        # Tools and Resources
-        st.subheader("Tools & Resources")
-        
-        tools_input = st.text_area(
-            "Tools (one per line)",
-            placeholder="get_users\ncreate_user\nupdate_user\ndelete_user",
-            height=100,
-            help="List the tools/functions this server should provide",
-        )
-        
-        resources_input = st.text_area(
-            "Resources (one per line)",
-            placeholder="users\nprofiles\nsettings",
-            height=80,
-            help="List the resources this server should expose",
-        )
+        # Generation history (if available)
+        if config and hasattr(st.session_state, 'generation_history'):
+            with st.expander("📚 Generation History", expanded=False):
+                for i, entry in enumerate(st.session_state.generation_history[-5:]):  # Show last 5
+                    st.text(f"{i+1}. {entry['name']} - {entry['timestamp']}")
     
     with col2:
-        st.header("🔄 Generation Progress")
+        st.header("⚡ Generation Progress")
         
-        # Workflow steps
-        workflow_steps = [
-            {"name": "Analyze API", "status": "pending"},
-            {"name": "Generate Code", "status": "pending"},
-            {"name": "Create Tests", "status": "pending"},
-            {"name": "Validate MCP", "status": "pending"},
-            {"name": "Package", "status": "pending"},
-        ]
-        
-        # Show workflow diagram
-        workflow_fig = create_workflow_diagram(workflow_steps)
-        st.plotly_chart(workflow_fig, use_container_width=True)
-        
-        # Progress metrics
-        progress_data = {
-            "Analysis": 0,
-            "Code Gen": 0,
-            "Testing": 0,
-            "Validation": 0,
-        }
-        
-        progress_fig = create_progress_chart(progress_data)
-        st.plotly_chart(progress_fig, use_container_width=True)
-        
-        # Status area
+        # Real-time status display
         status_placeholder = st.empty()
-        logs_placeholder = st.empty()
-    
-    # Generation controls
-    st.header("🚀 Generation Controls")
-    
-    col_generate, col_validate, col_download = st.columns([2, 1, 1])
-    
-    with col_generate:
-        if st.button("🎯 Generate MCP Server", type="primary", use_container_width=True):
-            if not anthropic_api_key:
-                st.error("Please provide an Anthropic API key")
-                return
-            
-            if not server_name:
-                st.error("Please provide a server name")
-                return
-            
-            # Show generation in progress
-            with status_placeholder.container():
-                st.markdown('<div class="status-card">🔄 Generation in progress...</div>', unsafe_allow_html=True)
-            
-            # Simulate generation process
-            progress_bar = st.progress(0)
-            
-            steps_completed = 0
-            total_steps = len(workflow_steps)
-            
-            for i, step in enumerate(workflow_steps):
-                step["status"] = "running"
-                workflow_fig = create_workflow_diagram(workflow_steps)
+        progress_placeholder = st.empty()
+        workflow_placeholder = st.empty()
+        
+        # Initialize session state for tracking
+        if 'workflow_status' not in st.session_state:
+            st.session_state.workflow_status = "idle"
+            st.session_state.current_step = None
+            st.session_state.generated_server = None
+        
+        # Display current status
+        with status_placeholder.container():
+            if st.session_state.workflow_status == "idle":
+                st.info("🏃‍♂️ Ready to generate your MCP server!")
+            elif st.session_state.workflow_status == "running":
+                st.warning(f"⚙️ Generating... Current step: {st.session_state.current_step}")
+            elif st.session_state.workflow_status == "completed":
+                st.success("✅ Generation completed successfully!")
+            elif st.session_state.workflow_status == "error":
+                st.error("❌ Generation failed. Check the logs for details.")
+        
+        # Process form submission
+        if submitted and server_name and server_description:
+            try:
+                # Validate inputs
+                if not server_name.replace('-', '').replace('_', '').isalnum():
+                    st.error("Server name must contain only letters, numbers, hyphens, and underscores")
+                    st.stop()
                 
-                # Update progress
-                time.sleep(2)  # Simulate work
-                steps_completed += 1
-                progress_bar.progress(steps_completed / total_steps)
+                # Parse custom config
+                try:
+                    custom_config_dict = json.loads(custom_config) if custom_config.strip() else {}
+                except json.JSONDecodeError:
+                    st.error("Invalid JSON in custom configuration")
+                    st.stop()
                 
-                step["status"] = "completed"
-                
-                # Update progress data
-                progress_data = {
-                    "Analysis": min(100, (steps_completed / total_steps) * 120),
-                    "Code Gen": max(0, min(100, ((steps_completed - 1) / total_steps) * 120)),
-                    "Testing": max(0, min(100, ((steps_completed - 2) / total_steps) * 120)),
-                    "Validation": max(0, min(100, ((steps_completed - 3) / total_steps) * 120)),
+                # Create specification
+                specification = {
+                    "name": server_name,
+                    "description": server_description,
+                    "api_type": api_type,
+                    "api_url": api_url if api_url else None,
+                    "auth_type": auth_type,
+                    "tools": [tool.strip() for tool in tools_list.split('\n') if tool.strip()],
+                    "resources": [res.strip() for res in resources_list.split('\n') if res.strip()],
+                    "custom_config": custom_config_dict
                 }
                 
-                progress_fig = create_progress_chart(progress_data)
+                # Update workflow status
+                st.session_state.workflow_status = "running"
+                st.session_state.current_step = "Initializing workflow..."
                 
-                with logs_placeholder.container():
-                    st.text(f"✅ Completed: {step['name']}")
+                # Create workflow steps based on current configuration
+                steps = [
+                    {"name": "Analyze API", "status": "pending"},
+                    {"name": "Generate Code", "status": "pending"},
+                ]
+                
+                if config and config.generation.create_tests:
+                    steps.append({"name": "Create Tests", "status": "pending"})
+                
+                if config and config.validation.auto_validate:
+                    steps.append({"name": "Validate MCP", "status": "pending"})
+                
+                if config and config.generation.create_dockerfile:
+                    steps.append({"name": "Create Docker", "status": "pending"})
+                
+                steps.append({"name": "Package Server", "status": "pending"})
+                
+                # Display workflow diagram
+                with workflow_placeholder.container():
+                    fig = create_workflow_diagram(steps)
+                    st.plotly_chart(fig, use_container_width=True)
+                
+                # Create progress tracking
+                progress_data = {step["name"]: 0 for step in steps}
+                
+                # Initialize agents (mock for now)
+                if OrchestratorAgent:
+                    try:
+                        orchestrator = OrchestratorAgent()
+                        
+                        # Execute workflow
+                        with st.spinner("Generating MCP server..."):
+                            # Simulate step-by-step execution
+                            for i, step in enumerate(steps):
+                                st.session_state.current_step = step["name"]
+                                step["status"] = "running"
+                                
+                                # Update progress
+                                progress_data[step["name"]] = 50
+                                
+                                # Simulate work
+                                time.sleep(1)
+                                
+                                # Complete step
+                                step["status"] = "completed"
+                                progress_data[step["name"]] = 100
+                                
+                                # Update displays
+                                with workflow_placeholder.container():
+                                    fig = create_workflow_diagram(steps)
+                                    st.plotly_chart(fig, use_container_width=True)
+                                
+                                with progress_placeholder.container():
+                                    fig = create_progress_chart(progress_data)
+                                    st.plotly_chart(fig, use_container_width=True)
+                            
+                            # Execute the actual workflow
+                            result = orchestrator.execute_workflow(specification)
+                            
+                            if result.get("success"):
+                                st.session_state.workflow_status = "completed"
+                                st.session_state.generated_server = result
+                                
+                                # Add to history
+                                if 'generation_history' not in st.session_state:
+                                    st.session_state.generation_history = []
+                                
+                                st.session_state.generation_history.append({
+                                    "name": server_name,
+                                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                                    "result": result
+                                })
+                                
+                                st.success("🎉 MCP Server generated successfully!")
+                                
+                                # Display results
+                                with st.expander("📋 Generation Results", expanded=True):
+                                    st.json(result)
+                                
+                                # Download button for generated files
+                                if result.get("generated_files"):
+                                    st.download_button(
+                                        label="📥 Download Generated Server",
+                                        data=json.dumps(result, indent=2),
+                                        file_name=f"{server_name}-mcp-server.json",
+                                        mime="application/json"
+                                    )
+                            
+                            else:
+                                st.session_state.workflow_status = "error"
+                                st.error(f"Generation failed: {result.get('error', 'Unknown error')}")
+                    
+                    except Exception as e:
+                        st.session_state.workflow_status = "error"
+                        st.error(f"Error during generation: {str(e)}")
+                        st.exception(e)
+                
+                else:
+                    st.warning("🚧 Agent system not available. Running in demo mode.")
+                    
+                    # Demo mode - simulate successful generation
+                    demo_result = {
+                        "success": True,
+                        "server_name": server_name,
+                        "generated_files": [
+                            "src/index.ts",
+                            "src/tools/api_tools.ts",
+                            "package.json",
+                            "README.md"
+                        ],
+                        "execution_time": "Demo mode",
+                        "mcp_compliance": True
+                    }
+                    
+                    with progress_placeholder.container():
+                        progress_data = {step["name"]: 100 for step in steps}
+                        fig = create_progress_chart(progress_data)
+                        st.plotly_chart(fig, use_container_width=True)
+                    
+                    st.session_state.workflow_status = "completed"
+                    st.session_state.generated_server = demo_result
+                    
+                    st.info("Demo generation completed!")
+                    with st.expander("📋 Demo Results", expanded=True):
+                        st.json(demo_result)
             
-            # Show completion
-            with status_placeholder.container():
-                st.markdown('<div class="success-card">✅ MCP server generated successfully!</div>', unsafe_allow_html=True)
-            
-            # Show generated files
-            st.subheader("📁 Generated Files")
-            
-            generated_files = [
-                "src/index.ts",
-                "src/tools/api_tools.ts", 
-                "src/resources/api_resources.ts",
-                "package.json",
-                "tsconfig.json",
-                "tests/basic.test.ts",
-                "README.md",
-                "Dockerfile",
-            ]
-            
-            for file_path in generated_files:
-                st.text(f"📄 {file_path}")
+            except Exception as e:
+                st.session_state.workflow_status = "error"
+                st.error(f"Unexpected error: {str(e)}")
+                st.exception(e)
     
-    with col_validate:
-        if st.button("🔍 Validate", use_container_width=True):
-            st.info("Validation will check MCP protocol compliance")
-    
-    with col_download:
-        if st.button("📥 Download", use_container_width=True):
-            st.info("Download generated server as ZIP file")
-    
-    # Footer
-    st.markdown("---")
-    st.markdown(
-        "🔧 **MC-PEA AI Agents** - Automated MCP server generation and management"
-    )
-
-
+    # Footer with configuration info
+    if config:
+        st.markdown("---")
+        st.markdown(f"""
+        **Configuration:** 
+        Last updated: {config.last_updated} | 
+        Version: {config.version} | 
+        Hot reload: {'🔥 Enabled' if config.ui.enable_hot_reload else '❄️ Disabled'}
+        """)
+        
+        # Auto-refresh for hot reload
+        if config.ui.enable_hot_reload and config.ui.auto_refresh_interval > 0:
+            time.sleep(config.ui.auto_refresh_interval)
+            st.rerun()
 if __name__ == "__main__":
     main()

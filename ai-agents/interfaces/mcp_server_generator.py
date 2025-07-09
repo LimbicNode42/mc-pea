@@ -13,8 +13,8 @@ from streamlit.runtime.caching import cache_data
 
 # Import AI agents and workflows
 try:
-    from ..workflows.mcp_development import MCPDevelopmentWorkflows
-    from ..agents.orchestrator import OrchestratorAgent
+    from workflows.mcp_development import MCPDevelopmentWorkflows
+    from agents.orchestrator.orchestrator import OrchestratorAgent
 except ImportError:
     # Fallback for when running directly
     MCPDevelopmentWorkflows = None

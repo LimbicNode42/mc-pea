@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 
 from pydantic import BaseModel
 
-from .base_agent import AgentMessage
+from core.base_agent import AgentMessage
 
 
 class MessageBusConfig(BaseModel):

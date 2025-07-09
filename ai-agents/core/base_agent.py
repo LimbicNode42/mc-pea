@@ -3,11 +3,13 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Callable
 
 from anthropic import Anthropic
 from crewai import Agent, Task
 from pydantic import BaseModel, Field
+
+from core.config import get_config, MCPEAConfig
 
 
 class AgentConfig(BaseModel):
@@ -67,13 +69,78 @@ class BaseAgent(ABC):
         self.current_task = None
         self.message_queue = asyncio.Queue()
         
+        # Configuration hot-reload support
+        self._config_callbacks: List[Callable[[MCPEAConfig], None]] = []
+        self._global_config = get_config()
+        
         # Initialize CrewAI agent
         self._crew_agent = self._create_crew_agent()
         
         self.logger.info(f"Initialized agent: {config.name}")
+        
+        # Register for config updates
+        from core.config import get_config_manager
+        get_config_manager().register_callback(self._on_config_update)
+    
+    def _on_config_update(self, new_config: MCPEAConfig) -> None:
+        """Handle global configuration updates.
+        
+        Args:
+            new_config: Updated configuration
+        """
+        old_config = self._global_config
+        self._global_config = new_config
+        
+        # Update agent configuration based on global config
+        if hasattr(new_config, 'agent'):
+            self.config.max_iterations = new_config.agent.max_iterations
+            self.config.verbose = new_config.agent.verbose
+        
+        # Update Anthropic client settings if available
+        if self.anthropic_client and hasattr(new_config, 'anthropic'):
+            # Note: Some properties like temperature would need client recreation
+            pass
+        
+        # Recreate CrewAI agent with new settings
+        self._crew_agent = self._create_crew_agent()
+        
+        # Notify registered callbacks
+        for callback in self._config_callbacks:
+            try:
+                callback(new_config)
+            except Exception as e:
+                self.logger.error(f"Error in config callback: {e}")
+        
+        self.logger.info(f"Agent {self.config.name} configuration updated")
+    
+    def register_config_callback(self, callback: Callable[[MCPEAConfig], None]) -> None:
+        """Register a callback for configuration updates.
+        
+        Args:
+            callback: Function to call when configuration changes
+        """
+        self._config_callbacks.append(callback)
+    
+    def get_current_config(self) -> MCPEAConfig:
+        """Get the current global configuration.
+        
+        Returns:
+            Current global configuration
+        """
+        return self._global_config
     
     def _create_crew_agent(self) -> Agent:
         """Create CrewAI agent instance."""
+        global_config = self._global_config if hasattr(self, '_global_config') else get_config()
+        
+        # Use global configuration if available
+        llm_config = {}
+        if global_config and hasattr(global_config, 'anthropic'):
+            llm_config = {
+                'temperature': global_config.anthropic.temperature,
+                'max_tokens': global_config.anthropic.max_tokens,
+            }
+        
         return Agent(
             role=self.config.role,
             goal=self.config.goal,
@@ -82,6 +149,7 @@ class BaseAgent(ABC):
             max_iter=self.config.max_iterations,
             llm=self.anthropic_client,
             tools=self.get_tools(),
+            **llm_config
         )
     
     @abstractmethod

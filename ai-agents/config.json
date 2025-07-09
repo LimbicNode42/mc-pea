@@ -1,0 +1,53 @@
+{
+  "anthropic": {
+    "model": "claude-3-opus-20240229",
+    "max_tokens": 4000,
+    "temperature": 0.3,
+    "top_p": 0.9,
+    "timeout": 60,
+    "max_retries": 3
+  },
+  "agent": {
+    "max_iterations": 8,
+    "verbose": true,
+    "allow_delegation": false,
+    "memory": true,
+    "step_callback": null
+  },
+  "workflow": {
+    "parallel_execution": false,
+    "max_concurrent_tasks": 3,
+    "timeout_minutes": 30,
+    "auto_retry": true,
+    "retry_attempts": 2,
+    "checkpoint_enabled": true
+  },
+  "validation": {
+    "auto_validate": false,
+    "strict_mode": false,
+    "check_typescript": true,
+    "check_mcp_compliance": true,
+    "run_tests": true,
+    "performance_check": false
+  },
+  "generation": {
+    "create_tests": false,
+    "create_docs": true,
+    "create_dockerfile": true,
+    "use_templates": true,
+    "template_path": "../templates/mcp-server-template",
+    "output_directory": "./output",
+    "overwrite_existing": false
+  },
+  "ui": {
+    "theme": "auto",
+    "layout": "wide",
+    "sidebar_state": "expanded",
+    "show_advanced_options": false,
+    "auto_refresh_interval": 5,
+    "enable_hot_reload": true
+  },
+  "version": "1.0.0",
+  "last_updated": "2025-07-09T21:28:42.285205",
+  "config_file_path": "config.json"
+}
