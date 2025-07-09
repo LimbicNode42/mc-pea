@@ -5,7 +5,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union, Callable
 
-from anthropic import Anthropic
 from crewai import Agent, Task
 from pydantic import BaseModel, Field
 
@@ -50,18 +49,15 @@ class BaseAgent(ABC):
     def __init__(
         self,
         config: AgentConfig,
-        anthropic_client: Optional[Anthropic] = None,
         logger: Optional[logging.Logger] = None,
     ):
         """Initialize the base agent.
         
         Args:
             config: Agent configuration
-            anthropic_client: Anthropic client instance
             logger: Logger instance
         """
         self.config = config
-        self.anthropic_client = anthropic_client
         self.logger = logger or logging.getLogger(f"agent.{config.name}")
         
         # Agent state
@@ -95,11 +91,6 @@ class BaseAgent(ABC):
         if hasattr(new_config, 'agent'):
             self.config.max_iterations = new_config.agent.max_iterations
             self.config.verbose = new_config.agent.verbose
-        
-        # Update Anthropic client settings if available
-        if self.anthropic_client and hasattr(new_config, 'anthropic'):
-            # Note: Some properties like temperature would need client recreation
-            pass
         
         # Recreate CrewAI agent with new settings
         self._crew_agent = self._create_crew_agent()
@@ -147,7 +138,6 @@ class BaseAgent(ABC):
             backstory=self.config.backstory,
             verbose=self.config.verbose,
             max_iter=self.config.max_iterations,
-            llm=self.anthropic_client,
             tools=self.get_tools(),
             **llm_config
         )

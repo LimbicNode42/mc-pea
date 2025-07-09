@@ -7,13 +7,10 @@ from crewai import Agent, Task, Crew
 from crewai.process import Process
 
 try:
-    from tools.anthropic_client import AnthropicClientWrapper
     from tools.file_operations import FileOperations
     from tools.mcp_validators import MCPValidator
 except ImportError:
     # Mock classes for when tools aren't available
-    class AnthropicClientWrapper:
-        def __init__(self): pass
     class FileOperations:
         def __init__(self): pass
     class MCPValidator:
@@ -25,7 +22,6 @@ class MCPDevelopmentWorkflows:
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.anthropic_client = AnthropicClientWrapper()
         self.file_ops = FileOperations()
         self.validators = MCPValidator()
         

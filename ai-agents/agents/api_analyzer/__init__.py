@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 import requests
 from core.base_agent import BaseAgent, AgentConfig
 from core.config import get_config, MCPEAConfig
-from tools.anthropic_client import AnthropicClientWrapper
 
 
 class APIAnalyzerAgent(BaseAgent):
