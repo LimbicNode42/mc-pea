@@ -77,6 +77,8 @@ def render_anthropic_config(config: MCPEAConfig, show_advanced: bool):
     
     # Model selection
     model_options = [
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
         "claude-3-5-sonnet-20241022",
         "claude-3-5-haiku-20241022", 
         "claude-3-opus-20240229",
@@ -120,7 +122,8 @@ def render_anthropic_config(config: MCPEAConfig, show_advanced: bool):
     if new_max_tokens != config.anthropic.max_tokens:
         updates["max_tokens"] = int(new_max_tokens)
     
-    if show_advanced:
+    # Basic options section
+    with st.expander("Basic Options", expanded=True):
         # Top P
         new_top_p = st.slider(
             "Top P",
@@ -133,32 +136,144 @@ def render_anthropic_config(config: MCPEAConfig, show_advanced: bool):
         
         if new_top_p != config.anthropic.top_p:
             updates["top_p"] = new_top_p
-        
-        # Timeout
-        new_timeout = st.number_input(
-            "Timeout (seconds)",
-            min_value=10,
-            max_value=300,
-            value=config.anthropic.timeout,
-            step=10,
-            help="API request timeout in seconds"
-        )
-        
-        if new_timeout != config.anthropic.timeout:
-            updates["timeout"] = int(new_timeout)
-        
-        # Max retries
-        new_max_retries = st.number_input(
-            "Max Retries",
+            
+        # Seed
+        new_seed = st.number_input(
+            "Seed",
             min_value=0,
-            max_value=10,
-            value=config.anthropic.max_retries,
+            max_value=2147483647,
+            value=getattr(config.anthropic, "seed", 0),
             step=1,
-            help="Maximum number of API retry attempts"
+            help="Random seed for deterministic outputs"
         )
         
-        if new_max_retries != config.anthropic.max_retries:
-            updates["max_retries"] = int(new_max_retries)
+        if new_seed != getattr(config.anthropic, "seed", 0):
+            updates["seed"] = int(new_seed)
+            
+        # Streaming
+        new_stream = st.checkbox(
+            "Stream Response",
+            value=getattr(config.anthropic, "stream", False),
+            help="Stream tokens as they're generated rather than waiting for the complete response"
+        )
+        
+        if new_stream != getattr(config.anthropic, "stream", False):
+            updates["stream"] = new_stream
+    
+    if show_advanced:
+        # Advanced options section
+        with st.expander("Advanced Options", expanded=False):
+            # Presence Penalty
+            new_presence_penalty = st.slider(
+                "Presence Penalty",
+                min_value=-2.0,
+                max_value=2.0,
+                value=getattr(config.anthropic, "presence_penalty", 0.0),
+                step=0.1,
+                help="Reduces repetition by penalizing tokens that already appear in the text"
+            )
+            
+            if new_presence_penalty != getattr(config.anthropic, "presence_penalty", 0.0):
+                updates["presence_penalty"] = new_presence_penalty
+            
+            # Frequency Penalty
+            new_frequency_penalty = st.slider(
+                "Frequency Penalty",
+                min_value=-2.0,
+                max_value=2.0,
+                value=getattr(config.anthropic, "frequency_penalty", 0.0),
+                step=0.1,
+                help="Reduces repetition by penalizing tokens based on their frequency in the text"
+            )
+            
+            if new_frequency_penalty != getattr(config.anthropic, "frequency_penalty", 0.0):
+                updates["frequency_penalty"] = new_frequency_penalty
+            
+            # Logprobs
+            new_logprobs = st.number_input(
+                "Log Probabilities",
+                min_value=0,
+                max_value=5,
+                value=getattr(config.anthropic, "logprobs", 0),
+                step=1,
+                help="Number of most likely tokens to return with probabilities"
+            )
+            
+            if new_logprobs != getattr(config.anthropic, "logprobs", 0):
+                updates["logprobs"] = int(new_logprobs)
+            
+            # Top Logprobs
+            new_top_logprobs = st.number_input(
+                "Top Log Probabilities",
+                min_value=0,
+                max_value=5,
+                value=getattr(config.anthropic, "top_logprobs", 0),
+                step=1,
+                help="Number of top token log probabilities to return"
+            )
+            
+            if new_top_logprobs != getattr(config.anthropic, "top_logprobs", 0):
+                updates["top_logprobs"] = int(new_top_logprobs)
+            
+            # Reasoning Effort
+            reasoning_effort_options = ["none", "low", "medium", "high"]
+            new_reasoning_effort = st.selectbox(
+                "Reasoning Effort",
+                options=reasoning_effort_options,
+                index=reasoning_effort_options.index(getattr(config.anthropic, "reasoning_effort", "none")) if getattr(config.anthropic, "reasoning_effort", "none") in reasoning_effort_options else 0,
+                help="Level of effort the model should put into reasoning (primarily for Claude models)"
+            )
+            
+            if new_reasoning_effort != getattr(config.anthropic, "reasoning_effort", "none"):
+                updates["reasoning_effort"] = new_reasoning_effort
+        
+        # Connection options section
+        with st.expander("Connection Options", expanded=False):
+            # Timeout
+            new_timeout = st.number_input(
+                "Timeout (seconds)",
+                min_value=10,
+                max_value=300,
+                value=config.anthropic.timeout,
+                step=10,
+                help="API request timeout in seconds"
+            )
+            
+            if new_timeout != config.anthropic.timeout:
+                updates["timeout"] = int(new_timeout)
+            
+            # Max retries
+            new_max_retries = st.number_input(
+                "Max Retries",
+                min_value=0,
+                max_value=10,
+                value=config.anthropic.max_retries,
+                step=1,
+                help="Maximum number of API retry attempts"
+            )
+            
+            if new_max_retries != config.anthropic.max_retries:
+                updates["max_retries"] = int(new_max_retries)
+            
+            # API Base
+            new_api_base = st.text_input(
+                "API Base URL",
+                value=getattr(config.anthropic, "api_base", ""),
+                help="Override the default API base URL (leave empty for default)"
+            )
+            
+            if new_api_base != getattr(config.anthropic, "api_base", ""):
+                updates["api_base"] = new_api_base if new_api_base else None
+            
+            # API Version
+            new_api_version = st.text_input(
+                "API Version",
+                value=getattr(config.anthropic, "api_version", ""),
+                help="Specify API version to use (leave empty for default)"
+            )
+            
+            if new_api_version != getattr(config.anthropic, "api_version", ""):
+                updates["api_version"] = new_api_version if new_api_version else None
     
     # Apply updates
     if updates:

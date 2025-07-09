@@ -13,13 +13,38 @@ from datetime import datetime
 
 @dataclass
 class AnthropicConfig:
-    """Configuration for Anthropic API settings."""
+    """Configuration for Anthropic API settings based on CrewAI LLM parameters."""
+    # Core parameters
     model: str = "claude-3-5-sonnet-20241022"
     max_tokens: int = 4000
     temperature: float = 0.7
     top_p: float = 0.9
     timeout: int = 60
     max_retries: int = 3
+    
+    # Advanced parameters (matching CrewAI LLM class)
+    n: int = 1  # Number of completions to generate
+    stop: Optional[list[str]] = None  # Stop sequences
+    presence_penalty: float = 0.0  # Penalty for presence of tokens (-2.0 to 2.0)
+    frequency_penalty: float = 0.0  # Penalty for frequency of tokens (-2.0 to 2.0) 
+    seed: Optional[int] = None  # Random seed for reproducible outputs
+    logprobs: Optional[int] = None  # Number of log probabilities to return
+    top_logprobs: Optional[int] = None  # Number of top log probabilities per token
+    logit_bias: Optional[Dict[int, float]] = None  # Bias for specific tokens
+    
+    # API configuration
+    base_url: Optional[str] = None  # Custom API base URL
+    api_base: Optional[str] = None  # Alternative to base_url
+    api_version: Optional[str] = None  # API version
+    api_key: Optional[str] = None  # Override API key
+    
+    # Response configuration
+    stream: bool = False  # Enable streaming responses
+    reasoning_effort: Optional[str] = None  # Reasoning effort level for Claude models (none, low, medium, high)
+    
+    # Function calling configuration
+    max_completion_tokens: Optional[int] = None  # Alternative to max_tokens
+    response_format: Optional[dict] = None  # Format for the response
 
 
 @dataclass
