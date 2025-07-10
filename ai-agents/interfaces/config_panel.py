@@ -36,17 +36,22 @@ def render_config_panel():
             else:
                 st.error("Failed to save config")
     
-    # Show/hide advanced options
+    # Show/hide advanced options (disabled by default for cleaner UI)
     show_advanced = st.sidebar.checkbox(
         "Show Advanced Options", 
-        value=config.ui.show_advanced_options,
+        value=False,
         help="Show all configuration options including agent profiles, workflow settings, and UI customization"
     )
     
-    if show_advanced != config.ui.show_advanced_options:
+    # Only update config if user explicitly changed the setting
+    # (not on initial load due to default mismatch)
+    if 'advanced_options_initialized' not in st.session_state:
+        st.session_state.advanced_options_initialized = True
+    elif show_advanced != getattr(config.ui, 'show_advanced_options', False):
         config_manager.update_config({
             "ui": {"show_advanced_options": show_advanced}
         })
+        # Use a more gentle rerun approach
         st.rerun()
     
     # Show info about what advanced options unlock

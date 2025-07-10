@@ -59,7 +59,7 @@
     "theme": "auto",
     "layout": "wide",
     "sidebar_state": "auto",
-    "show_advanced_options": true,
+    "show_advanced_options": false,
     "auto_refresh_interval": 5,
     "enable_hot_reload": true
   },
@@ -67,6 +67,21 @@
     "profiles": {
       "api_analyzer": {
         "agent_type": "api_analyzer",
+        "anthropic_overrides": {
+          "model": "claude-3-5-sonnet-20241022",
+          "temperature": 0.5,
+          "max_tokens": 4000,
+          "reasoning_effort": "medium"
+        },
+        "max_iterations": 5,
+        "verbose": true,
+        "allow_delegation": false,
+        "memory": true,
+        "step_callback": null,
+        "custom_settings": null
+      },
+      "github_agent": {
+        "agent_type": "github_agent",
         "anthropic_overrides": {
           "model": "claude-3-5-sonnet-20241022",
           "temperature": 0.5,
@@ -129,6 +144,6 @@
     }
   },
   "version": "1.0.0",
-  "last_updated": "2025-07-10T19:40:51.954927",
+  "last_updated": "2025-07-10T20:38:26.705318",
   "config_file_path": "config.json"
 }

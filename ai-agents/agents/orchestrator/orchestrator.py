@@ -227,7 +227,7 @@ class OrchestratorAgent(BaseAgent):
             "tests_created": config.generation.create_tests,
             "docs_created": config.generation.create_docs,
             "docker_created": config.generation.create_dockerfile,
-            "github_repository_created": github_created,
+            "github_created": github_created,
             "repository_url": repository_url,
             "pull_request_url": pull_request_url
         }

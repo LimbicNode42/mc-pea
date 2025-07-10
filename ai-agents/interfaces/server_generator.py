@@ -51,7 +51,7 @@ except ImportError as e:
         return None
 
 
-@st.cache_data
+@st.cache_data(ttl=60)  # Cache for 60 seconds to allow updates
 def discover_available_agents() -> List[Dict[str, Any]]:
     """Discover all available AI agents in the system.
     
@@ -99,7 +99,7 @@ def discover_available_agents() -> List[Dict[str, Any]]:
     return agents
 
 
-@st.cache_data
+@st.cache_data(ttl=60)  # Cache for 60 seconds to allow updates
 def discover_mcp_servers() -> List[Dict[str, Any]]:
     """Discover all generated MCP servers in the system.
     
@@ -653,8 +653,21 @@ def render_servers_dashboard():
     
     servers = discover_mcp_servers()
     
+    # Debug information
+    with st.expander("🔍 Debug Information", expanded=False):
+        st.write(f"Found {len(servers)} servers")
+        if servers:
+            st.write("Server names:", [s['name'] for s in servers])
+        else:
+            st.write("No servers found. Checking directories...")
+            mcp_servers_dir = Path(__file__).parent.parent.parent / "mcp-servers"
+            st.write(f"MCP servers directory exists: {mcp_servers_dir.exists()}")
+            if mcp_servers_dir.exists():
+                subdirs = [d.name for d in mcp_servers_dir.iterdir() if d.is_dir()]
+                st.write(f"Subdirectories found: {subdirs}")
+    
     if not servers:
-        st.info("No MCP servers found. Generate your first server below!")
+        st.info("No MCP servers found. Generate your first server using the Generate tab!")
         return
     
     # Summary metrics
@@ -922,24 +935,52 @@ st.markdown("""
 }
 
 .status-card {
-    background-color: #f0f2f6;
+    background: var(--background-color, #ffffff);
+    border: 1px solid var(--border-color, #e0e0e0);
     padding: 1rem;
     border-radius: 0.5rem;
     border-left: 4px solid #1f77b4;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.status-card h4 {
+    margin-top: 0;
+    color: var(--text-color, #262730);
+}
+
+.status-card p {
+    margin-bottom: 0.5rem;
+    color: var(--text-color, #262730);
 }
 
 .success-card {
-    background-color: #d4edda;
+    background: var(--background-color, #d4edda);
+    border: 1px solid #c3e6cb;
     padding: 1rem;
     border-radius: 0.5rem;
     border-left: 4px solid #28a745;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .error-card {
-    background-color: #f8d7da;
+    background: var(--background-color, #f8d7da);
+    border: 1px solid #f5c6cb;
     padding: 1rem;
     border-radius: 0.5rem;
     border-left: 4px solid #dc3545;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .status-card {
+        background: var(--background-color, #2d3748);
+        border-color: var(--border-color, #4a5568);
+    }
+    
+    .status-card h4, .status-card p {
+        color: var(--text-color, #e2e8f0);
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1062,7 +1103,7 @@ def main():
     st.markdown('<h1 class="main-header">🤖 MC-PEA AI Agent Interface</h1>', unsafe_allow_html=True)
     
     # Navigation tabs
-    tab1, tab2, tab3 = st.tabs(["🏠 Dashboard", "🤖 Agents", "🛠️ Servers"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🏠 Dashboard", "🤖 Agents", "🛠️ Servers", "➕ Generate"])
     
     with tab1:
         # Configuration status indicator
@@ -1121,8 +1162,9 @@ def main():
         
         with quick_col1:
             if st.button("🚀 Generate New Server", type="primary"):
+                # Switch to generation tab - note: this would require JavaScript in real Streamlit
                 st.balloons()
-                st.success("Switched to server generation tab!")
+                st.success("Please click on the '➕ Generate' tab to create a new server!")
         
         with quick_col2:
             if st.button("🔍 Validate All Servers"):
@@ -1133,14 +1175,32 @@ def main():
                 st.info("Documentation generation would run here")
     
     with tab2:
+        # Add a refresh button to clear cache
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write("")  # Spacer
+        with col2:
+            if st.button("🔄 Refresh Agents", help="Clear cache and refresh agent list"):
+                # Clear the cache for agent discovery
+                st.cache_data.clear()
+                st.rerun()
+        
         render_agents_dashboard()
     
     with tab3:
+        # Add a refresh button to clear cache
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write("")  # Spacer
+        with col2:
+            if st.button("🔄 Refresh Servers", help="Clear cache and refresh server list"):
+                # Clear the cache for server discovery
+                st.cache_data.clear()
+                st.rerun()
+        
         render_servers_dashboard()
-        
-        # Add server generation section below servers list
-        st.divider()
-        
+    
+    with tab4:
         st.header("➕ Generate New MCP Server")
         
         # Check for required API key
@@ -1259,294 +1319,294 @@ def main():
                 for i, entry in enumerate(st.session_state.generation_history[-5:]):  # Show last 5
                     st.text(f"{i+1}. {entry['name']} - {entry['timestamp']}")
     
-    with col2:
-        st.header("⚡ Generation Progress")
-        
-        # Real-time status display
-        status_placeholder = st.empty()
-        progress_placeholder = st.empty()
-        workflow_placeholder = st.empty()
-        
-        # Initialize session state for tracking
-        if 'workflow_status' not in st.session_state:
-            st.session_state.workflow_status = "idle"
-            st.session_state.current_step = None
-            st.session_state.generated_server = None
-        
-        # Display current status
-        with status_placeholder.container():
-            if st.session_state.workflow_status == "idle":
-                st.info("🏃‍♂️ Ready to generate your MCP server!")
-            elif st.session_state.workflow_status == "running":
-                st.warning(f"⚙️ Generating... Current step: {st.session_state.current_step}")
-            elif st.session_state.workflow_status == "completed":
-                st.success("✅ Generation completed successfully!")
-            elif st.session_state.workflow_status == "error":
-                st.error("❌ Generation failed. Check the logs for details.")
-        
-        # Process form submission
-        if submitted and server_name and server_description and github_org:
-            try:
-                # Validate inputs
-                if not server_name.replace('-', '').replace('_', '').isalnum():
-                    st.error("Server name must contain only letters, numbers, hyphens, and underscores")
-                    st.stop()
-                
-                if not github_org.strip():
-                    st.error("GitHub organization/profile is required")
-                    st.stop()
-                
-                # Validate GitHub org format (basic check)
-                if not github_org.replace('-', '').replace('_', '').isalnum():
-                    st.error("GitHub organization/profile must contain only letters, numbers, hyphens, and underscores")
-                    st.stop()
-                
-                # Parse custom config
+        with col2:
+            st.header("⚡ Generation Progress")
+            
+            # Real-time status display
+            status_placeholder = st.empty()
+            progress_placeholder = st.empty()
+            workflow_placeholder = st.empty()
+            
+            # Initialize session state for tracking
+            if 'workflow_status' not in st.session_state:
+                st.session_state.workflow_status = "idle"
+                st.session_state.current_step = None
+                st.session_state.generated_server = None
+            
+            # Display current status
+            with status_placeholder.container():
+                if st.session_state.workflow_status == "idle":
+                    st.info("🏃‍♂️ Ready to generate your MCP server!")
+                elif st.session_state.workflow_status == "running":
+                    st.warning(f"⚙️ Generating... Current step: {st.session_state.current_step}")
+                elif st.session_state.workflow_status == "completed":
+                    st.success("✅ Generation completed successfully!")
+                elif st.session_state.workflow_status == "error":
+                    st.error("❌ Generation failed. Check the logs for details.")
+            
+            # Process form submission
+            if submitted and server_name and server_description and github_org:
                 try:
-                    custom_config_dict = json.loads(custom_config) if custom_config.strip() else {}
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON in custom configuration")
-                    st.stop()
-                
-                # Create specification
-                specification = {
-                    "name": server_name,
-                    "description": server_description,
-                    "github_org": github_org,
-                    "language": language,
-                    "api_url": api_url if api_url else None,
-                    "api_docs_url": api_docs_url if api_docs_url else None,
-                    "auth_type": auth_type,
-                    "tools": [tool.strip() for tool in tools_list.split('\n') if tool.strip()],
-                    "resources": [res.strip() for res in resources_list.split('\n') if res.strip()],
-                    "custom_config": custom_config_dict
-                }
-                
-                # Update workflow status
-                st.session_state.workflow_status = "running"
-                st.session_state.current_step = "Initializing workflow..."
-                
-                # Create workflow steps based on current configuration
-                steps = []
-                
-                # Add API documentation analysis step if URL is provided
-                if api_docs_url:
-                    steps.append({"name": "Analyze API Docs", "status": "pending"})
-                
-                steps.extend([
-                    {"name": "Detect API Type", "status": "pending"},
-                    {"name": "Analyze API", "status": "pending"},
-                    {"name": "Generate Code", "status": "pending"},
-                ])
-                
-                # Add GitHub repository creation step
-                steps.append({"name": "Create GitHub Repo", "status": "pending"})
-                
-                if config and config.generation.create_tests:
-                    steps.append({"name": "Create Tests", "status": "pending"})
-                
-                if config and config.validation.auto_validate:
-                    steps.append({"name": "Validate MCP", "status": "pending"})
-                
-                if config and config.generation.create_dockerfile:
-                    steps.append({"name": "Create Docker", "status": "pending"})
-                
-                steps.append({"name": "Package Server", "status": "pending"})
-                
-                # Display specification summary
-                with st.expander("📋 Generated Specification", expanded=True):
-                    st.json(specification)
-                    st.info(
-                        "💡 **Intelligent workflow features:**\n"
-                        f"- **GitHub Repository:** Will be created in `{github_org}/{server_name}`\n"
-                        f"- **Language:** {language} (following MCP best practices)\n"
-                        f"- **Authentication:** {auth_type.replace('_', ' ').title()} (template-supported method)\n" +
-                        (f"- **API Documentation:** Will be analyzed from {api_docs_url}\n" if api_docs_url else "") +
-                        "- **API Type Detection:** Automatically determined by API analyzer agent\n"
-                        "- **Automated Workflow:** API analysis → Code generation → GitHub repo creation"
-                    )
-
-                # Display workflow diagram
-                with workflow_placeholder.container():
-                    fig = create_workflow_diagram(steps)
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                # Create progress tracking
-                progress_data = {step["name"]: 0 for step in steps}
-                
-                # Initialize agents (mock for now)
-                if OrchestratorAgent:
+                    # Validate inputs
+                    if not server_name.replace('-', '').replace('_', '').isalnum():
+                        st.error("Server name must contain only letters, numbers, hyphens, and underscores")
+                        st.stop()
+                    
+                    if not github_org.strip():
+                        st.error("GitHub organization/profile is required")
+                        st.stop()
+                    
+                    # Validate GitHub org format (basic check)
+                    if not github_org.replace('-', '').replace('_', '').isalnum():
+                        st.error("GitHub organization/profile must contain only letters, numbers, hyphens, and underscores")
+                        st.stop()
+                    
+                    # Parse custom config
                     try:
-                        orchestrator = OrchestratorAgent()
-                        
-                        # Initialize GitHub agent if GitHub org is specified
-                        github_agent = None
-                        if specification.get('github_org') and GitHubAgent:
-                            try:
-                                github_agent = GitHubAgent()
-                                github_validation = github_agent.validate_github_access()
-                                
-                                if not github_validation.get('success'):
-                                    st.error(f"GitHub authentication failed: {github_validation.get('error')}")
-                                    st.stop()
-                                else:
-                                    st.success(f"✅ GitHub authenticated as: {github_validation.get('user_info', {}).get('username', 'Unknown')}")
-                            except Exception as e:
-                                st.error(f"Failed to initialize GitHub agent: {str(e)}")
-                                st.stop()
-
-                        # Execute workflow
-                        with st.spinner("Generating MCP server..."):
-                            # Simulate step-by-step execution
-                            for i, step in enumerate(steps):
-                                st.session_state.current_step = step["name"]
-                                step["status"] = "running"
-                                
-                                # Update progress
-                                progress_data[step["name"]] = 50
-                                
-                                # Simulate work
-                                time.sleep(1)
-                                
-                                # Complete step
-                                step["status"] = "completed"
-                                progress_data[step["name"]] = 100
-                                
-                                # Update displays
-                                with workflow_placeholder.container():
-                                    fig = create_workflow_diagram(steps)
-                                    st.plotly_chart(fig, use_container_width=True)
-                                
-                                with progress_placeholder.container():
-                                    fig = create_progress_chart(progress_data)
-                                    st.plotly_chart(fig, use_container_width=True)
-                            
-
-                            # Execute the actual workflow
-                            result = orchestrator.execute_workflow(specification)
-                            
-                            # If GitHub agent is available and workflow succeeded, create repository
-                            if result.get("success") and github_agent and specification.get('github_org'):
-                                st.session_state.current_step = "Creating GitHub Repository..."
-                                
-                                try:
-                                    # Prepare repository files using RepositoryManager
-                                    if RepositoryManager:
-                                        repo_manager = RepositoryManager()
-                                        # Mock generated code for now - in real implementation this would come from the generator
-                                        mock_generated_code = {
-                                            "src/index.ts": "// Generated MCP server code\nexport {};\n",
-                                            "src/tools/api_tools.ts": "// Generated API tools\nexport {};\n"
-                                        }
-                                        
-                                        repository_files = repo_manager.prepare_repository_files(
-                                            specification, mock_generated_code
-                                        )
-                                        
-                                        # Setup GitHub repository
-                                        github_result = github_agent.setup_mcp_server_repository(
-                                            specification, repository_files
-                                        )
-                                        
-                                        if github_result.get('success'):
-                                            result['github_repository_created'] = True
-                                            result['repository_url'] = github_result.get('repository_url')
-                                            result['pull_request_url'] = github_result.get('pull_request_url')
-                                            result['files_pushed'] = github_result.get('files_pushed', 0)
-                                        else:
-                                            st.warning(f"GitHub repository creation failed: {github_result.get('error')}")
-                                    
-                                except Exception as e:
-                                    st.warning(f"GitHub repository creation failed: {str(e)}")
-                                    logging.error(f"GitHub repository creation error: {str(e)}")
-
-                            if result.get("success"):
-                                st.session_state.workflow_status = "completed"
-                                st.session_state.generated_server = result
-                                
-                                # Add to history
-                                if 'generation_history' not in st.session_state:
-                                    st.session_state.generation_history = []
-                                
-                                st.session_state.generation_history.append({
-                                    "name": server_name,
-                                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                                    "result": result
-                                })
-                                
-                                st.success("🎉 MCP Server generated successfully!")
-                                
-                                # Show GitHub-specific success information
-                                if result.get('github_repository_created'):
-                                    st.success("🐙 GitHub repository created successfully!")
-                                    
-                                    col1, col2 = st.columns(2)
-                                    with col1:
-                                        if result.get('repository_url'):
-                                            st.markdown(f"📦 **Repository**: [{specification.get('github_org')}/{server_name}]({result.get('repository_url')})")
-                                    
-                                    with col2:
-                                        if result.get('pull_request_url'):
-                                            st.markdown(f"🔄 **Pull Request**: [Review & Merge]({result.get('pull_request_url')})")
-                                    
-                                    if result.get('files_pushed'):
-                                        st.info(f"📁 Pushed {result.get('files_pushed')} files to the repository")
-
-                                # Display results
-                                with st.expander("📋 Generation Results", expanded=True):
-                                    st.json(result)
-                                
-                                # Download button for generated files
-                                if result.get("generated_files"):
-                                    st.download_button(
-                                        label="📥 Download Generated Server",
-                                        data=json.dumps(result, indent=2),
-                                        file_name=f"{server_name}-mcp-server.json",
-                                        mime="application/json"
-                                    )
-                            
-                            else:
-                                st.session_state.workflow_status = "error"
-                                st.error(f"Generation failed: {result.get('error', 'Unknown error')}")
+                        custom_config_dict = json.loads(custom_config) if custom_config.strip() else {}
+                    except json.JSONDecodeError:
+                        st.error("Invalid JSON in custom configuration")
+                        st.stop()
                     
-                    except Exception as e:
-                        st.session_state.workflow_status = "error"
-                        st.error(f"Error during generation: {str(e)}")
-                        st.exception(e)
-                
-                else:
-                    st.warning("🚧 Agent system not available. Running in demo mode.")
-                    
-                    # Demo mode - simulate successful generation
-                    demo_result = {
-                        "success": True,
-                        "server_name": server_name,
-                        "generated_files": [
-                            "src/index.ts",
-                            "src/tools/api_tools.ts",
-                            "package.json",
-                            "README.md"
-                        ],
-                        "execution_time": "Demo mode",
-                        "mcp_compliance": True
+                    # Create specification
+                    specification = {
+                        "name": server_name,
+                        "description": server_description,
+                        "github_org": github_org,
+                        "language": language,
+                        "api_url": api_url if api_url else None,
+                        "api_docs_url": api_docs_url if api_docs_url else None,
+                        "auth_type": auth_type,
+                        "tools": [tool.strip() for tool in tools_list.split('\n') if tool.strip()],
+                        "resources": [res.strip() for res in resources_list.split('\n') if res.strip()],
+                        "custom_config": custom_config_dict
                     }
                     
-                    with progress_placeholder.container():
-                        progress_data = {step["name"]: 100 for step in steps}
-                        fig = create_progress_chart(progress_data)
+                    # Update workflow status
+                    st.session_state.workflow_status = "running"
+                    st.session_state.current_step = "Initializing workflow..."
+                    
+                    # Create workflow steps based on current configuration
+                    steps = []
+                    
+                    # Add API documentation analysis step if URL is provided
+                    if api_docs_url:
+                        steps.append({"name": "Analyze API Docs", "status": "pending"})
+                    
+                    steps.extend([
+                        {"name": "Detect API Type", "status": "pending"},
+                        {"name": "Analyze API", "status": "pending"},
+                        {"name": "Generate Code", "status": "pending"},
+                    ])
+                    
+                    # Add GitHub repository creation step
+                    steps.append({"name": "Create GitHub Repo", "status": "pending"})
+                    
+                    if config and config.generation.create_tests:
+                        steps.append({"name": "Create Tests", "status": "pending"})
+                    
+                    if config and config.validation.auto_validate:
+                        steps.append({"name": "Validate MCP", "status": "pending"})
+                    
+                    if config and config.generation.create_dockerfile:
+                        steps.append({"name": "Create Docker", "status": "pending"})
+                    
+                    steps.append({"name": "Package Server", "status": "pending"})
+                    
+                    # Display specification summary
+                    with st.expander("📋 Generated Specification", expanded=True):
+                        st.json(specification)
+                        st.info(
+                            "💡 **Intelligent workflow features:**\n"
+                            f"- **GitHub Repository:** Will be created in `{github_org}/{server_name}`\n"
+                            f"- **Language:** {language} (following MCP best practices)\n"
+                            f"- **Authentication:** {auth_type.replace('_', ' ').title()} (template-supported method)\n" +
+                            (f"- **API Documentation:** Will be analyzed from {api_docs_url}\n" if api_docs_url else "") +
+                            "- **API Type Detection:** Automatically determined by API analyzer agent\n"
+                            "- **Automated Workflow:** API analysis → Code generation → GitHub repo creation"
+                        )
+
+                    # Display workflow diagram
+                    with workflow_placeholder.container():
+                        fig = create_workflow_diagram(steps)
                         st.plotly_chart(fig, use_container_width=True)
                     
-                    st.session_state.workflow_status = "completed"
-                    st.session_state.generated_server = demo_result
+                    # Create progress tracking
+                    progress_data = {step["name"]: 0 for step in steps}
                     
-                    st.info("Demo generation completed!")
-                    with st.expander("📋 Demo Results", expanded=True):
-                        st.json(demo_result)
-            
-            except Exception as e:
-                st.session_state.workflow_status = "error"
-                st.error(f"Unexpected error: {str(e)}")
-                st.exception(e)
+                    # Initialize agents (mock for now)
+                    if OrchestratorAgent:
+                        try:
+                            orchestrator = OrchestratorAgent()
+                            
+                            # Initialize GitHub agent if GitHub org is specified
+                            github_agent = None
+                            if specification.get('github_org') and GitHubAgent:
+                                try:
+                                    github_agent = GitHubAgent()
+                                    github_validation = github_agent.validate_github_access()
+                                    
+                                    if not github_validation.get('success'):
+                                        st.error(f"GitHub authentication failed: {github_validation.get('error')}")
+                                        st.stop()
+                                    else:
+                                        st.success(f"✅ GitHub authenticated as: {github_validation.get('user_info', {}).get('username', 'Unknown')}")
+                                except Exception as e:
+                                    st.error(f"Failed to initialize GitHub agent: {str(e)}")
+                                    st.stop()
+
+                            # Execute workflow
+                            with st.spinner("Generating MCP server..."):
+                                # Simulate step-by-step execution
+                                for i, step in enumerate(steps):
+                                    st.session_state.current_step = step["name"]
+                                    step["status"] = "running"
+                                    
+                                    # Update progress
+                                    progress_data[step["name"]] = 50
+                                    
+                                    # Simulate work
+                                    time.sleep(1)
+                                    
+                                    # Complete step
+                                    step["status"] = "completed"
+                                    progress_data[step["name"]] = 100
+                                    
+                                    # Update displays
+                                    with workflow_placeholder.container():
+                                        fig = create_workflow_diagram(steps)
+                                        st.plotly_chart(fig, use_container_width=True)
+                                    
+                                    with progress_placeholder.container():
+                                        fig = create_progress_chart(progress_data)
+                                        st.plotly_chart(fig, use_container_width=True)
+                                
+
+                                # Execute the actual workflow
+                                result = orchestrator.execute_workflow(specification)
+                                
+                                # If GitHub agent is available and workflow succeeded, create repository
+                                if result.get("success") and github_agent and specification.get('github_org'):
+                                    st.session_state.current_step = "Creating GitHub Repository..."
+                                    
+                                    try:
+                                        # Prepare repository files using RepositoryManager
+                                        if RepositoryManager:
+                                            repo_manager = RepositoryManager()
+                                            # Mock generated code for now - in real implementation this would come from the generator
+                                            mock_generated_code = {
+                                                "src/index.ts": "// Generated MCP server code\nexport {};\n",
+                                                "src/tools/api_tools.ts": "// Generated API tools\nexport {};\n"
+                                            }
+                                            
+                                            repository_files = repo_manager.prepare_repository_files(
+                                                specification, mock_generated_code
+                                            )
+                                            
+                                            # Setup GitHub repository
+                                            github_result = github_agent.setup_mcp_server_repository(
+                                                specification, repository_files
+                                            )
+                                            
+                                            if github_result.get('success'):
+                                                result['github_repository_created'] = True
+                                                result['repository_url'] = github_result.get('repository_url')
+                                                result['pull_request_url'] = github_result.get('pull_request_url')
+                                                result['files_pushed'] = github_result.get('files_pushed', 0)
+                                            else:
+                                                st.warning(f"GitHub repository creation failed: {github_result.get('error')}")
+                                        
+                                    except Exception as e:
+                                        st.warning(f"GitHub repository creation failed: {str(e)}")
+                                        logging.error(f"GitHub repository creation error: {str(e)}")
+
+                                if result.get("success"):
+                                    st.session_state.workflow_status = "completed"
+                                    st.session_state.generated_server = result
+                                    
+                                    # Add to history
+                                    if 'generation_history' not in st.session_state:
+                                        st.session_state.generation_history = []
+                                    
+                                    st.session_state.generation_history.append({
+                                        "name": server_name,
+                                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                                        "result": result
+                                    })
+                                    
+                                    st.success("🎉 MCP Server generated successfully!")
+                                    
+                                    # Show GitHub-specific success information
+                                    if result.get('github_repository_created'):
+                                        st.success("🐙 GitHub repository created successfully!")
+                                        
+                                        col1, col2 = st.columns(2)
+                                        with col1:
+                                            if result.get('repository_url'):
+                                                st.markdown(f"📦 **Repository**: [{specification.get('github_org')}/{server_name}]({result.get('repository_url')})")
+                                        
+                                        with col2:
+                                            if result.get('pull_request_url'):
+                                                st.markdown(f"🔄 **Pull Request**: [Review & Merge]({result.get('pull_request_url')})")
+                                        
+                                        if result.get('files_pushed'):
+                                            st.info(f"📁 Pushed {result.get('files_pushed')} files to the repository")
+
+                                    # Display results
+                                    with st.expander("📋 Generation Results", expanded=True):
+                                        st.json(result)
+                                    
+                                    # Download button for generated files
+                                    if result.get("generated_files"):
+                                        st.download_button(
+                                            label="📥 Download Generated Server",
+                                            data=json.dumps(result, indent=2),
+                                            file_name=f"{server_name}-mcp-server.json",
+                                            mime="application/json"
+                                        )
+                                
+                                else:
+                                    st.session_state.workflow_status = "error"
+                                    st.error(f"Generation failed: {result.get('error', 'Unknown error')}")
+                        
+                        except Exception as e:
+                            st.session_state.workflow_status = "error"
+                            st.error(f"Error during generation: {str(e)}")
+                            st.exception(e)
+                    
+                    else:
+                        st.warning("🚧 Agent system not available. Running in demo mode.")
+                        
+                        # Demo mode - simulate successful generation
+                        demo_result = {
+                            "success": True,
+                            "server_name": server_name,
+                            "generated_files": [
+                                "src/index.ts",
+                                "src/tools/api_tools.ts",
+                                "package.json",
+                                "README.md"
+                            ],
+                            "execution_time": "Demo mode",
+                            "mcp_compliance": True
+                        }
+                        
+                        with progress_placeholder.container():
+                            progress_data = {step["name"]: 100 for step in steps}
+                            fig = create_progress_chart(progress_data)
+                            st.plotly_chart(fig, use_container_width=True)
+                        
+                        st.session_state.workflow_status = "completed"
+                        st.session_state.generated_server = demo_result
+                        
+                        st.info("Demo generation completed!")
+                        with st.expander("📋 Demo Results", expanded=True):
+                            st.json(demo_result)
+                
+                except Exception as e:
+                    st.session_state.workflow_status = "error"
+                    st.error(f"Unexpected error: {str(e)}")
+                    st.exception(e)
     
     # Footer with configuration info
     if config:
