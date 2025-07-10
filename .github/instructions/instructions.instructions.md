@@ -216,105 +216,75 @@ class MCPServerGeneratorAgent(Agent):
         pass
 ```
 
-### Directory Structure for AI Components
-```
-ai-agents/
-├── core/                      # Core agent framework and utilities
-│   ├── __init__.py
-│   ├── base_agent.py         # Base agent class
-│   ├── message_bus.py        # Inter-agent communication
-│   └── state_manager.py      # State persistence
-├── agents/                   # Individual agent implementations
-│   ├── __init__.py
-│   ├── mcp_generator/        # MCP server generation agents
-│   ├── api_analyzer/         # API documentation analysis agents
-│   ├── validator/            # Code validation and testing agents
-│   └── orchestrator/         # Workflow orchestration agents
-├── workflows/                # CrewAI workflow definitions
-│   ├── __init__.py
-│   ├── mcp_generation.py     # Complete MCP server generation workflow
-│   └── api_integration.py    # API integration workflow
-├── interfaces/               # Streamlit UI components
-│   ├── __init__.py
-│   ├── server_generator.py   # MCP server generation interface
-│   ├── workflow_monitor.py   # Agent workflow visualization
-│   └── testing_dashboard.py  # Testing and validation interface
-└── tools/                    # Shared agent tools and utilities
-    ├── __init__.py
-    ├── anthropic_client.py   # Anthropic API wrapper
-    ├── file_operations.py    # File system operations
-    └── mcp_validators.py     # MCP protocol validation tools
-```
+### Terminal Command Guidelines
+**CRITICAL**: When using terminal commands, follow these strict guidelines:
 
-### Streamlit Application Standards
-```python
-# Streamlit app structure
-import streamlit as st
-from ai_agents.workflows.mcp_generation import MCPGenerationWorkflow
+1. **NEVER use long commands with `-c` flag** - This causes terminal issues and hangs
+   ```bash
+   # ❌ WRONG - Will cause terminal to hang
+   python -c "import sys; print(sys.version)"
+   
+   # ✅ CORRECT - Use separate script files
+   echo "import sys; print(sys.version)" > temp_script.py
+   python temp_script.py
+   rm temp_script.py
+   ```
 
-def main():
-    st.set_page_config(
-        page_title="MC-PEA AI Agent Interface",
-        page_icon="🤖",
-        layout="wide"
-    )
-    
-    st.title("MCP Server Generation Workflow")
-    
-    # Sidebar for configuration
-    with st.sidebar:
-        st.header("Configuration")
-        anthropic_api_key = st.text_input("Anthropic API Key", type="password")
-    
-    # Main interface
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.header("Server Specification")
-        # Server specification form
-    
-    with col2:
-        st.header("Generation Progress")
-        # Real-time agent workflow visualization
-    
-    if st.button("Generate MCP Server"):
-        workflow = MCPGenerationWorkflow(anthropic_api_key)
-        result = workflow.execute(specification)
-        st.success(f"Generated server: {result.server_name}")
+2. **Create temporary script files for complex Python operations**
+   ```bash
+   # ✅ CORRECT approach for testing imports
+   echo "from agents.github_agent import GitHubAgent; print('Import successful')" > test_import.py
+   python test_import.py
+   rm test_import.py
+   ```
 
-if __name__ == "__main__":
-    main()
-```
+3. **Break down complex commands into simple steps**
+   ```bash
+   # ❌ WRONG - Complex chained command
+   python -c "import module; result = module.function(); print(result)"
+   
+   # ✅ CORRECT - Simple commands
+   python --version
+   python -m pip list
+   ```
 
-### Agent Integration with MCP Servers
-- **Dual Architecture**: Python agents for generation, TypeScript for MCP servers
-- **Bridge Components**: Python scripts that interface with MCP protocol
-- **Validation Pipeline**: Agents validate generated servers using MCP SDK client
-- **Template Integration**: Agents use `templates/mcp-server-template/` as foundation
+4. **Use proper file-based testing for validation**
+   ```bash
+   # ✅ CORRECT - Create test file first
+   cat > validate_agent.py << 'EOF'
+   try:
+       from agents.github_agent import GitHubAgent
+       print("✅ GitHub agent import successful")
+   except Exception as e:
+       print(f"❌ Import failed: {e}")
+   EOF
+   
+   python validate_agent.py
+   rm validate_agent.py
+   ```
 
-### Testing Standards for AI Components
-```python
-# pytest structure for agent testing
-import pytest
-from ai_agents.agents.mcp_generator import MCPServerGeneratorAgent
+5. **Avoid inline Python execution in terminal**
+   - Never use `python -c` with complex code
+   - Always prefer script files for multi-line operations
+   - Use `echo` or `cat` to create temporary scripts
+   - Clean up temporary files after use
 
-class TestMCPServerGeneratorAgent:
-    @pytest.fixture
-    def agent(self):
-        return MCPServerGeneratorAgent(mock_anthropic_client)
-    
-    def test_generate_basic_server(self, agent):
-        specification = {
-            "name": "test-api-server",
-            "target_api": "https://api.example.com",
-            "tools": ["get_data", "post_data"]
-        }
-        result = agent.generate_server_code(specification)
-        
-        assert result.success
-        assert "test-api-server" in result.generated_files
-        assert result.mcp_compliance_check.passed
-```
+6. **Preferred patterns for testing**
+   ```bash
+   # ✅ Testing imports
+   echo "import module_name" > test.py && python test.py && rm test.py
+   
+   # ✅ Testing functionality
+   cat > test_function.py << 'EOF'
+   from module import function
+   result = function()
+   print(f"Result: {result}")
+   EOF
+   python test_function.py
+   rm test_function.py
+   ```
+
+These guidelines prevent terminal hangs and ensure reliable command execution across different environments.
 
 ## 📚 External Documentation References
 

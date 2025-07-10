@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import os
 import re
 import sys
@@ -22,6 +23,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     # from workflows.mcp_development import MCPDevelopmentWorkflows
     from agents.orchestrator.orchestrator import OrchestratorAgent
+    from agents.github_agent import GitHubAgent, RepositoryManager
     from core.config import get_config_manager, get_config
     from interfaces.config_panel import render_config_panel
     print("✅ Successfully imported all modules")
@@ -31,6 +33,8 @@ except ImportError as e:
     # If running directly, mock these for now
     # MCPDevelopmentWorkflows = None
     OrchestratorAgent = None
+    GitHubAgent = None
+    RepositoryManager = None
     IMPORTS_AVAILABLE = False
     
     def get_config_manager():
@@ -1375,6 +1379,22 @@ def main():
                     try:
                         orchestrator = OrchestratorAgent()
                         
+                        # Initialize GitHub agent if GitHub org is specified
+                        github_agent = None
+                        if specification.get('github_org') and GitHubAgent:
+                            try:
+                                github_agent = GitHubAgent()
+                                github_validation = github_agent.validate_github_access()
+                                
+                                if not github_validation.get('success'):
+                                    st.error(f"GitHub authentication failed: {github_validation.get('error')}")
+                                    st.stop()
+                                else:
+                                    st.success(f"✅ GitHub authenticated as: {github_validation.get('user_info', {}).get('username', 'Unknown')}")
+                            except Exception as e:
+                                st.error(f"Failed to initialize GitHub agent: {str(e)}")
+                                st.stop()
+
                         # Execute workflow
                         with st.spinner("Generating MCP server..."):
                             # Simulate step-by-step execution
@@ -1405,6 +1425,41 @@ def main():
                             # Execute the actual workflow
                             result = orchestrator.execute_workflow(specification)
                             
+                            # If GitHub agent is available and workflow succeeded, create repository
+                            if result.get("success") and github_agent and specification.get('github_org'):
+                                st.session_state.current_step = "Creating GitHub Repository..."
+                                
+                                try:
+                                    # Prepare repository files using RepositoryManager
+                                    if RepositoryManager:
+                                        repo_manager = RepositoryManager()
+                                        # Mock generated code for now - in real implementation this would come from the generator
+                                        mock_generated_code = {
+                                            "src/index.ts": "// Generated MCP server code\nexport {};\n",
+                                            "src/tools/api_tools.ts": "// Generated API tools\nexport {};\n"
+                                        }
+                                        
+                                        repository_files = repo_manager.prepare_repository_files(
+                                            specification, mock_generated_code
+                                        )
+                                        
+                                        # Setup GitHub repository
+                                        github_result = github_agent.setup_mcp_server_repository(
+                                            specification, repository_files
+                                        )
+                                        
+                                        if github_result.get('success'):
+                                            result['github_repository_created'] = True
+                                            result['repository_url'] = github_result.get('repository_url')
+                                            result['pull_request_url'] = github_result.get('pull_request_url')
+                                            result['files_pushed'] = github_result.get('files_pushed', 0)
+                                        else:
+                                            st.warning(f"GitHub repository creation failed: {github_result.get('error')}")
+                                    
+                                except Exception as e:
+                                    st.warning(f"GitHub repository creation failed: {str(e)}")
+                                    logging.error(f"GitHub repository creation error: {str(e)}")
+
                             if result.get("success"):
                                 st.session_state.workflow_status = "completed"
                                 st.session_state.generated_server = result
@@ -1421,6 +1476,22 @@ def main():
                                 
                                 st.success("🎉 MCP Server generated successfully!")
                                 
+                                # Show GitHub-specific success information
+                                if result.get('github_repository_created'):
+                                    st.success("🐙 GitHub repository created successfully!")
+                                    
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        if result.get('repository_url'):
+                                            st.markdown(f"📦 **Repository**: [{specification.get('github_org')}/{server_name}]({result.get('repository_url')})")
+                                    
+                                    with col2:
+                                        if result.get('pull_request_url'):
+                                            st.markdown(f"🔄 **Pull Request**: [Review & Merge]({result.get('pull_request_url')})")
+                                    
+                                    if result.get('files_pushed'):
+                                        st.info(f"📁 Pushed {result.get('files_pushed')} files to the repository")
+
                                 # Display results
                                 with st.expander("📋 Generation Results", expanded=True):
                                     st.json(result)

@@ -111,7 +111,7 @@ class OrchestratorAgent(BaseAgent):
                 "enabled": True
             })
         
-        # Package step always last
+        # Package step always last if no GitHub, otherwise before GitHub
         final_deps = [step["name"] for step in steps]
         steps.append({
             "name": "package_server",
@@ -120,6 +120,16 @@ class OrchestratorAgent(BaseAgent):
             "status": "pending",
             "enabled": True
         })
+        
+        # GitHub repository creation step
+        if specification.get('github_org'):
+            steps.append({
+                "name": "create_github_repo",
+                "agent": "github",
+                "dependencies": ["package_server"],
+                "status": "pending",
+                "enabled": True
+            })
         
         return {
             "steps": steps,
@@ -192,6 +202,18 @@ class OrchestratorAgent(BaseAgent):
                 "docker-compose.yml"
             ])
         
+        # GitHub repository creation if specified
+        github_created = False
+        repository_url = None
+        pull_request_url = None
+        
+        if specification.get('github_org'):
+            # This would integrate with the GitHub agent
+            github_created = True
+            github_org = specification.get('github_org')
+            repository_url = f"https://github.com/{github_org}/{server_name}"
+            pull_request_url = f"{repository_url}/pull/1"
+
         # Simulate workflow execution with realistic results
         results = {
             "success": True,
@@ -204,7 +226,10 @@ class OrchestratorAgent(BaseAgent):
             "typescript_validated": config.validation.check_typescript,
             "tests_created": config.generation.create_tests,
             "docs_created": config.generation.create_docs,
-            "docker_created": config.generation.create_dockerfile
+            "docker_created": config.generation.create_dockerfile,
+            "github_repository_created": github_created,
+            "repository_url": repository_url,
+            "pull_request_url": pull_request_url
         }
         
         return results
