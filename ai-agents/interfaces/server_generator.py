@@ -1159,6 +1159,14 @@ def main():
         
         with col1:
             st.subheader("📝 Server Specification")
+            
+            # Information about the new fields
+            st.info(
+                "💡 **Intelligent Form Design:** "
+                "API type will be automatically detected by the API analyzer agent. "
+                "Authentication is currently limited to API Key method (as supported by our template). "
+                "Specify GitHub organization/profile for repository creation and API documentation URL for automated analysis."
+            )
         
         # Server configuration form
         with st.form("server_spec_form"):
@@ -1174,26 +1182,47 @@ def main():
                 help="Brief description of what this server does"
             )
             
-            api_type = st.selectbox(
-                "API Type",
-                options=["REST", "GraphQL", "gRPC", "Other"],
-                help="Type of API to integrate with"
+            # GitHub configuration
+            st.subheader("🐙 GitHub Configuration")
+            github_org = st.text_input(
+                "GitHub Organization/Profile *",
+                placeholder="your-username or your-org",
+                help="GitHub organization or profile where the repository will be created"
             )
             
+            # API configuration
+            st.subheader("🔌 API Configuration")
             api_url = st.text_input(
                 "API Base URL",
                 placeholder="https://api.example.com",
                 help="Base URL for the target API (optional)"
             )
             
+            api_docs_url = st.text_input(
+                "API Documentation URL",
+                placeholder="https://docs.api.example.com",
+                help="Link to API documentation for the API analyzer agent to explore and scrape"
+            )
+            
             auth_type = st.selectbox(
                 "Authentication Type",
-                options=["none", "api_key", "bearer_token", "oauth2", "basic_auth"],
-                help="Authentication method for the API"
+                options=["api_key"],
+                help="Authentication method for the API (API Key is currently the only supported method)",
+                disabled=True  # Disabled since only one option
             )
             
             # Advanced options (shown based on config)
             with st.expander("🔧 Advanced Options", expanded=config.ui.show_advanced_options if config else False):
+                # Language configuration
+                st.subheader("⚙️ Development Configuration")
+                language = st.selectbox(
+                    "Programming Language",
+                    options=["TypeScript"],
+                    help="Programming language for the MCP server (TypeScript only for now)",
+                    disabled=True  # Disabled since only TypeScript is supported
+                )
+                
+                st.subheader("🛠️ Tools and Resources")
                 tools_list = st.text_area(
                     "Tools to Generate",
                     value="get_data\npost_data\nupdate_data\ndelete_data",
@@ -1214,9 +1243,10 @@ def main():
             
             # Submit button
             submitted = st.form_submit_button(
-                "🚀 Generate MCP Server",
+                "🚀 Generate MCP Server & Create GitHub Repo",
                 type="primary",
-                use_container_width=True
+                use_container_width=True,
+                help="Generate TypeScript MCP server and create repository in specified GitHub org/profile"
             )
         
         # Generation history (if available)
@@ -1251,11 +1281,20 @@ def main():
                 st.error("❌ Generation failed. Check the logs for details.")
         
         # Process form submission
-        if submitted and server_name and server_description:
+        if submitted and server_name and server_description and github_org:
             try:
                 # Validate inputs
                 if not server_name.replace('-', '').replace('_', '').isalnum():
                     st.error("Server name must contain only letters, numbers, hyphens, and underscores")
+                    st.stop()
+                
+                if not github_org.strip():
+                    st.error("GitHub organization/profile is required")
+                    st.stop()
+                
+                # Validate GitHub org format (basic check)
+                if not github_org.replace('-', '').replace('_', '').isalnum():
+                    st.error("GitHub organization/profile must contain only letters, numbers, hyphens, and underscores")
                     st.stop()
                 
                 # Parse custom config
@@ -1269,8 +1308,10 @@ def main():
                 specification = {
                     "name": server_name,
                     "description": server_description,
-                    "api_type": api_type,
+                    "github_org": github_org,
+                    "language": language,
                     "api_url": api_url if api_url else None,
+                    "api_docs_url": api_docs_url if api_docs_url else None,
                     "auth_type": auth_type,
                     "tools": [tool.strip() for tool in tools_list.split('\n') if tool.strip()],
                     "resources": [res.strip() for res in resources_list.split('\n') if res.strip()],
@@ -1282,10 +1323,20 @@ def main():
                 st.session_state.current_step = "Initializing workflow..."
                 
                 # Create workflow steps based on current configuration
-                steps = [
+                steps = []
+                
+                # Add API documentation analysis step if URL is provided
+                if api_docs_url:
+                    steps.append({"name": "Analyze API Docs", "status": "pending"})
+                
+                steps.extend([
+                    {"name": "Detect API Type", "status": "pending"},
                     {"name": "Analyze API", "status": "pending"},
                     {"name": "Generate Code", "status": "pending"},
-                ]
+                ])
+                
+                # Add GitHub repository creation step
+                steps.append({"name": "Create GitHub Repo", "status": "pending"})
                 
                 if config and config.generation.create_tests:
                     steps.append({"name": "Create Tests", "status": "pending"})
@@ -1298,6 +1349,19 @@ def main():
                 
                 steps.append({"name": "Package Server", "status": "pending"})
                 
+                # Display specification summary
+                with st.expander("📋 Generated Specification", expanded=True):
+                    st.json(specification)
+                    st.info(
+                        "💡 **Intelligent workflow features:**\n"
+                        f"- **GitHub Repository:** Will be created in `{github_org}/{server_name}`\n"
+                        f"- **Language:** {language} (following MCP best practices)\n"
+                        f"- **Authentication:** {auth_type.replace('_', ' ').title()} (template-supported method)\n" +
+                        (f"- **API Documentation:** Will be analyzed from {api_docs_url}\n" if api_docs_url else "") +
+                        "- **API Type Detection:** Automatically determined by API analyzer agent\n"
+                        "- **Automated Workflow:** API analysis → Code generation → GitHub repo creation"
+                    )
+
                 # Display workflow diagram
                 with workflow_placeholder.container():
                     fig = create_workflow_diagram(steps)
