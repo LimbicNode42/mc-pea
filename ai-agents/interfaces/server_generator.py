@@ -224,7 +224,8 @@ def _extract_server_capabilities(server_dir: Path) -> Dict[str, Any]:
     if not src_dir.exists():
         return capabilities
     
-    # Look for tools definitions
+    # Look for tools definitions - handle both patterns
+    # Pattern 1: Service-grouped (auth-mcp-server style) - look for *tools.ts files
     tools_files = list(src_dir.rglob("*tools.ts"))
     for tools_file in tools_files:
         try:
@@ -234,7 +235,25 @@ def _extract_server_capabilities(server_dir: Path) -> Dict[str, Any]:
         except Exception:
             continue
     
-    # Look for resources definitions  
+    # Pattern 2: Function-grouped (db-mcp-server style) - look in tools/ directory
+    tools_dir = src_dir / "tools"
+    if tools_dir.exists():
+        for tools_file in tools_dir.glob("*.ts"):
+            if tools_file.name == "index.ts":
+                continue  # Skip index files
+            try:
+                content = tools_file.read_text(encoding='utf-8', errors='ignore')
+                tools = _parse_register_tool_calls(content)
+                # Use filename as category for function-grouped structure
+                category = tools_file.stem.title()
+                for tool in tools:
+                    tool["category"] = category
+                capabilities["tools"].extend(tools)
+            except Exception:
+                continue
+    
+    # Look for resources definitions - handle both patterns  
+    # Pattern 1: Service-grouped - look for *resources.ts files
     resources_files = list(src_dir.rglob("*resources.ts"))
     for resources_file in resources_files:
         try:
@@ -244,16 +263,43 @@ def _extract_server_capabilities(server_dir: Path) -> Dict[str, Any]:
         except Exception:
             continue
     
+    # Pattern 2: Function-grouped - look in resources/ directory
+    resources_dir = src_dir / "resources"
+    if resources_dir.exists():
+        for resources_file in resources_dir.glob("*.ts"):
+            if resources_file.name == "index.ts":
+                continue  # Skip index files
+            try:
+                content = resources_file.read_text(encoding='utf-8', errors='ignore')
+                resources = _parse_register_resource_calls(content)
+                # Use filename as category for function-grouped structure
+                category = resources_file.stem.title()
+                for resource in resources:
+                    resource["category"] = category
+                capabilities["resources"].extend(resources)
+            except Exception:
+                continue
+    
     # Detect integrations from directory structure and file names
     integrations = []
     for subdir in src_dir.iterdir():
         if subdir.is_dir() and subdir.name not in ['__pycache__', 'node_modules']:
             integration_name = subdir.name
-            if integration_name not in ['types', 'utils', 'lib', 'common']:
+            if integration_name not in ['types', 'utils', 'lib', 'common', 'tools', 'resources', 'prompts']:
                 integrations.append({
                     "name": integration_name.title(),
                     "type": "service_integration",
                     "files": len(list(subdir.glob("*.ts")))
+                })
+    
+    # For function-grouped structure, detect integrations from tool/resource file names
+    if tools_dir and tools_dir.exists():
+        for file in tools_dir.glob("*.ts"):
+            if file.name != "index.ts":
+                integrations.append({
+                    "name": file.stem.title(),
+                    "type": "database_integration",
+                    "files": 1
                 })
     
     capabilities["integrations"] = integrations
@@ -372,6 +418,67 @@ def _parse_typescript_resources(content: str) -> List[Dict[str, Any]]:
                 "description": description[:100] + "..." if len(description) > 100 else description,
                 "category": "General"
             })
+    
+    return resources
+
+
+def _parse_register_tool_calls(content: str) -> List[Dict[str, Any]]:
+    """Parse server.registerTool() calls from TypeScript content.
+    
+    Args:
+        content: TypeScript file content
+        
+    Returns:
+        List of tool definitions
+    """
+    tools = []
+    
+    # Look for server.registerTool calls
+    # Pattern: server.registerTool('tool_name', { description: '...' }, async (...) => {...})
+    register_tool_pattern = r'server\.registerTool\s*\(\s*[\'"]([^\'",]+)[\'"].*?description:\s*[\'"]([^\'",]*?)[\'"].*?\)'
+    matches = re.findall(register_tool_pattern, content, re.DOTALL)
+    
+    for match in matches:
+        tool_name = match[0].strip()
+        tool_desc = match[1].strip()
+        
+        tools.append({
+            "name": tool_name,
+            "description": tool_desc[:100] + "..." if len(tool_desc) > 100 else tool_desc,
+            "category": "General"  # Will be set by caller
+        })
+    
+    return tools
+
+
+def _parse_register_resource_calls(content: str) -> List[Dict[str, Any]]:
+    """Parse server.registerResource() calls from TypeScript content.
+    
+    Args:
+        content: TypeScript file content
+        
+    Returns:
+        List of resource definitions
+    """
+    resources = []
+    
+    # Look for server.registerResource calls
+    # Pattern: server.registerResource('resource_id', 'uri://...', { name: '...', description: '...' }, async (...) => {...})
+    register_resource_pattern = r'server\.registerResource\s*\(\s*[\'"]([^\'",]+)[\'"],\s*[\'"]([^\'",]+)[\'"].*?name:\s*[\'"]([^\'",]*?)[\'"].*?description:\s*[\'"]([^\'",]*?)[\'"].*?\)'
+    matches = re.findall(register_resource_pattern, content, re.DOTALL)
+    
+    for match in matches:
+        resource_id = match[0].strip()
+        resource_uri = match[1].strip()
+        resource_name = match[2].strip()
+        resource_desc = match[3].strip()
+        
+        resources.append({
+            "uri": resource_uri,
+            "name": resource_name or resource_id,
+            "description": resource_desc[:100] + "..." if len(resource_desc) > 100 else resource_desc,
+            "category": "General"  # Will be set by caller
+        })
     
     return resources
 
