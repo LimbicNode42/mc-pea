@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -115,7 +116,12 @@ def discover_mcp_servers() -> List[Dict[str, Any]]:
                     "status": "unknown",
                     "description": "No description available",
                     "version": "unknown",
-                    "type": "mcp-server"
+                    "type": "mcp-server",
+                    "tools": [],
+                    "resources": [],
+                    "environment_variables": [],
+                    "dependencies": [],
+                    "keywords": []
                 }
                 
                 # Read package.json for metadata
@@ -126,6 +132,16 @@ def discover_mcp_servers() -> List[Dict[str, Any]]:
                         server_info["description"] = package_data.get("description", server_info["description"])
                         server_info["version"] = package_data.get("version", server_info["version"])
                         server_info["status"] = "configured"
+                        server_info["keywords"] = package_data.get("keywords", [])
+                        
+                        # Extract dependencies
+                        deps = package_data.get("dependencies", {})
+                        dev_deps = package_data.get("devDependencies", {})
+                        server_info["dependencies"] = {
+                            "runtime": list(deps.keys()),
+                            "development": list(dev_deps.keys()),
+                            "total_count": len(deps) + len(dev_deps)
+                        }
                     except Exception:
                         pass
                 
@@ -133,6 +149,24 @@ def discover_mcp_servers() -> List[Dict[str, Any]]:
                 src_dir = server_dir / "src"
                 if src_dir.exists() and (src_dir / "index.ts").exists():
                     server_info["status"] = "implemented"
+                    
+                    # Extract tools and resources from TypeScript files
+                    try:
+                        server_info.update(_extract_server_capabilities(server_dir))
+                    except Exception as e:
+                        print(f"Error extracting capabilities for {server_dir.name}: {e}")
+                
+                # Extract environment variables from README
+                readme_file = server_dir / "README.md"
+                if readme_file.exists():
+                    server_info["has_docs"] = True
+                    try:
+                        readme_content = readme_file.read_text(encoding='utf-8', errors='ignore')
+                        server_info["environment_variables"] = _extract_env_vars_from_readme(readme_content)
+                    except Exception:
+                        pass
+                else:
+                    server_info["has_docs"] = False
                 
                 # Check for tests
                 tests_dir = server_dir / "tests"
@@ -140,13 +174,6 @@ def discover_mcp_servers() -> List[Dict[str, Any]]:
                     server_info["has_tests"] = True
                 else:
                     server_info["has_tests"] = False
-                
-                # Check README
-                readme_file = server_dir / "README.md"
-                if readme_file.exists():
-                    server_info["has_docs"] = True
-                else:
-                    server_info["has_docs"] = False
                 
                 servers.append(server_info)
     
@@ -164,13 +191,302 @@ def discover_mcp_servers() -> List[Dict[str, Any]]:
                             "status": "generated",
                             "description": "AI-generated MCP server",
                             "version": "1.0.0",
-                            "type": "ai-generated"
+                            "type": "ai-generated",
+                            "tools": [],
+                            "resources": [],
+                            "environment_variables": [],
+                            "dependencies": [],
+                            "keywords": []
                         }
                         servers.append(server_info)
     except Exception:
         pass
     
     return servers
+
+
+def _extract_server_capabilities(server_dir: Path) -> Dict[str, Any]:
+    """Extract tools and resources from MCP server source code.
+    
+    Args:
+        server_dir: Path to the server directory
+        
+    Returns:
+        Dictionary with tools and resources information
+    """
+    capabilities = {
+        "tools": [],
+        "resources": [],
+        "integrations": []
+    }
+    
+    src_dir = server_dir / "src"
+    if not src_dir.exists():
+        return capabilities
+    
+    # Look for tools definitions
+    tools_files = list(src_dir.rglob("*tools.ts"))
+    for tools_file in tools_files:
+        try:
+            content = tools_file.read_text(encoding='utf-8', errors='ignore')
+            tools = _parse_typescript_tools(content)
+            capabilities["tools"].extend(tools)
+        except Exception:
+            continue
+    
+    # Look for resources definitions  
+    resources_files = list(src_dir.rglob("*resources.ts"))
+    for resources_file in resources_files:
+        try:
+            content = resources_file.read_text(encoding='utf-8', errors='ignore')
+            resources = _parse_typescript_resources(content)
+            capabilities["resources"].extend(resources)
+        except Exception:
+            continue
+    
+    # Detect integrations from directory structure and file names
+    integrations = []
+    for subdir in src_dir.iterdir():
+        if subdir.is_dir() and subdir.name not in ['__pycache__', 'node_modules']:
+            integration_name = subdir.name
+            if integration_name not in ['types', 'utils', 'lib', 'common']:
+                integrations.append({
+                    "name": integration_name.title(),
+                    "type": "service_integration",
+                    "files": len(list(subdir.glob("*.ts")))
+                })
+    
+    capabilities["integrations"] = integrations
+    
+    return capabilities
+
+
+def _parse_typescript_tools(content: str) -> List[Dict[str, Any]]:
+    """Parse TypeScript tools definitions from file content.
+    
+    Args:
+        content: TypeScript file content
+        
+    Returns:
+        List of tool definitions
+    """
+    tools = []
+    
+    # Enhanced regex-based parsing for tool definitions
+    
+    # Look for exported tool arrays - handle multi-line array definitions
+    # Match arrays that end with ]; (semicolon)
+    tool_array_pattern = r'export\s+const\s+(\w*[Tt]ools?)\s*:\s*Tool\[\]\s*=\s*\[(.*?)\];'
+    matches = re.findall(tool_array_pattern, content, re.DOTALL)
+    
+    for match in matches:
+        array_name = match[0]
+        array_content = match[1]
+        
+        # Extract individual tool objects by finding name and description pairs
+        # More lenient pattern to handle various formatting
+        tool_object_pattern = r'\{\s*name:\s*[\'"]([^\'",]+)[\'"],.*?description:\s*[\'"]([^\'",]*?)[\'"]\s*,?'
+        tool_matches = re.findall(tool_object_pattern, array_content, re.DOTALL)
+        
+        for tool_match in tool_matches:
+            tool_name = tool_match[0].strip()
+            tool_desc = tool_match[1].strip()
+            
+            tools.append({
+                "name": tool_name,
+                "description": tool_desc[:100] + "..." if len(tool_desc) > 100 else tool_desc,
+                "category": array_name.replace("Tools", "").replace("tools", "").title() or "General"
+            })
+    
+    # Also look for individual tool definitions (fallback)
+    if not tools:
+        # Alternative pattern for single tool exports or different array formats
+        single_tool_pattern = r'name:\s*[\'"]([^\'",]+)[\'"].*?description:\s*[\'"]([^\'",]*?)[\'"]\s*,?'
+        single_matches = re.findall(single_tool_pattern, content, re.DOTALL)
+        
+        for tool_match in single_matches:
+            tool_name = tool_match[0].strip()
+            tool_desc = tool_match[1].strip()
+            
+            tools.append({
+                "name": tool_name,
+                "description": tool_desc[:100] + "..." if len(tool_desc) > 100 else tool_desc,
+                "category": "General"
+            })
+    
+    return tools
+
+
+def _parse_typescript_resources(content: str) -> List[Dict[str, Any]]:
+    """Parse TypeScript resources definitions from file content.
+    
+    Args:
+        content: TypeScript file content
+        
+    Returns:
+        List of resource definitions
+    """
+    resources = []
+    
+    # Enhanced regex-based parsing for resource definitions
+    
+    # Look for exported resource arrays - handle multi-line array definitions
+    # Match arrays that end with ]; (semicolon)
+    resource_array_pattern = r'export\s+const\s+(\w*[Rr]esources?)\s*:\s*Resource\[\]\s*=\s*\[(.*?)\];'
+    matches = re.findall(resource_array_pattern, content, re.DOTALL)
+    
+    for match in matches:
+        array_name = match[0]
+        array_content = match[1]
+        
+        # Extract individual resource objects by finding uri, name, and description
+        # More lenient pattern to handle various formatting
+        resource_object_pattern = r'\{\s*uri:\s*[\'"]([^\'",]+)[\'"],.*?name:\s*[\'"]([^\'",]*?)[\'"],.*?description:\s*[\'"]([^\'",]*?)[\'"]\s*,?'
+        resource_matches = re.findall(resource_object_pattern, array_content, re.DOTALL)
+        
+        for resource_match in resource_matches:
+            uri = resource_match[0].strip()
+            name = resource_match[1].strip()
+            description = resource_match[2].strip()
+            
+            resources.append({
+                "uri": uri,
+                "name": name,
+                "description": description[:100] + "..." if len(description) > 100 else description,
+                "category": array_name.replace("Resources", "").replace("resources", "").title() or "General"
+            })
+    
+    # Also look for individual resource definitions (fallback)
+    if not resources:
+        single_resource_pattern = r'uri:\s*[\'"]([^\'",]+)[\'"].*?name:\s*[\'"]([^\'",]*?)[\'"].*?description:\s*[\'"]([^\'",]*?)[\'"]\s*,?'
+        single_matches = re.findall(single_resource_pattern, content, re.DOTALL)
+        
+        for resource_match in single_matches:
+            uri = resource_match[0].strip()
+            name = resource_match[1].strip()
+            description = resource_match[2].strip()
+            
+            resources.append({
+                "uri": uri,
+                "name": name,
+                "description": description[:100] + "..." if len(description) > 100 else description,
+                "category": "General"
+            })
+    
+    return resources
+
+
+def _extract_env_vars_from_readme(content: str) -> List[Dict[str, Any]]:
+    """Extract environment variables documentation from README content.
+    
+    Args:
+        content: README markdown content
+        
+    Returns:
+        List of environment variable definitions
+    """
+    env_vars = []
+    
+    # Look for export statements in code blocks
+    export_pattern = r'export\s+([A-Z_][A-Z0-9_]*)\s*=\s*[\'"]([^\'"]*)[\'"]'
+    exports = re.findall(export_pattern, content)
+    
+    # Also look for environment variable documentation patterns
+    # Pattern for variables mentioned in configuration sections
+    config_var_pattern = r'`?([A-Z_][A-Z0-9_]*)`?\s*[:\-=]\s*([^\n\r]+)'
+    config_vars = re.findall(config_var_pattern, content)
+    
+    # Combine both sources
+    all_vars = {}
+    
+    # Add exports first
+    for export_match in exports:
+        var_name = export_match[0]
+        example_value = export_match[1]
+        all_vars[var_name] = {
+            "name": var_name,
+            "example": example_value if not any(secret in example_value.lower() 
+                                              for secret in ['password', 'secret', 'token', 'key']) 
+                      else "[REDACTED]",
+            "description": "",
+            "source": "export"
+        }
+    
+    # Add config variables
+    for config_match in config_vars:
+        var_name = config_match[0]
+        description = config_match[1].strip()
+        
+        # Skip if it doesn't look like an env var
+        if not var_name.isupper() or len(var_name) < 3:
+            continue
+            
+        if var_name not in all_vars:
+            all_vars[var_name] = {
+                "name": var_name,
+                "example": "",
+                "description": description,
+                "source": "config"
+            }
+        else:
+            # Enhance existing entry with description
+            all_vars[var_name]["description"] = description
+    
+    # Convert to list and determine if required
+    for var_name, var_info in all_vars.items():
+        # Try to find description in surrounding text if not already found
+        if not var_info["description"]:
+            var_context_pattern = rf'#{1,4}[^#]*{re.escape(var_name)}[^#]*?([^\n\r]+)'
+            context_match = re.search(var_context_pattern, content, re.DOTALL)
+            if context_match:
+                var_info["description"] = context_match.group(1).strip()[:100]
+        
+        # Default description if still empty
+        if not var_info["description"]:
+            var_info["description"] = f"Configuration for {var_name.lower().replace('_', ' ')}"
+        
+        # Determine if required based on common patterns and context
+        var_context = content.lower()
+        is_required = True  # Default to required
+        
+        # Check for optional indicators
+        if any(opt in var_context for opt in [f"{var_name.lower()} is optional", "optional:", "# optional"]):
+            is_required = False
+        elif "defaults to" in var_info["description"].lower():
+            is_required = False
+            
+        env_vars.append({
+            "name": var_name,
+            "description": var_info["description"],
+            "example": var_info["example"],
+            "required": is_required,
+            "category": _categorize_env_var(var_name)
+        })
+    
+    return env_vars
+
+
+def _categorize_env_var(var_name: str) -> str:
+    """Categorize environment variable by name.
+    
+    Args:
+        var_name: Environment variable name
+        
+    Returns:
+        Category string
+    """
+    var_lower = var_name.lower()
+    
+    if any(auth in var_lower for auth in ['password', 'secret', 'token', 'key', 'client_id']):
+        return "Authentication"
+    elif any(db in var_lower for db in ['database', 'db_', 'postgres', 'mysql']):
+        return "Database"
+    elif any(url in var_lower for url in ['url', 'host', 'endpoint', 'server']):
+        return "Connection"
+    elif any(config in var_lower for config in ['realm', 'project', 'org', 'environment']):
+        return "Configuration"
+    else:
+        return "General"
 
 
 def render_agents_dashboard():
@@ -252,7 +568,9 @@ def render_servers_dashboard():
     st.subheader("Server Details")
     
     for server in servers:
-        with st.expander(f"📦 {server['name']} - {server['status'].title()}"):
+        with st.expander(f"📦 {server['name']} - {server['status'].title()}", expanded=False):
+            
+            # Basic info section
             col1, col2 = st.columns([2, 1])
             
             with col1:
@@ -260,6 +578,13 @@ def render_servers_dashboard():
                 st.write(f"**Version:** {server['version']}")
                 st.write(f"**Type:** {server['type']}")
                 st.write(f"**Path:** `{server['path']}`")
+                
+                # Keywords/Tags
+                if server.get("keywords"):
+                    keywords_str = ", ".join([f"`{kw}`" for kw in server["keywords"][:5]])
+                    if len(server["keywords"]) > 5:
+                        keywords_str += f" +{len(server['keywords']) - 5} more"
+                    st.write(f"**Keywords:** {keywords_str}")
             
             with col2:
                 # Status indicators
@@ -287,19 +612,149 @@ def render_servers_dashboard():
                 for indicator in status_indicators:
                     st.write(indicator)
             
+            # Detailed capabilities section
+            if server.get("tools") or server.get("resources") or server.get("integrations"):
+                st.divider()
+                
+                # Create tabs for different aspects
+                detail_tab1, detail_tab2, detail_tab3, detail_tab4 = st.tabs([
+                    f"🔧 Tools ({len(server.get('tools', []))})",
+                    f"📊 Resources ({len(server.get('resources', []))})", 
+                    f"🔗 Integrations ({len(server.get('integrations', []))})",
+                    f"⚙️ Environment ({len(server.get('environment_variables', []))})"
+                ])
+                
+                with detail_tab1:
+                    tools = server.get("tools", [])
+                    if tools:
+                        # Group tools by category
+                        tools_by_category = {}
+                        for tool in tools:
+                            category = tool.get("category", "General")
+                            if category not in tools_by_category:
+                                tools_by_category[category] = []
+                            tools_by_category[category].append(tool)
+                        
+                        for category, category_tools in tools_by_category.items():
+                            st.write(f"**{category} Tools:**")
+                            tools_data = []
+                            for tool in category_tools:
+                                tools_data.append({
+                                    "Name": tool["name"],
+                                    "Description": tool["description"]
+                                })
+                            st.dataframe(tools_data, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No tools detected in this server.")
+                
+                with detail_tab2:
+                    resources = server.get("resources", [])
+                    if resources:
+                        # Group resources by category
+                        resources_by_category = {}
+                        for resource in resources:
+                            category = resource.get("category", "General")
+                            if category not in resources_by_category:
+                                resources_by_category[category] = []
+                            resources_by_category[category].append(resource)
+                        
+                        for category, category_resources in resources_by_category.items():
+                            st.write(f"**{category} Resources:**")
+                            resources_data = []
+                            for resource in category_resources:
+                                resources_data.append({
+                                    "URI": resource["uri"],
+                                    "Name": resource["name"],
+                                    "Description": resource["description"]
+                                })
+                            st.dataframe(resources_data, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No resources detected in this server.")
+                
+                with detail_tab3:
+                    integrations = server.get("integrations", [])
+                    if integrations:
+                        integrations_data = []
+                        for integration in integrations:
+                            integrations_data.append({
+                                "Service": integration["name"],
+                                "Type": integration["type"].replace("_", " ").title(),
+                                "Files": integration["files"]
+                            })
+                        st.dataframe(integrations_data, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No service integrations detected.")
+                
+                with detail_tab4:
+                    env_vars = server.get("environment_variables", [])
+                    if env_vars:
+                        # Group by category
+                        env_by_category = {}
+                        for env_var in env_vars:
+                            category = env_var.get("category", "General")
+                            if category not in env_by_category:
+                                env_by_category[category] = []
+                            env_by_category[category].append(env_var)
+                        
+                        for category, category_vars in env_by_category.items():
+                            st.write(f"**{category} Variables:**")
+                            env_data = []
+                            for env_var in category_vars:
+                                env_data.append({
+                                    "Variable": env_var["name"],
+                                    "Required": "✅" if env_var.get("required", True) else "⚠️",
+                                    "Example": env_var.get("example", "N/A"),
+                                    "Description": env_var.get("description", "No description")
+                                })
+                            st.dataframe(env_data, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No environment variables documented.")
+            
+            # Dependencies section
+            if server.get("dependencies"):
+                st.divider()
+                deps = server["dependencies"]
+                
+                dep_col1, dep_col2, dep_col3 = st.columns(3)
+                
+                with dep_col1:
+                    st.metric("Runtime Dependencies", len(deps.get("runtime", [])))
+                    
+                with dep_col2:
+                    st.metric("Dev Dependencies", len(deps.get("development", [])))
+                    
+                with dep_col3:
+                    st.metric("Total Dependencies", deps.get("total_count", 0))
+                
+                # Show key dependencies
+                runtime_deps = deps.get("runtime", [])
+                if runtime_deps:
+                    mcp_deps = [dep for dep in runtime_deps if "mcp" in dep.lower()]
+                    auth_deps = [dep for dep in runtime_deps if any(auth in dep.lower() for auth in ["auth", "oauth", "jwt", "passport"])]
+                    
+                    if mcp_deps:
+                        st.write(f"**MCP Dependencies:** {', '.join([f'`{dep}`' for dep in mcp_deps])}")
+                    if auth_deps:
+                        st.write(f"**Auth Dependencies:** {', '.join([f'`{dep}`' for dep in auth_deps])}")
+            
             # Action buttons
-            button_col1, button_col2, button_col3 = st.columns(3)
+            st.divider()
+            button_col1, button_col2, button_col3, button_col4 = st.columns(4)
             
             with button_col1:
-                if st.button(f"View Details", key=f"view_{server['name']}"):
-                    st.info(f"Would open details for {server['name']}")
+                if st.button(f"📋 View Source", key=f"view_{server['name']}"):
+                    st.info(f"Would open source code for {server['name']}")
             
             with button_col2:
-                if st.button(f"Test Server", key=f"test_{server['name']}"):
+                if st.button(f"🧪 Run Tests", key=f"test_{server['name']}"):
                     st.info(f"Would run tests for {server['name']}")
             
             with button_col3:
-                if st.button(f"Deploy", key=f"deploy_{server['name']}"):
+                if st.button(f"🔍 Validate", key=f"validate_{server['name']}"):
+                    st.info(f"Would validate MCP compliance for {server['name']}")
+            
+            with button_col4:
+                if st.button(f"🚀 Deploy", key=f"deploy_{server['name']}"):
                     st.info(f"Would deploy {server['name']}")
 
 
