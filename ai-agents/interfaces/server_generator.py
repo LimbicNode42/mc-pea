@@ -97,16 +97,88 @@ def discover_available_agents() -> List[Dict[str, Any]]:
                     try:
                         if agent_dir.name == "orchestrator":
                             from agents.orchestrator.orchestrator import OrchestratorAgent
-                            agent_instance = OrchestratorAgent()
-                            agent_info.update(agent_instance.get_agent_info())
+                            try:
+                                agent_instance = OrchestratorAgent()
+                                agent_info.update(agent_instance.get_agent_info())
+                            except Exception:
+                                # If full initialization fails, get dependencies without initialization
+                                agent_info["mcp_dependencies"] = []
+                                agent_info["implemented"] = True
+                                agent_info["role"] = "Workflow Orchestrator"
+                                agent_info["has_dependencies"] = False
+                                agent_info["dependency_count"] = 0
                         elif agent_dir.name == "web_scraper":
                             from agents.web_scraper.web_scraper import WebScraperAgent
-                            agent_instance = WebScraperAgent()
-                            agent_info.update(agent_instance.get_agent_info())
+                            try:
+                                agent_instance = WebScraperAgent()
+                                agent_info.update(agent_instance.get_agent_info())
+                            except Exception:
+                                # Get dependencies without full initialization
+                                # Create a temporary instance to get MCP dependencies
+                                temp_agent = type('TempAgent', (), {})()
+                                temp_agent.mcp_server_dependency = {
+                                    "name": "playwright-mcp-server",
+                                    "package": "@executeautomation/playwright-mcp-server",
+                                    "description": "Browser automation for web scraping API documentation",
+                                    "repository": "https://github.com/executeautomation/mcp-playwright",
+                                    "required": True,
+                                    "status": "external",
+                                    "docker_required": False,
+                                    "fallback_available": True
+                                }
+                                agent_info["mcp_dependencies"] = [temp_agent.mcp_server_dependency]
+                                agent_info["implemented"] = True
+                                agent_info["role"] = "Web Documentation Scraper"
+                                agent_info["has_dependencies"] = True
+                                agent_info["dependency_count"] = 1
                         elif agent_dir.name == "api_analyzer":
                             from agents.api_analyzer.api_analysis import APIAnalysisAgent
-                            agent_instance = APIAnalysisAgent()
-                            agent_info.update(agent_instance.get_agent_info())
+                            try:
+                                agent_instance = APIAnalysisAgent()
+                                agent_info.update(agent_instance.get_agent_info())
+                            except Exception:
+                                # Get dependencies without full initialization
+                                agent_info["mcp_dependencies"] = []
+                                agent_info["implemented"] = True
+                                agent_info["role"] = "API Documentation Analyzer"
+                                agent_info["has_dependencies"] = False
+                                agent_info["dependency_count"] = 0
+                        elif agent_dir.name == "github_agent":
+                            from agents.github_agent.github_agent import GitHubAgent
+                            try:
+                                # GitHub agent requires token, so we'll get dependencies without full initialization
+                                temp_agent = type('TempAgent', (), {})()
+                                temp_agent.mcp_server_dependency = {
+                                    "name": "github-mcp-server",
+                                    "package": "github-mcp-server",
+                                    "description": "Official GitHub MCP server for repository operations",
+                                    "repository": "https://github.com/github/github-mcp-server",
+                                    "required": True,
+                                    "status": "official",
+                                    "docker_required": False,
+                                    "installation": {
+                                        "method": "npm",
+                                        "command": "npm install -g github-mcp-server"
+                                    },
+                                    "tools_provided": [
+                                        "create_repository", "create_branch", "push_files", 
+                                        "create_pull_request", "create_issue", "get_me"
+                                    ],
+                                    "fallback_available": False
+                                }
+                                dependencies = [temp_agent.mcp_server_dependency]
+                                agent_info["mcp_dependencies"] = dependencies
+                                agent_info["implemented"] = True
+                                agent_info["role"] = "GitHub Operations Agent"
+                                agent_info["has_dependencies"] = True
+                                agent_info["dependency_count"] = len(dependencies)
+                            except Exception:
+                                # Fallback info
+                                agent_info["mcp_dependencies"] = []
+                                agent_info["implemented"] = True
+                                agent_info["role"] = "GitHub Operations Agent"
+                                agent_info["has_dependencies"] = False
+                                agent_info["dependency_count"] = 0
                         # Add other agents as they're implemented
                     except Exception as e:
                         # If import fails, keep basic info

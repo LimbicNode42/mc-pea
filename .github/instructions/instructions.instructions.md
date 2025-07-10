@@ -133,6 +133,38 @@ server.registerTool(
 5. **Authentication Flows** - Complete auth workflow testing
 6. **Error Handling** - Edge cases and error scenarios
 
+### Command Line and Testing Guidelines
+- **NEVER use `python -c` with long commands** - Always create proper test files
+- **NEVER run multi-line Python commands in terminal** - Use dedicated test scripts
+- **ALWAYS use proper test files** - Create `.py` files for testing complex functionality
+- **PREFER dedicated test utilities** - Use existing test scripts like `docker_free_test.py`
+- **AVOID inline Python execution** - Terminal should be for simple commands only
+
+### Examples of What NOT to Do
+```bash
+# ❌ DON'T DO THIS - Long inline Python commands
+python -c "
+from agents.web_scraper.web_scraper import WebScraperAgent
+agent = WebScraperAgent()
+print('Agent info:', agent.get_agent_info())
+"
+
+# ❌ DON'T DO THIS - Complex multi-line commands
+python -c "import sys; sys.path.append('...'); from agents import *; agent = Agent(); print(agent.status())"
+```
+
+### Examples of What TO Do
+```bash
+# ✅ DO THIS - Use dedicated test files
+python docker_free_test.py --test web_scraper
+
+# ✅ DO THIS - Create specific test scripts
+python test_agent_dependencies.py
+
+# ✅ DO THIS - Simple imports and basic commands only
+python -c "import sys; print(sys.version)"
+```
+
 ### Repository and Development Tools
 - **GitHub Integration**: Use `github-local` tools for repository management, issue tracking, and CI/CD
 - **Filesystem Management**: Use `filesystem` tools for server structure creation, file management, and template application
