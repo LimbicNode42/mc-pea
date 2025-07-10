@@ -37,6 +37,24 @@ A comprehensive Streamlit-based dashboard for managing AI agents and MCP (Model 
 
 The dashboard will open in your browser at `http://localhost:8501`
 
+### 🧪 Docker-Free Testing
+
+For quick testing without Docker or MCP servers:
+
+```bash
+# Test all agents with fallback methods
+python docker_free_test.py
+
+# Test specific components
+python docker_free_test.py --test web_scraper
+python docker_free_test.py --test api_analyzer
+
+# Test with custom URL
+python docker_free_test.py --url https://docs.example.com/api
+```
+
+See [DOCKER_FREE_TESTING.md](DOCKER_FREE_TESTING.md) for detailed documentation.
+
 ## 🎯 Features
 
 ### 🏠 Dashboard Tab

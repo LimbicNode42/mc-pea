@@ -64,13 +64,21 @@ def discover_available_agents() -> List[Dict[str, Any]]:
     if not agents_dir.exists():
         return agents
     
+    # Try to import and instantiate agents to get comprehensive info
+    import sys
+    sys.path.append(str(agents_dir.parent))
+    
     for agent_dir in agents_dir.iterdir():
         if agent_dir.is_dir() and not agent_dir.name.startswith('__'):
             agent_info = {
                 "name": agent_dir.name,
                 "path": str(agent_dir),
                 "status": "available",
-                "description": "No description available"
+                "description": "No description available",
+                "implemented": False,
+                "mcp_dependencies": [],
+                "dependency_count": 0,
+                "has_dependencies": False
             }
             
             # Try to read agent description from __init__.py
@@ -84,15 +92,35 @@ def discover_available_agents() -> List[Dict[str, Any]]:
                         end = content.find('"""', start)
                         if end > start:
                             agent_info["description"] = content[start:end].strip()
+                    
+                    # Try to import the agent and get comprehensive info
+                    try:
+                        if agent_dir.name == "orchestrator":
+                            from agents.orchestrator.orchestrator import OrchestratorAgent
+                            agent_instance = OrchestratorAgent()
+                            agent_info.update(agent_instance.get_agent_info())
+                        elif agent_dir.name == "web_scraper":
+                            from agents.web_scraper.web_scraper import WebScraperAgent
+                            agent_instance = WebScraperAgent()
+                            agent_info.update(agent_instance.get_agent_info())
+                        elif agent_dir.name == "api_analyzer":
+                            from agents.api_analyzer.api_analysis import APIAnalysisAgent
+                            agent_instance = APIAnalysisAgent()
+                            agent_info.update(agent_instance.get_agent_info())
+                        # Add other agents as they're implemented
+                    except Exception as e:
+                        # If import fails, keep basic info
+                        agent_info["implemented"] = True if init_file.exists() else False
+                        pass
+                        
                 except Exception:
                     pass
             
             # Check if agent has proper implementation
-            if (agent_dir / "__init__.py").exists():
-                agent_info["implemented"] = True
-            else:
-                agent_info["implemented"] = False
-                agent_info["status"] = "skeleton"
+            if not agent_info["implemented"]:
+                agent_info["implemented"] = (agent_dir / "__init__.py").exists()
+                if not agent_info["implemented"]:
+                    agent_info["status"] = "skeleton"
             
             agents.append(agent_info)
     
@@ -610,6 +638,24 @@ def render_agents_dashboard():
         st.warning("No AI agents found in the system.")
         return
     
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Agents", len(agents))
+    
+    with col2:
+        implemented_count = len([a for a in agents if a["implemented"]])
+        st.metric("Implemented", implemented_count)
+    
+    with col3:
+        agents_with_deps = len([a for a in agents if a.get("has_dependencies", False)])
+        st.metric("Using MCP Servers", agents_with_deps)
+    
+    with col4:
+        total_deps = sum(a.get("dependency_count", 0) for a in agents)
+        st.metric("Total Dependencies", total_deps)
+    
     # Create columns for agent cards
     cols = st.columns(min(len(agents), 3))
     
@@ -623,28 +669,84 @@ def render_agents_dashboard():
                 status_color = "🟡"
                 status_text = "Skeleton"
             
+            # MCP dependencies info
+            dep_info = ""
+            if agent.get("has_dependencies", False):
+                deps = agent.get("mcp_dependencies", [])
+                dep_info = f"<p><strong>MCP Dependencies:</strong> {len(deps)}</p>"
+                for dep in deps[:2]:  # Show first 2 dependencies
+                    dep_name = dep.get("name", "Unknown")
+                    dep_status = "✅" if dep.get("docker_required", True) == False else "🐳"
+                    dep_info += f"<p><small>{dep_status} {dep_name}</small></p>"
+                if len(deps) > 2:
+                    dep_info += f"<p><small>... and {len(deps) - 2} more</small></p>"
+            else:
+                dep_info = "<p><strong>MCP Dependencies:</strong> None</p>"
+            
             st.markdown(f"""
             <div class="status-card">
                 <h4>{status_color} {agent['name'].replace('_', ' ').title()}</h4>
                 <p><strong>Status:</strong> {status_text}</p>
-                <p>{agent['description'][:100]}{'...' if len(agent['description']) > 100 else ''}</p>
+                <p>{agent['description'][:80]}{'...' if len(agent['description']) > 80 else ''}</p>
+                {dep_info}
                 <p><small><strong>Path:</strong> {agent['path']}</small></p>
             </div>
             """, unsafe_allow_html=True)
     
-    # Agent capabilities matrix
-    st.subheader("Agent Capabilities Matrix")
+    # Agent capabilities matrix with MCP dependencies
+    st.subheader("Agent Capabilities & Dependencies Matrix")
     
     capabilities_data = []
     for agent in agents:
+        deps = agent.get("mcp_dependencies", [])
+        dep_names = [dep.get("name", "Unknown") for dep in deps[:3]]  # Show first 3
+        dep_display = ", ".join(dep_names)
+        if len(deps) > 3:
+            dep_display += f" (+{len(deps) - 3} more)"
+        
         capabilities_data.append({
             "Agent": agent["name"].replace('_', ' ').title(),
             "Status": "✅" if agent["implemented"] else "⚠️",
             "Implementation": "Complete" if agent["implemented"] else "Skeleton",
-            "Role": agent.get("role", "Unknown")
+            "Role": agent.get("role", "Unknown"),
+            "MCP Dependencies": dep_display if dep_display else "None",
+            "Docker Required": "Yes" if any(dep.get("docker_required", True) for dep in deps) else "No"
         })
     
     st.dataframe(capabilities_data, use_container_width=True)
+    
+    # Detailed MCP dependency information
+    if any(agent.get("has_dependencies", False) for agent in agents):
+        st.subheader("🔌 MCP Server Dependencies Details")
+        
+        for agent in agents:
+            if agent.get("has_dependencies", False):
+                with st.expander(f"📋 {agent['name'].replace('_', ' ').title()} Dependencies"):
+                    deps = agent.get("mcp_dependencies", [])
+                    
+                    for dep in deps:
+                        col1, col2, col3 = st.columns([2, 1, 1])
+                        
+                        with col1:
+                            st.write(f"**{dep.get('name', 'Unknown')}**")
+                            st.write(dep.get('description', 'No description'))
+                            if dep.get('repository'):
+                                st.markdown(f"[Repository]({dep['repository']})")
+                        
+                        with col2:
+                            docker_req = dep.get('docker_required', True)
+                            st.write(f"**Docker Required:** {'🐳 Yes' if docker_req else '✅ No'}")
+                            st.write(f"**Status:** {dep.get('status', 'Unknown')}")
+                        
+                        with col3:
+                            if 'installation' in dep:
+                                install_info = dep['installation']
+                                st.write(f"**Install:** `{install_info.get('command', 'N/A')}`")
+                            
+                            if dep.get('fallback_available'):
+                                st.write("🔄 **Fallback Available**")
+                        
+                        st.divider()
 
 
 def render_servers_dashboard():

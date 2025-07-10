@@ -151,6 +151,35 @@ class BaseAgent(ABC):
         """
         pass
     
+    def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
+        """Get MCP server dependencies for this agent.
+        
+        Returns:
+            List of MCP server dependencies with installation and config info
+        """
+        return []  # Default: no dependencies
+    
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Get comprehensive agent information including dependencies.
+        
+        Returns:
+            Dictionary with agent details and MCP dependencies
+        """
+        dependencies = self.get_mcp_dependencies()
+        
+        return {
+            "name": self.config.name,
+            "role": self.config.role,
+            "goal": self.config.goal,
+            "backstory": self.config.backstory,
+            "implemented": True,  # Base agents are implemented
+            "mcp_dependencies": dependencies,
+            "dependency_count": len(dependencies),
+            "has_dependencies": len(dependencies) > 0,
+            "status": "active" if hasattr(self, 'is_running') and self.is_running else "inactive",
+            "path": f"agents/{self.config.name}"
+        }
+    
     @abstractmethod
     async def process_message(self, message: AgentMessage) -> AgentResult:
         """Process an incoming message.
