@@ -9,7 +9,8 @@ import tempfile
 import os
 from typing import Dict, Any, List, Optional
 from pathlib import Path
-from core.base_agent import BaseAgent
+from core.base_agent import BaseAgent, AgentConfig
+from core.agent_config_loader import get_agent_config
 from tools.file_operations import FileOperations
 from tools.mcp_validators import MCPValidator
 
@@ -17,11 +18,37 @@ from tools.mcp_validators import MCPValidator
 class ValidatorAgent(BaseAgent):
     """Agent that validates MCP servers for protocol compliance and quality."""
     
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__(config)
+    def __init__(self, anthropic_client=None):
+        # Load configuration from centralized config file
+        config_data = get_agent_config("validator")
+        
+        # Create agent config using loaded data
+        agent_config = AgentConfig(
+            name=config_data.get("name", "validator"),
+            role=config_data.get("role", "MCP Server Validator"),
+            goal=config_data.get("goal", "Validate generated MCP servers for compliance, functionality, and best practices"),
+            backstory=config_data.get("backstory", """
+            You are a quality assurance expert specializing in MCP server validation. You ensure all generated servers comply 
+            with MCP protocol standards, follow MC-PEA guidelines, and are production-ready. You perform comprehensive testing 
+            including protocol compliance, authentication flows, and error handling.
+            """)
+        )
+        
+        # Store config data for later use
+        self._config_data = config_data
+        
+        super().__init__(agent_config, anthropic_client)
         self.file_ops = FileOperations()
         self.mcp_validators = MCPValidator()
         self.validation_cache = {}
+    
+    def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
+        """Get MCP server dependencies for this agent.
+        
+        Returns:
+            List of required MCP servers from configuration
+        """
+        return self._config_data.get("mcp_dependencies", [])
     
     async def validate_mcp_server(self, server_path: str, validation_config: Dict[str, Any] = None) -> Dict[str, Any]:
         """

@@ -10,6 +10,7 @@ from typing import Dict, Any, List, Optional
 from crewai import Agent, Task, Crew
 from core.base_agent import BaseAgent, AgentConfig
 from core.config import get_config, MCPEAConfig
+from core.agent_config_loader import get_agent_config
 import json
 import logging
 import requests
@@ -17,24 +18,31 @@ from urllib.parse import urljoin, urlparse
 import time
 from bs4 import BeautifulSoup
 import html2text
+import re
 
 
 class WebScraperAgent(BaseAgent):
     """Agent responsible for crawling and scraping API documentation using the official MCP fetch server."""
     
     def __init__(self, anthropic_client=None):
-        # Create agent config
+        # Load configuration from centralized config file
+        config_data = get_agent_config("web_scraper")
+        
+        # Create agent config using loaded data
         agent_config = AgentConfig(
-            name="web_scraper",
-            role="Web Documentation Scraper",
-            goal="Crawl and scrape API documentation from websites using lightweight web fetching",
-            backstory="""
+            name=config_data.get("name", "web_scraper"),
+            role=config_data.get("role", "Web Documentation Scraper"),
+            goal=config_data.get("goal", "Crawl and scrape API documentation from websites using lightweight web fetching"),
+            backstory=config_data.get("backstory", """
             You are an expert web scraper specializing in crawling API documentation websites.
             You use the official MCP fetch server to efficiently extract content from documentation sites
             and structure it in a standardized format for analysis by other agents.
             You're optimized for Kubernetes deployments with lightweight dependencies.
-            """
+            """)
         )
+        
+        # Store config data for later use
+        self._config_data = config_data
         
         super().__init__(agent_config, anthropic_client)
         
@@ -76,9 +84,9 @@ class WebScraperAgent(BaseAgent):
         """Get MCP server dependencies for this agent.
         
         Returns:
-            List of required MCP servers
+            List of required MCP servers from configuration
         """
-        return [
+        return self._config_data.get("mcp_dependencies", [
             {
                 "name": "fetch",
                 "package": "mcp-server-fetch", 
@@ -95,24 +103,26 @@ class WebScraperAgent(BaseAgent):
                 "deployment_friendly": True,
                 "kubernetes_ready": True
             }
-        ]
+        ])
     
     def get_agent_info(self) -> Dict[str, Any]:
         """Get agent information including dependency status.
         
         Returns:
-            Agent information with MCP fetch server dependency
+            Agent information with MCP fetch server dependency from configuration
         """
         base_info = super().get_agent_info()
+        dependencies = self.get_mcp_dependencies()
+        
         base_info.update({
-            "mcp_dependencies": self.get_mcp_dependencies(),
-            "dependency_count": 1,
-            "has_dependencies": True,
+            "mcp_dependencies": dependencies,
+            "dependency_count": len(dependencies),
+            "has_dependencies": len(dependencies) > 0,
             "fallback_available": True,
-            "fallback_description": "Falls back to lightweight requests + BeautifulSoup when MCP fetch server unavailable",
-            "deployment_friendly": True,
-            "kubernetes_ready": True,
-            "docker_requirements": "Official MCP fetch server (lightweight Python)"
+            "fallback_description": self._config_data.get("fallback_description", "Falls back to lightweight requests + BeautifulSoup when MCP fetch server unavailable"),
+            "deployment_friendly": self._config_data.get("deployment_friendly", True),
+            "kubernetes_ready": self._config_data.get("kubernetes_ready", True),
+            "docker_requirements": self._config_data.get("docker_requirements", "Official MCP fetch server (lightweight Python)")
         })
         return base_info
     

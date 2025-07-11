@@ -6,28 +6,43 @@ from typing import Dict, Any, List, Optional
 from crewai import Agent, Task, Crew
 from core.base_agent import BaseAgent, AgentConfig
 from core.config import get_config, MCPEAConfig
+from core.agent_config_loader import get_agent_config
 
 
 class OrchestratorAgent(BaseAgent):
     """Agent responsible for orchestrating MCP server generation workflows."""
     
     def __init__(self, anthropic_client=None):
-        # Create agent config
+        # Load configuration from centralized config file
+        config_data = get_agent_config("orchestrator")
+        
+        # Create agent config using loaded data
         agent_config = AgentConfig(
-            name="orchestrator",
-            role="MCP Server Generation Orchestrator",
-            goal="Coordinate and manage the complete MCP server generation workflow",
-            backstory="""
-            You are an expert project manager specializing in software development workflows.
-            You coordinate between different specialized agents to ensure smooth and efficient
-            MCP server generation from specification to deployment-ready code.
-            """
+            name=config_data.get("name", "orchestrator"),
+            role=config_data.get("role", "Workflow Orchestrator"),
+            goal=config_data.get("goal", "Coordinate multi-agent workflows for end-to-end MCP server generation"),
+            backstory=config_data.get("backstory", """
+            You are a workflow orchestration expert who coordinates the activities of multiple specialized agents. 
+            You manage the complete lifecycle from API discovery through MCP server generation, validation, and deployment. 
+            You ensure smooth handoffs between agents and maintain state throughout complex workflows.
+            """)
         )
+        
+        # Store config data for later use
+        self._config_data = config_data
         
         super().__init__(agent_config, anthropic_client)
         
         # Register for configuration updates
         self.register_config_callback(self._on_orchestrator_config_update)
+    
+    def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
+        """Get MCP server dependencies for this agent.
+        
+        Returns:
+            List of required MCP servers from configuration
+        """
+        return self._config_data.get("mcp_dependencies", [])
     
     def _on_orchestrator_config_update(self, new_config: MCPEAConfig) -> None:
         """Handle orchestrator-specific configuration updates.

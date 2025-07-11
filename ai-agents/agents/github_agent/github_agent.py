@@ -18,6 +18,7 @@ except ImportError:
     Task = object
 
 from core.base_agent import BaseAgent, AgentConfig, AgentMessage, AgentResult
+from core.agent_config_loader import get_agent_config
 
 try:
     from tools.mcp_validators import MCPValidator
@@ -51,66 +52,40 @@ class GitHubAgent(BaseAgent):
             toolsets: List of GitHub MCP server toolsets to enable 
                      (e.g., ['repos', 'issues', 'pull_requests'])
         """
+        # Load configuration from centralized config file
+        config_data = get_agent_config("github_agent")
+        
         # Create agent configuration
         agent_config = AgentConfig(
-            name="github_agent",
-            role='GitHub Operations Agent',
-            goal='Manage GitHub repositories, issues, pull requests, and automations',
-            backstory=(
-                'Expert GitHub automation specialist with deep knowledge of '
-                'Git workflows, repository management, and GitHub APIs. '
-                'Specializes in creating and managing repositories for MCP servers.'
-            )
+            name=config_data.get("name", "github_agent"),
+            role=config_data.get("role", "GitHub Operations Agent"),
+            goal=config_data.get("goal", "Manage GitHub repositories, issues, pull requests, and automations for MCP server projects"),
+            backstory=config_data.get("backstory", """
+            You are an expert GitHub automation specialist with deep knowledge of Git workflows, repository management, and GitHub APIs. 
+            You specialize in creating and managing repositories for MCP servers, handling issue tracking, pull request workflows, 
+            and GitHub Actions automation.
+            """)
         )
+        
+        # Store config data for later use
+        self._config_data = config_data
         
         # Initialize base agent
         super().__init__(agent_config)
         
         self.github_token = github_token or os.getenv('GITHUB_PERSONAL_ACCESS_TOKEN')
         self.toolsets = toolsets or ['repos', 'issues', 'pull_requests', 'actions', 'context']
-        self.mcp_validator = MCPValidator()
         
-        # MCP Server dependency
-        self.mcp_server_dependency = {
-            "name": "github-mcp-server",
-            "package": "github-mcp-server",
-            "description": "Official GitHub MCP server for repository operations, issues, and pull requests",
-            "repository": "https://github.com/github/github-mcp-server",
-            "required": True,
-            "status": "official",
-            "docker_required": False,
-            "installation": {
-                "method": "npm",
-                "command": "npm install -g github-mcp-server",
-                "alternative": "npx github-mcp-server",
-                "verification": "github-mcp-server --version"
-            },
-            "config": {
-                "mcpServers": {
-                    "github": {
-                        "command": "github-mcp-server",
-                        "env": {
-                            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-                        }
-                    }
-                }
-            },
-            "tools_provided": [
-                "create_repository",
-                "create_branch", 
-                "push_files",
-                "create_pull_request",
-                "create_issue",
-                "get_me",
-                "list_repositories",
-                "get_repository",
-                "update_repository",
-                "delete_repository"
-            ],
-            "fallback_available": False,
-            "fallback_description": "No fallback available - requires GitHub MCP server for repository operations"
-        }
+    def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
+        """Get MCP server dependencies for this agent.
         
+        Returns:
+            List of required MCP servers from configuration
+        """
+        return self._config_data.get("mcp_dependencies", [])
+        
+    def validate_github_token(self) -> bool:
+        """Validate that GitHub token is available and working."""
         if not self.github_token:
             raise ValueError(
                 "GitHub Personal Access Token is required. "

@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from core.base_agent import AgentConfig, AgentMessage, AgentResult, BaseAgent
 from core.config import get_config, MCPEAConfig
+from core.agent_config_loader import get_agent_config
 from tools.file_operations import FileOperations
 from tools.mcp_validators import MCPValidator
 
@@ -49,18 +50,24 @@ class MCPServerGeneratorAgent(BaseAgent):
         config: Optional[AgentConfig] = None,
         logger: Optional[logging.Logger] = None,
     ):
-        # Use provided config or create default
+        # Load configuration from centralized config file if not provided
         if config is None:
+            config_data = get_agent_config("mcp_generator")
             config = AgentConfig(
-                name="mcp_generator",
-                role="MCP Server Code Generator",
-                goal="Generate production-ready MCP server code from API specifications",
-                backstory="""
-                You are an expert TypeScript developer specializing in the Model Context Protocol (MCP).
-                You have deep knowledge of MCP server architecture, TypeScript best practices, and
-                can generate clean, efficient, and well-documented code that follows MCP standards.
-                """
+                name=config_data.get("name", "mcp_generator"),
+                role=config_data.get("role", "MCP Server Generator"),
+                goal=config_data.get("goal", "Generate production-ready MCP servers from API specifications and documentation"),
+                backstory=config_data.get("backstory", """
+                You are an expert TypeScript developer specializing in the Model Context Protocol. 
+                You generate clean, well-documented MCP servers that follow MC-PEA standards and integrate seamlessly 
+                with authentication systems. You ensure all generated servers are production-ready and follow best practices.
+                """)
             )
+            # Store config data for later use
+            self._config_data = config_data
+        else:
+            # If config is provided, use empty config data
+            self._config_data = {}
         
         super().__init__(config, anthropic_client, logger)
         
@@ -90,6 +97,14 @@ class MCPServerGeneratorAgent(BaseAgent):
         self.logger.info(f"Template usage: {self.generation_config.use_templates}")
         self.logger.info(f"Output directory: {self.generation_config.output_directory}")
         self.logger.info(f"Auto validation: {self.validation_config.auto_validate}")
+    
+    def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
+        """Get MCP server dependencies for this agent.
+        
+        Returns:
+            List of required MCP servers from configuration
+        """
+        return self._config_data.get("mcp_dependencies", [])
     
     def get_tools(self) -> List[Any]:
         """Get tools available to this agent."""

@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Optional
 from crewai import Agent, Task, Crew
 from core.base_agent import BaseAgent, AgentConfig
 from core.config import get_config, MCPEAConfig
+from core.agent_config_loader import get_agent_config
 import json
 import logging
 
@@ -14,26 +15,36 @@ class APIAnalysisAgent(BaseAgent):
     """Agent responsible for analyzing scraped API documentation and extracting structured information."""
     
     def __init__(self, anthropic_client=None):
-        # Create agent config
+        # Load configuration from centralized config file
+        config_data = get_agent_config("api_analyzer")
+        
+        # Create agent config using loaded data
         agent_config = AgentConfig(
-            name="api_analysis",
-            role="API Documentation Analyzer",
-            goal="Analyze scraped API documentation and extract structured API specifications",
-            backstory="""
-            You are an expert API analyst who specializes in understanding and analyzing API documentation.
-            You take scraped documentation content and extract meaningful API specifications, 
-            endpoint definitions, authentication methods, and usage patterns to help generate 
-            accurate MCP servers.
-            """
+            name=config_data.get("name", "api_analyzer"),
+            role=config_data.get("role", "API Documentation Analyzer"),
+            goal=config_data.get("goal", "Analyze and understand API documentation to extract specifications and patterns"),
+            backstory=config_data.get("backstory", """
+            You are an expert at analyzing API documentation from various sources. You understand REST, GraphQL, gRPC, and other API patterns. 
+            You extract comprehensive specifications that can be used to generate MCP servers, identifying authentication methods, 
+            endpoints, parameters, and data structures.
+            """)
         )
+        
+        # Store config data for later use
+        self._config_data = config_data
         
         super().__init__(agent_config, anthropic_client)
         
-        # No direct MCP server dependencies for this agent
-        self.mcp_server_dependencies = []
-        
         # Register for configuration updates
         self.register_config_callback(self._on_analysis_config_update)
+    
+    def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
+        """Get MCP server dependencies for this agent.
+        
+        Returns:
+            List of required MCP servers from configuration
+        """
+        return self._config_data.get("mcp_dependencies", [])
     
     def _on_analysis_config_update(self, new_config: MCPEAConfig) -> None:
         """Handle analysis-specific configuration updates.
