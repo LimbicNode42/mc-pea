@@ -5,6 +5,7 @@ from .api_analyzer import APIAnalysisAgent
 from .validator import ValidatorAgent
 from .orchestrator import OrchestratorAgent
 from .github_agent import GitHubAgent, RepositoryManager
+from .web_scraper import WebScraperAgent
 
 __all__ = [
     "MCPServerGeneratorAgent",
@@ -13,4 +14,5 @@ __all__ = [
     "OrchestratorAgent",
     "GitHubAgent",
     "RepositoryManager",
+    "WebScraperAgent",
 ]
