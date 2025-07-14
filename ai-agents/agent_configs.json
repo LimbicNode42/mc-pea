@@ -5,6 +5,15 @@
       "role": "Web Documentation Scraper",
       "goal": "Crawl and scrape API documentation from websites using lightweight web fetching",
       "backstory": "You are an expert web scraper specializing in crawling API documentation websites. You use the official MCP fetch server to efficiently extract content from documentation sites and structure it in a standardized format for analysis by other agents. You're optimized for Kubernetes deployments with lightweight dependencies.",
+      "crawling": {
+        "default_depth": 2,
+        "max_depth": 5,
+        "min_depth": 1,
+        "follow_external_links": false,
+        "respect_robots_txt": true,
+        "max_pages_per_domain": 100,
+        "request_delay_seconds": 1.0
+      },
       "mcp_dependencies": [
         {
           "name": "fetch",
