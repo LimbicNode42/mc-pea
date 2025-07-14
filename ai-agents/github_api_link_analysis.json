@@ -1,0 +1,2871 @@
+{
+  "base_url": "https://docs.github.com/en/rest?apiVersion=2022-11-28",
+  "total_links": 104,
+  "categorized_links": {
+    "navigation_links": [
+      {
+        "href": "/en/rest/quickstart",
+        "absolute_url": "https://docs.github.com/en/rest/quickstart",
+        "context": "Quickstart",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/about-the-rest-api",
+        "absolute_url": "https://docs.github.com/en/rest/about-the-rest-api",
+        "context": "About the REST API",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/authentication",
+        "absolute_url": "https://docs.github.com/en/rest/authentication",
+        "context": "Authentication",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/actions",
+        "absolute_url": "https://docs.github.com/en/rest/actions",
+        "context": "Actions",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/actions/artifacts",
+        "absolute_url": "https://docs.github.com/en/rest/actions/artifacts",
+        "context": "Artifacts",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/cache",
+        "absolute_url": "https://docs.github.com/en/rest/actions/cache",
+        "context": "Cache",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/secrets",
+        "absolute_url": "https://docs.github.com/en/rest/actions/secrets",
+        "context": "Secrets",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/variables",
+        "absolute_url": "https://docs.github.com/en/rest/actions/variables",
+        "context": "Variables",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/workflow-jobs",
+        "absolute_url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+        "context": "Workflow jobs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/workflow-runs",
+        "absolute_url": "https://docs.github.com/en/rest/actions/workflow-runs",
+        "context": "Workflow runs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/workflows",
+        "absolute_url": "https://docs.github.com/en/rest/actions/workflows",
+        "context": "Workflows",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/apps",
+        "absolute_url": "https://docs.github.com/en/rest/apps",
+        "context": "Apps",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/apps/apps",
+        "absolute_url": "https://docs.github.com/en/rest/apps/apps",
+        "context": "GitHub Apps",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/apps/installations",
+        "absolute_url": "https://docs.github.com/en/rest/apps/installations",
+        "context": "Installations",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/apps/oauth-applications",
+        "absolute_url": "https://docs.github.com/en/rest/apps/oauth-applications",
+        "context": "OAuth Applications",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/checks",
+        "absolute_url": "https://docs.github.com/en/rest/checks",
+        "context": "Checks",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/checks/runs",
+        "absolute_url": "https://docs.github.com/en/rest/checks/runs",
+        "context": "Check runs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/checks/suites",
+        "absolute_url": "https://docs.github.com/en/rest/checks/suites",
+        "context": "Check suites",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/code-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/code-scanning",
+        "context": "Code scanning",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/code-scanning/code-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/code-scanning/code-scanning",
+        "context": "Code scanning",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/codespaces",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces",
+        "context": "Codespaces",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/codespaces/codespaces",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces/codespaces",
+        "context": "Codespaces",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/codespaces/machines",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces/machines",
+        "context": "Machines",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/codespaces/secrets",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces/secrets",
+        "context": "Secrets",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/copilot",
+        "absolute_url": "https://docs.github.com/en/rest/copilot",
+        "context": "Copilot",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/copilot/copilot-usage",
+        "absolute_url": "https://docs.github.com/en/rest/copilot/copilot-usage",
+        "context": "Usage",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/dependabot",
+        "absolute_url": "https://docs.github.com/en/rest/dependabot",
+        "context": "Dependabot",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/dependabot/alerts",
+        "absolute_url": "https://docs.github.com/en/rest/dependabot/alerts",
+        "context": "Alerts",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/dependabot/secrets",
+        "absolute_url": "https://docs.github.com/en/rest/dependabot/secrets",
+        "context": "Secrets",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git",
+        "absolute_url": "https://docs.github.com/en/rest/git",
+        "context": "Git database",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/git/blobs",
+        "absolute_url": "https://docs.github.com/en/rest/git/blobs",
+        "context": "Blobs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/commits",
+        "absolute_url": "https://docs.github.com/en/rest/git/commits",
+        "context": "Commits",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/refs",
+        "absolute_url": "https://docs.github.com/en/rest/git/refs",
+        "context": "References",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/tags",
+        "absolute_url": "https://docs.github.com/en/rest/git/tags",
+        "context": "Tags",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/trees",
+        "absolute_url": "https://docs.github.com/en/rest/git/trees",
+        "context": "Trees",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues",
+        "absolute_url": "https://docs.github.com/en/rest/issues",
+        "context": "Issues",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/issues/assignees",
+        "absolute_url": "https://docs.github.com/en/rest/issues/assignees",
+        "context": "Assignees",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/comments",
+        "absolute_url": "https://docs.github.com/en/rest/issues/comments",
+        "context": "Comments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/events",
+        "absolute_url": "https://docs.github.com/en/rest/issues/events",
+        "context": "Events",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/issues",
+        "absolute_url": "https://docs.github.com/en/rest/issues/issues",
+        "context": "Issues",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/labels",
+        "absolute_url": "https://docs.github.com/en/rest/issues/labels",
+        "context": "Labels",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/milestones",
+        "absolute_url": "https://docs.github.com/en/rest/issues/milestones",
+        "context": "Milestones",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/timeline",
+        "absolute_url": "https://docs.github.com/en/rest/issues/timeline",
+        "context": "Timeline",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/licenses",
+        "absolute_url": "https://docs.github.com/en/rest/licenses",
+        "context": "Licenses",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/markdown",
+        "absolute_url": "https://docs.github.com/en/rest/markdown",
+        "context": "Markdown",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/orgs",
+        "absolute_url": "https://docs.github.com/en/rest/orgs",
+        "context": "Organizations",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/orgs/blocking",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/blocking",
+        "context": "Blocking users",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/custom-roles",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/custom-roles",
+        "context": "Custom roles",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/members",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/members",
+        "context": "Members",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/orgs",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/orgs",
+        "context": "Organizations",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/outside-collaborators",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/outside-collaborators",
+        "context": "Outside collaborators",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/packages",
+        "absolute_url": "https://docs.github.com/en/rest/packages",
+        "context": "Packages",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/projects",
+        "absolute_url": "https://docs.github.com/en/rest/projects",
+        "context": "Projects",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/projects/cards",
+        "absolute_url": "https://docs.github.com/en/rest/projects/cards",
+        "context": "Cards",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/collaborators",
+        "absolute_url": "https://docs.github.com/en/rest/projects/collaborators",
+        "context": "Collaborators",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/columns",
+        "absolute_url": "https://docs.github.com/en/rest/projects/columns",
+        "context": "Columns",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/projects",
+        "absolute_url": "https://docs.github.com/en/rest/projects/projects",
+        "context": "Projects (classic)",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls",
+        "absolute_url": "https://docs.github.com/en/rest/pulls",
+        "context": "Pull requests",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/pulls/comments",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/comments",
+        "context": "Review comments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/pulls",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/pulls",
+        "context": "Pull requests",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/review-requests",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/review-requests",
+        "context": "Review requests",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/reviews",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/reviews",
+        "context": "Reviews",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/rate-limit",
+        "absolute_url": "https://docs.github.com/en/rest/rate-limit",
+        "context": "Rate limit",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/reactions",
+        "absolute_url": "https://docs.github.com/en/rest/reactions",
+        "context": "Reactions",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/repos",
+        "absolute_url": "https://docs.github.com/en/rest/repos",
+        "context": "Repositories",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/repos/autolinks",
+        "absolute_url": "https://docs.github.com/en/rest/repos/autolinks",
+        "context": "Autolinks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/branches",
+        "absolute_url": "https://docs.github.com/en/rest/repos/branches",
+        "context": "Branches",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/collaborators",
+        "absolute_url": "https://docs.github.com/en/rest/repos/collaborators",
+        "context": "Collaborators",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/comments",
+        "absolute_url": "https://docs.github.com/en/rest/repos/comments",
+        "context": "Comments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/commits",
+        "absolute_url": "https://docs.github.com/en/rest/repos/commits",
+        "context": "Commits",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/contents",
+        "absolute_url": "https://docs.github.com/en/rest/repos/contents",
+        "context": "Contents",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/deploy-keys",
+        "absolute_url": "https://docs.github.com/en/rest/repos/deploy-keys",
+        "context": "Deploy keys",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/deployments",
+        "absolute_url": "https://docs.github.com/en/rest/repos/deployments",
+        "context": "Deployments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/environments",
+        "absolute_url": "https://docs.github.com/en/rest/repos/environments",
+        "context": "Environments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/forks",
+        "absolute_url": "https://docs.github.com/en/rest/repos/forks",
+        "context": "Forks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/merging",
+        "absolute_url": "https://docs.github.com/en/rest/repos/merging",
+        "context": "Merging",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/pages",
+        "absolute_url": "https://docs.github.com/en/rest/repos/pages",
+        "context": "Pages",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/releases",
+        "absolute_url": "https://docs.github.com/en/rest/repos/releases",
+        "context": "Releases",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/repos",
+        "absolute_url": "https://docs.github.com/en/rest/repos/repos",
+        "context": "Repositories",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/rules",
+        "absolute_url": "https://docs.github.com/en/rest/repos/rules",
+        "context": "Rules",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/statuses",
+        "absolute_url": "https://docs.github.com/en/rest/repos/statuses",
+        "context": "Statuses",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/tags",
+        "absolute_url": "https://docs.github.com/en/rest/repos/tags",
+        "context": "Tags",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/repos/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/search",
+        "absolute_url": "https://docs.github.com/en/rest/search",
+        "context": "Search",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/secret-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/secret-scanning",
+        "context": "Secret scanning",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/secret-scanning/secret-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/secret-scanning/secret-scanning",
+        "context": "Secret scanning",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/teams",
+        "absolute_url": "https://docs.github.com/en/rest/teams",
+        "context": "Teams",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/teams/discussions",
+        "absolute_url": "https://docs.github.com/en/rest/teams/discussions",
+        "context": "Discussions",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/teams/members",
+        "absolute_url": "https://docs.github.com/en/rest/teams/members",
+        "context": "Members",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/teams/teams",
+        "absolute_url": "https://docs.github.com/en/rest/teams/teams",
+        "context": "Teams",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users",
+        "absolute_url": "https://docs.github.com/en/rest/users",
+        "context": "Users",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/users/blocking",
+        "absolute_url": "https://docs.github.com/en/rest/users/blocking",
+        "context": "Blocking users",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/emails",
+        "absolute_url": "https://docs.github.com/en/rest/users/emails",
+        "context": "Emails",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/followers",
+        "absolute_url": "https://docs.github.com/en/rest/users/followers",
+        "context": "Followers",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/gpg-keys",
+        "absolute_url": "https://docs.github.com/en/rest/users/gpg-keys",
+        "context": "GPG keys",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/keys",
+        "absolute_url": "https://docs.github.com/en/rest/users/keys",
+        "context": "Keys",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/users",
+        "absolute_url": "https://docs.github.com/en/rest/users/users",
+        "context": "Users",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/webhooks/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/webhooks/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/guides/getting-started-with-the-rest-api",
+        "absolute_url": "https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api",
+        "context": "getting started",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      }
+    ],
+    "api_category_pages": [
+      {
+        "href": "/en/rest/quickstart",
+        "absolute_url": "https://docs.github.com/en/rest/quickstart",
+        "context": "Quickstart",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/about-the-rest-api",
+        "absolute_url": "https://docs.github.com/en/rest/about-the-rest-api",
+        "context": "About the REST API",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/authentication",
+        "absolute_url": "https://docs.github.com/en/rest/authentication",
+        "context": "Authentication",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/actions",
+        "absolute_url": "https://docs.github.com/en/rest/actions",
+        "context": "Actions",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/apps",
+        "absolute_url": "https://docs.github.com/en/rest/apps",
+        "context": "Apps",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/checks",
+        "absolute_url": "https://docs.github.com/en/rest/checks",
+        "context": "Checks",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/code-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/code-scanning",
+        "context": "Code scanning",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/codespaces",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces",
+        "context": "Codespaces",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/copilot",
+        "absolute_url": "https://docs.github.com/en/rest/copilot",
+        "context": "Copilot",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/dependabot",
+        "absolute_url": "https://docs.github.com/en/rest/dependabot",
+        "context": "Dependabot",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/git",
+        "absolute_url": "https://docs.github.com/en/rest/git",
+        "context": "Git database",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/issues",
+        "absolute_url": "https://docs.github.com/en/rest/issues",
+        "context": "Issues",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/licenses",
+        "absolute_url": "https://docs.github.com/en/rest/licenses",
+        "context": "Licenses",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/markdown",
+        "absolute_url": "https://docs.github.com/en/rest/markdown",
+        "context": "Markdown",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/orgs",
+        "absolute_url": "https://docs.github.com/en/rest/orgs",
+        "context": "Organizations",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/packages",
+        "absolute_url": "https://docs.github.com/en/rest/packages",
+        "context": "Packages",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/projects",
+        "absolute_url": "https://docs.github.com/en/rest/projects",
+        "context": "Projects",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/pulls",
+        "absolute_url": "https://docs.github.com/en/rest/pulls",
+        "context": "Pull requests",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/rate-limit",
+        "absolute_url": "https://docs.github.com/en/rest/rate-limit",
+        "context": "Rate limit",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/reactions",
+        "absolute_url": "https://docs.github.com/en/rest/reactions",
+        "context": "Reactions",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/repos",
+        "absolute_url": "https://docs.github.com/en/rest/repos",
+        "context": "Repositories",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/search",
+        "absolute_url": "https://docs.github.com/en/rest/search",
+        "context": "Search",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/secret-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/secret-scanning",
+        "context": "Secret scanning",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/teams",
+        "absolute_url": "https://docs.github.com/en/rest/teams",
+        "context": "Teams",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/users",
+        "absolute_url": "https://docs.github.com/en/rest/users",
+        "context": "Users",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      },
+      {
+        "href": "/en/rest/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_category_page"
+      }
+    ],
+    "api_endpoint_pages": [
+      {
+        "href": "/en/rest/actions/artifacts",
+        "absolute_url": "https://docs.github.com/en/rest/actions/artifacts",
+        "context": "Artifacts",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/cache",
+        "absolute_url": "https://docs.github.com/en/rest/actions/cache",
+        "context": "Cache",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/secrets",
+        "absolute_url": "https://docs.github.com/en/rest/actions/secrets",
+        "context": "Secrets",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/variables",
+        "absolute_url": "https://docs.github.com/en/rest/actions/variables",
+        "context": "Variables",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/workflow-jobs",
+        "absolute_url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+        "context": "Workflow jobs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/workflow-runs",
+        "absolute_url": "https://docs.github.com/en/rest/actions/workflow-runs",
+        "context": "Workflow runs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/actions/workflows",
+        "absolute_url": "https://docs.github.com/en/rest/actions/workflows",
+        "context": "Workflows",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/apps/apps",
+        "absolute_url": "https://docs.github.com/en/rest/apps/apps",
+        "context": "GitHub Apps",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/apps/installations",
+        "absolute_url": "https://docs.github.com/en/rest/apps/installations",
+        "context": "Installations",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/apps/oauth-applications",
+        "absolute_url": "https://docs.github.com/en/rest/apps/oauth-applications",
+        "context": "OAuth Applications",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/checks/runs",
+        "absolute_url": "https://docs.github.com/en/rest/checks/runs",
+        "context": "Check runs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/checks/suites",
+        "absolute_url": "https://docs.github.com/en/rest/checks/suites",
+        "context": "Check suites",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/code-scanning/code-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/code-scanning/code-scanning",
+        "context": "Code scanning",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/codespaces/codespaces",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces/codespaces",
+        "context": "Codespaces",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/codespaces/machines",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces/machines",
+        "context": "Machines",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/codespaces/secrets",
+        "absolute_url": "https://docs.github.com/en/rest/codespaces/secrets",
+        "context": "Secrets",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/copilot/copilot-usage",
+        "absolute_url": "https://docs.github.com/en/rest/copilot/copilot-usage",
+        "context": "Usage",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/dependabot/alerts",
+        "absolute_url": "https://docs.github.com/en/rest/dependabot/alerts",
+        "context": "Alerts",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/dependabot/secrets",
+        "absolute_url": "https://docs.github.com/en/rest/dependabot/secrets",
+        "context": "Secrets",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/blobs",
+        "absolute_url": "https://docs.github.com/en/rest/git/blobs",
+        "context": "Blobs",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/commits",
+        "absolute_url": "https://docs.github.com/en/rest/git/commits",
+        "context": "Commits",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/refs",
+        "absolute_url": "https://docs.github.com/en/rest/git/refs",
+        "context": "References",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/tags",
+        "absolute_url": "https://docs.github.com/en/rest/git/tags",
+        "context": "Tags",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/git/trees",
+        "absolute_url": "https://docs.github.com/en/rest/git/trees",
+        "context": "Trees",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/assignees",
+        "absolute_url": "https://docs.github.com/en/rest/issues/assignees",
+        "context": "Assignees",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/comments",
+        "absolute_url": "https://docs.github.com/en/rest/issues/comments",
+        "context": "Comments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/events",
+        "absolute_url": "https://docs.github.com/en/rest/issues/events",
+        "context": "Events",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/issues",
+        "absolute_url": "https://docs.github.com/en/rest/issues/issues",
+        "context": "Issues",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/labels",
+        "absolute_url": "https://docs.github.com/en/rest/issues/labels",
+        "context": "Labels",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/milestones",
+        "absolute_url": "https://docs.github.com/en/rest/issues/milestones",
+        "context": "Milestones",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/issues/timeline",
+        "absolute_url": "https://docs.github.com/en/rest/issues/timeline",
+        "context": "Timeline",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/blocking",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/blocking",
+        "context": "Blocking users",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/custom-roles",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/custom-roles",
+        "context": "Custom roles",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/members",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/members",
+        "context": "Members",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/orgs",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/orgs",
+        "context": "Organizations",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/outside-collaborators",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/outside-collaborators",
+        "context": "Outside collaborators",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/orgs/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/orgs/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/cards",
+        "absolute_url": "https://docs.github.com/en/rest/projects/cards",
+        "context": "Cards",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/collaborators",
+        "absolute_url": "https://docs.github.com/en/rest/projects/collaborators",
+        "context": "Collaborators",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/columns",
+        "absolute_url": "https://docs.github.com/en/rest/projects/columns",
+        "context": "Columns",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/projects/projects",
+        "absolute_url": "https://docs.github.com/en/rest/projects/projects",
+        "context": "Projects (classic)",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/comments",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/comments",
+        "context": "Review comments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/pulls",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/pulls",
+        "context": "Pull requests",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/review-requests",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/review-requests",
+        "context": "Review requests",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/pulls/reviews",
+        "absolute_url": "https://docs.github.com/en/rest/pulls/reviews",
+        "context": "Reviews",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/autolinks",
+        "absolute_url": "https://docs.github.com/en/rest/repos/autolinks",
+        "context": "Autolinks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/branches",
+        "absolute_url": "https://docs.github.com/en/rest/repos/branches",
+        "context": "Branches",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/collaborators",
+        "absolute_url": "https://docs.github.com/en/rest/repos/collaborators",
+        "context": "Collaborators",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/comments",
+        "absolute_url": "https://docs.github.com/en/rest/repos/comments",
+        "context": "Comments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/commits",
+        "absolute_url": "https://docs.github.com/en/rest/repos/commits",
+        "context": "Commits",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/contents",
+        "absolute_url": "https://docs.github.com/en/rest/repos/contents",
+        "context": "Contents",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/deploy-keys",
+        "absolute_url": "https://docs.github.com/en/rest/repos/deploy-keys",
+        "context": "Deploy keys",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/deployments",
+        "absolute_url": "https://docs.github.com/en/rest/repos/deployments",
+        "context": "Deployments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/environments",
+        "absolute_url": "https://docs.github.com/en/rest/repos/environments",
+        "context": "Environments",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/forks",
+        "absolute_url": "https://docs.github.com/en/rest/repos/forks",
+        "context": "Forks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/merging",
+        "absolute_url": "https://docs.github.com/en/rest/repos/merging",
+        "context": "Merging",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/pages",
+        "absolute_url": "https://docs.github.com/en/rest/repos/pages",
+        "context": "Pages",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/releases",
+        "absolute_url": "https://docs.github.com/en/rest/repos/releases",
+        "context": "Releases",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/repos",
+        "absolute_url": "https://docs.github.com/en/rest/repos/repos",
+        "context": "Repositories",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/rules",
+        "absolute_url": "https://docs.github.com/en/rest/repos/rules",
+        "context": "Rules",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/statuses",
+        "absolute_url": "https://docs.github.com/en/rest/repos/statuses",
+        "context": "Statuses",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/tags",
+        "absolute_url": "https://docs.github.com/en/rest/repos/tags",
+        "context": "Tags",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/repos/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/repos/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/secret-scanning/secret-scanning",
+        "absolute_url": "https://docs.github.com/en/rest/secret-scanning/secret-scanning",
+        "context": "Secret scanning",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/teams/discussions",
+        "absolute_url": "https://docs.github.com/en/rest/teams/discussions",
+        "context": "Discussions",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/teams/members",
+        "absolute_url": "https://docs.github.com/en/rest/teams/members",
+        "context": "Members",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/teams/teams",
+        "absolute_url": "https://docs.github.com/en/rest/teams/teams",
+        "context": "Teams",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/blocking",
+        "absolute_url": "https://docs.github.com/en/rest/users/blocking",
+        "context": "Blocking users",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/emails",
+        "absolute_url": "https://docs.github.com/en/rest/users/emails",
+        "context": "Emails",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/followers",
+        "absolute_url": "https://docs.github.com/en/rest/users/followers",
+        "context": "Followers",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/gpg-keys",
+        "absolute_url": "https://docs.github.com/en/rest/users/gpg-keys",
+        "context": "GPG keys",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/keys",
+        "absolute_url": "https://docs.github.com/en/rest/users/keys",
+        "context": "Keys",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/users/users",
+        "absolute_url": "https://docs.github.com/en/rest/users/users",
+        "context": "Users",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/webhooks/webhooks",
+        "absolute_url": "https://docs.github.com/en/rest/webhooks/webhooks",
+        "context": "Webhooks",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      },
+      {
+        "href": "/en/rest/guides/getting-started-with-the-rest-api",
+        "absolute_url": "https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api",
+        "context": "getting started",
+        "is_api_related": true,
+        "link_type": "api_endpoint_page"
+      }
+    ],
+    "api_guide_pages": [],
+    "external_links": [
+      {
+        "href": "https://github.blog/changelog/",
+        "absolute_url": "https://github.blog/changelog/",
+        "context": "API changelog",
+        "is_api_related": false,
+        "link_type": "external"
+      }
+    ],
+    "anchor_links": [],
+    "content_links": [
+      {
+        "href": "/en/rest?apiVersion=2022-11-28",
+        "absolute_url": "https://docs.github.com/en/rest?apiVersion=2022-11-28",
+        "context": "REST API",
+        "is_api_related": false,
+        "link_type": "api_main_page"
+      },
+      {
+        "href": "/en/graphql",
+        "absolute_url": "https://docs.github.com/en/graphql",
+        "context": "GraphQL API",
+        "is_api_related": false,
+        "link_type": "general_docs"
+      }
+    ]
+  },
+  "navigation_analysis": {
+    "hierarchy": {
+      "quickstart": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/quickstart",
+          "absolute_url": "https://docs.github.com/en/rest/quickstart",
+          "context": "Quickstart",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "about-the-rest-api": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/about-the-rest-api",
+          "absolute_url": "https://docs.github.com/en/rest/about-the-rest-api",
+          "context": "About the REST API",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "authentication": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/authentication",
+          "absolute_url": "https://docs.github.com/en/rest/authentication",
+          "context": "Authentication",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "actions": {
+        "subcategories": [
+          {
+            "name": "artifacts",
+            "link": {
+              "href": "/en/rest/actions/artifacts",
+              "absolute_url": "https://docs.github.com/en/rest/actions/artifacts",
+              "context": "Artifacts",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "cache",
+            "link": {
+              "href": "/en/rest/actions/cache",
+              "absolute_url": "https://docs.github.com/en/rest/actions/cache",
+              "context": "Cache",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "secrets",
+            "link": {
+              "href": "/en/rest/actions/secrets",
+              "absolute_url": "https://docs.github.com/en/rest/actions/secrets",
+              "context": "Secrets",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "variables",
+            "link": {
+              "href": "/en/rest/actions/variables",
+              "absolute_url": "https://docs.github.com/en/rest/actions/variables",
+              "context": "Variables",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "workflow-jobs",
+            "link": {
+              "href": "/en/rest/actions/workflow-jobs",
+              "absolute_url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+              "context": "Workflow jobs",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "workflow-runs",
+            "link": {
+              "href": "/en/rest/actions/workflow-runs",
+              "absolute_url": "https://docs.github.com/en/rest/actions/workflow-runs",
+              "context": "Workflow runs",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "workflows",
+            "link": {
+              "href": "/en/rest/actions/workflows",
+              "absolute_url": "https://docs.github.com/en/rest/actions/workflows",
+              "context": "Workflows",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/actions",
+          "absolute_url": "https://docs.github.com/en/rest/actions",
+          "context": "Actions",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "apps": {
+        "subcategories": [
+          {
+            "name": "apps",
+            "link": {
+              "href": "/en/rest/apps/apps",
+              "absolute_url": "https://docs.github.com/en/rest/apps/apps",
+              "context": "GitHub Apps",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "installations",
+            "link": {
+              "href": "/en/rest/apps/installations",
+              "absolute_url": "https://docs.github.com/en/rest/apps/installations",
+              "context": "Installations",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "oauth-applications",
+            "link": {
+              "href": "/en/rest/apps/oauth-applications",
+              "absolute_url": "https://docs.github.com/en/rest/apps/oauth-applications",
+              "context": "OAuth Applications",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/apps",
+          "absolute_url": "https://docs.github.com/en/rest/apps",
+          "context": "Apps",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "checks": {
+        "subcategories": [
+          {
+            "name": "runs",
+            "link": {
+              "href": "/en/rest/checks/runs",
+              "absolute_url": "https://docs.github.com/en/rest/checks/runs",
+              "context": "Check runs",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "suites",
+            "link": {
+              "href": "/en/rest/checks/suites",
+              "absolute_url": "https://docs.github.com/en/rest/checks/suites",
+              "context": "Check suites",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/checks",
+          "absolute_url": "https://docs.github.com/en/rest/checks",
+          "context": "Checks",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "code-scanning": {
+        "subcategories": [
+          {
+            "name": "code-scanning",
+            "link": {
+              "href": "/en/rest/code-scanning/code-scanning",
+              "absolute_url": "https://docs.github.com/en/rest/code-scanning/code-scanning",
+              "context": "Code scanning",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/code-scanning",
+          "absolute_url": "https://docs.github.com/en/rest/code-scanning",
+          "context": "Code scanning",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "codespaces": {
+        "subcategories": [
+          {
+            "name": "codespaces",
+            "link": {
+              "href": "/en/rest/codespaces/codespaces",
+              "absolute_url": "https://docs.github.com/en/rest/codespaces/codespaces",
+              "context": "Codespaces",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "machines",
+            "link": {
+              "href": "/en/rest/codespaces/machines",
+              "absolute_url": "https://docs.github.com/en/rest/codespaces/machines",
+              "context": "Machines",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "secrets",
+            "link": {
+              "href": "/en/rest/codespaces/secrets",
+              "absolute_url": "https://docs.github.com/en/rest/codespaces/secrets",
+              "context": "Secrets",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/codespaces",
+          "absolute_url": "https://docs.github.com/en/rest/codespaces",
+          "context": "Codespaces",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "copilot": {
+        "subcategories": [
+          {
+            "name": "copilot-usage",
+            "link": {
+              "href": "/en/rest/copilot/copilot-usage",
+              "absolute_url": "https://docs.github.com/en/rest/copilot/copilot-usage",
+              "context": "Usage",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/copilot",
+          "absolute_url": "https://docs.github.com/en/rest/copilot",
+          "context": "Copilot",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "dependabot": {
+        "subcategories": [
+          {
+            "name": "alerts",
+            "link": {
+              "href": "/en/rest/dependabot/alerts",
+              "absolute_url": "https://docs.github.com/en/rest/dependabot/alerts",
+              "context": "Alerts",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "secrets",
+            "link": {
+              "href": "/en/rest/dependabot/secrets",
+              "absolute_url": "https://docs.github.com/en/rest/dependabot/secrets",
+              "context": "Secrets",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/dependabot",
+          "absolute_url": "https://docs.github.com/en/rest/dependabot",
+          "context": "Dependabot",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "git": {
+        "subcategories": [
+          {
+            "name": "blobs",
+            "link": {
+              "href": "/en/rest/git/blobs",
+              "absolute_url": "https://docs.github.com/en/rest/git/blobs",
+              "context": "Blobs",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "commits",
+            "link": {
+              "href": "/en/rest/git/commits",
+              "absolute_url": "https://docs.github.com/en/rest/git/commits",
+              "context": "Commits",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "refs",
+            "link": {
+              "href": "/en/rest/git/refs",
+              "absolute_url": "https://docs.github.com/en/rest/git/refs",
+              "context": "References",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "tags",
+            "link": {
+              "href": "/en/rest/git/tags",
+              "absolute_url": "https://docs.github.com/en/rest/git/tags",
+              "context": "Tags",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "trees",
+            "link": {
+              "href": "/en/rest/git/trees",
+              "absolute_url": "https://docs.github.com/en/rest/git/trees",
+              "context": "Trees",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/git",
+          "absolute_url": "https://docs.github.com/en/rest/git",
+          "context": "Git database",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "issues": {
+        "subcategories": [
+          {
+            "name": "assignees",
+            "link": {
+              "href": "/en/rest/issues/assignees",
+              "absolute_url": "https://docs.github.com/en/rest/issues/assignees",
+              "context": "Assignees",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "comments",
+            "link": {
+              "href": "/en/rest/issues/comments",
+              "absolute_url": "https://docs.github.com/en/rest/issues/comments",
+              "context": "Comments",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "events",
+            "link": {
+              "href": "/en/rest/issues/events",
+              "absolute_url": "https://docs.github.com/en/rest/issues/events",
+              "context": "Events",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "issues",
+            "link": {
+              "href": "/en/rest/issues/issues",
+              "absolute_url": "https://docs.github.com/en/rest/issues/issues",
+              "context": "Issues",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "labels",
+            "link": {
+              "href": "/en/rest/issues/labels",
+              "absolute_url": "https://docs.github.com/en/rest/issues/labels",
+              "context": "Labels",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "milestones",
+            "link": {
+              "href": "/en/rest/issues/milestones",
+              "absolute_url": "https://docs.github.com/en/rest/issues/milestones",
+              "context": "Milestones",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "timeline",
+            "link": {
+              "href": "/en/rest/issues/timeline",
+              "absolute_url": "https://docs.github.com/en/rest/issues/timeline",
+              "context": "Timeline",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/issues",
+          "absolute_url": "https://docs.github.com/en/rest/issues",
+          "context": "Issues",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "licenses": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/licenses",
+          "absolute_url": "https://docs.github.com/en/rest/licenses",
+          "context": "Licenses",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "markdown": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/markdown",
+          "absolute_url": "https://docs.github.com/en/rest/markdown",
+          "context": "Markdown",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "orgs": {
+        "subcategories": [
+          {
+            "name": "blocking",
+            "link": {
+              "href": "/en/rest/orgs/blocking",
+              "absolute_url": "https://docs.github.com/en/rest/orgs/blocking",
+              "context": "Blocking users",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "custom-roles",
+            "link": {
+              "href": "/en/rest/orgs/custom-roles",
+              "absolute_url": "https://docs.github.com/en/rest/orgs/custom-roles",
+              "context": "Custom roles",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "members",
+            "link": {
+              "href": "/en/rest/orgs/members",
+              "absolute_url": "https://docs.github.com/en/rest/orgs/members",
+              "context": "Members",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "orgs",
+            "link": {
+              "href": "/en/rest/orgs/orgs",
+              "absolute_url": "https://docs.github.com/en/rest/orgs/orgs",
+              "context": "Organizations",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "outside-collaborators",
+            "link": {
+              "href": "/en/rest/orgs/outside-collaborators",
+              "absolute_url": "https://docs.github.com/en/rest/orgs/outside-collaborators",
+              "context": "Outside collaborators",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "webhooks",
+            "link": {
+              "href": "/en/rest/orgs/webhooks",
+              "absolute_url": "https://docs.github.com/en/rest/orgs/webhooks",
+              "context": "Webhooks",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/orgs",
+          "absolute_url": "https://docs.github.com/en/rest/orgs",
+          "context": "Organizations",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "packages": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/packages",
+          "absolute_url": "https://docs.github.com/en/rest/packages",
+          "context": "Packages",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "projects": {
+        "subcategories": [
+          {
+            "name": "cards",
+            "link": {
+              "href": "/en/rest/projects/cards",
+              "absolute_url": "https://docs.github.com/en/rest/projects/cards",
+              "context": "Cards",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "collaborators",
+            "link": {
+              "href": "/en/rest/projects/collaborators",
+              "absolute_url": "https://docs.github.com/en/rest/projects/collaborators",
+              "context": "Collaborators",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "columns",
+            "link": {
+              "href": "/en/rest/projects/columns",
+              "absolute_url": "https://docs.github.com/en/rest/projects/columns",
+              "context": "Columns",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "projects",
+            "link": {
+              "href": "/en/rest/projects/projects",
+              "absolute_url": "https://docs.github.com/en/rest/projects/projects",
+              "context": "Projects (classic)",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/projects",
+          "absolute_url": "https://docs.github.com/en/rest/projects",
+          "context": "Projects",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "pulls": {
+        "subcategories": [
+          {
+            "name": "comments",
+            "link": {
+              "href": "/en/rest/pulls/comments",
+              "absolute_url": "https://docs.github.com/en/rest/pulls/comments",
+              "context": "Review comments",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "pulls",
+            "link": {
+              "href": "/en/rest/pulls/pulls",
+              "absolute_url": "https://docs.github.com/en/rest/pulls/pulls",
+              "context": "Pull requests",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "review-requests",
+            "link": {
+              "href": "/en/rest/pulls/review-requests",
+              "absolute_url": "https://docs.github.com/en/rest/pulls/review-requests",
+              "context": "Review requests",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "reviews",
+            "link": {
+              "href": "/en/rest/pulls/reviews",
+              "absolute_url": "https://docs.github.com/en/rest/pulls/reviews",
+              "context": "Reviews",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/pulls",
+          "absolute_url": "https://docs.github.com/en/rest/pulls",
+          "context": "Pull requests",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "rate-limit": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/rate-limit",
+          "absolute_url": "https://docs.github.com/en/rest/rate-limit",
+          "context": "Rate limit",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "reactions": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/reactions",
+          "absolute_url": "https://docs.github.com/en/rest/reactions",
+          "context": "Reactions",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "repos": {
+        "subcategories": [
+          {
+            "name": "autolinks",
+            "link": {
+              "href": "/en/rest/repos/autolinks",
+              "absolute_url": "https://docs.github.com/en/rest/repos/autolinks",
+              "context": "Autolinks",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "branches",
+            "link": {
+              "href": "/en/rest/repos/branches",
+              "absolute_url": "https://docs.github.com/en/rest/repos/branches",
+              "context": "Branches",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "collaborators",
+            "link": {
+              "href": "/en/rest/repos/collaborators",
+              "absolute_url": "https://docs.github.com/en/rest/repos/collaborators",
+              "context": "Collaborators",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "comments",
+            "link": {
+              "href": "/en/rest/repos/comments",
+              "absolute_url": "https://docs.github.com/en/rest/repos/comments",
+              "context": "Comments",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "commits",
+            "link": {
+              "href": "/en/rest/repos/commits",
+              "absolute_url": "https://docs.github.com/en/rest/repos/commits",
+              "context": "Commits",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "contents",
+            "link": {
+              "href": "/en/rest/repos/contents",
+              "absolute_url": "https://docs.github.com/en/rest/repos/contents",
+              "context": "Contents",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "deploy-keys",
+            "link": {
+              "href": "/en/rest/repos/deploy-keys",
+              "absolute_url": "https://docs.github.com/en/rest/repos/deploy-keys",
+              "context": "Deploy keys",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "deployments",
+            "link": {
+              "href": "/en/rest/repos/deployments",
+              "absolute_url": "https://docs.github.com/en/rest/repos/deployments",
+              "context": "Deployments",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "environments",
+            "link": {
+              "href": "/en/rest/repos/environments",
+              "absolute_url": "https://docs.github.com/en/rest/repos/environments",
+              "context": "Environments",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "forks",
+            "link": {
+              "href": "/en/rest/repos/forks",
+              "absolute_url": "https://docs.github.com/en/rest/repos/forks",
+              "context": "Forks",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "merging",
+            "link": {
+              "href": "/en/rest/repos/merging",
+              "absolute_url": "https://docs.github.com/en/rest/repos/merging",
+              "context": "Merging",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "pages",
+            "link": {
+              "href": "/en/rest/repos/pages",
+              "absolute_url": "https://docs.github.com/en/rest/repos/pages",
+              "context": "Pages",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "releases",
+            "link": {
+              "href": "/en/rest/repos/releases",
+              "absolute_url": "https://docs.github.com/en/rest/repos/releases",
+              "context": "Releases",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "repos",
+            "link": {
+              "href": "/en/rest/repos/repos",
+              "absolute_url": "https://docs.github.com/en/rest/repos/repos",
+              "context": "Repositories",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "rules",
+            "link": {
+              "href": "/en/rest/repos/rules",
+              "absolute_url": "https://docs.github.com/en/rest/repos/rules",
+              "context": "Rules",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "statuses",
+            "link": {
+              "href": "/en/rest/repos/statuses",
+              "absolute_url": "https://docs.github.com/en/rest/repos/statuses",
+              "context": "Statuses",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "tags",
+            "link": {
+              "href": "/en/rest/repos/tags",
+              "absolute_url": "https://docs.github.com/en/rest/repos/tags",
+              "context": "Tags",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "webhooks",
+            "link": {
+              "href": "/en/rest/repos/webhooks",
+              "absolute_url": "https://docs.github.com/en/rest/repos/webhooks",
+              "context": "Webhooks",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/repos",
+          "absolute_url": "https://docs.github.com/en/rest/repos",
+          "context": "Repositories",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "search": {
+        "subcategories": [],
+        "link": {
+          "href": "/en/rest/search",
+          "absolute_url": "https://docs.github.com/en/rest/search",
+          "context": "Search",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "secret-scanning": {
+        "subcategories": [
+          {
+            "name": "secret-scanning",
+            "link": {
+              "href": "/en/rest/secret-scanning/secret-scanning",
+              "absolute_url": "https://docs.github.com/en/rest/secret-scanning/secret-scanning",
+              "context": "Secret scanning",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/secret-scanning",
+          "absolute_url": "https://docs.github.com/en/rest/secret-scanning",
+          "context": "Secret scanning",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "teams": {
+        "subcategories": [
+          {
+            "name": "discussions",
+            "link": {
+              "href": "/en/rest/teams/discussions",
+              "absolute_url": "https://docs.github.com/en/rest/teams/discussions",
+              "context": "Discussions",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "members",
+            "link": {
+              "href": "/en/rest/teams/members",
+              "absolute_url": "https://docs.github.com/en/rest/teams/members",
+              "context": "Members",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "teams",
+            "link": {
+              "href": "/en/rest/teams/teams",
+              "absolute_url": "https://docs.github.com/en/rest/teams/teams",
+              "context": "Teams",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/teams",
+          "absolute_url": "https://docs.github.com/en/rest/teams",
+          "context": "Teams",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "users": {
+        "subcategories": [
+          {
+            "name": "blocking",
+            "link": {
+              "href": "/en/rest/users/blocking",
+              "absolute_url": "https://docs.github.com/en/rest/users/blocking",
+              "context": "Blocking users",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "emails",
+            "link": {
+              "href": "/en/rest/users/emails",
+              "absolute_url": "https://docs.github.com/en/rest/users/emails",
+              "context": "Emails",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "followers",
+            "link": {
+              "href": "/en/rest/users/followers",
+              "absolute_url": "https://docs.github.com/en/rest/users/followers",
+              "context": "Followers",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "gpg-keys",
+            "link": {
+              "href": "/en/rest/users/gpg-keys",
+              "absolute_url": "https://docs.github.com/en/rest/users/gpg-keys",
+              "context": "GPG keys",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "keys",
+            "link": {
+              "href": "/en/rest/users/keys",
+              "absolute_url": "https://docs.github.com/en/rest/users/keys",
+              "context": "Keys",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          },
+          {
+            "name": "users",
+            "link": {
+              "href": "/en/rest/users/users",
+              "absolute_url": "https://docs.github.com/en/rest/users/users",
+              "context": "Users",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/users",
+          "absolute_url": "https://docs.github.com/en/rest/users",
+          "context": "Users",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "webhooks": {
+        "subcategories": [
+          {
+            "name": "webhooks",
+            "link": {
+              "href": "/en/rest/webhooks/webhooks",
+              "absolute_url": "https://docs.github.com/en/rest/webhooks/webhooks",
+              "context": "Webhooks",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": {
+          "href": "/en/rest/webhooks",
+          "absolute_url": "https://docs.github.com/en/rest/webhooks",
+          "context": "Webhooks",
+          "is_api_related": true,
+          "link_type": "api_category_page"
+        }
+      },
+      "guides": {
+        "subcategories": [
+          {
+            "name": "getting-started-with-the-rest-api",
+            "link": {
+              "href": "/en/rest/guides/getting-started-with-the-rest-api",
+              "absolute_url": "https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api",
+              "context": "getting started",
+              "is_api_related": true,
+              "link_type": "api_endpoint_page"
+            }
+          }
+        ],
+        "link": null
+      }
+    },
+    "total_categories": 27,
+    "total_subcategories": 75,
+    "total_navigable_pages": 102,
+    "navigation_completeness": {
+      "main_categories": [
+        "quickstart",
+        "about-the-rest-api",
+        "authentication",
+        "actions",
+        "apps",
+        "checks",
+        "code-scanning",
+        "codespaces",
+        "copilot",
+        "dependabot",
+        "git",
+        "issues",
+        "licenses",
+        "markdown",
+        "orgs",
+        "packages",
+        "projects",
+        "pulls",
+        "rate-limit",
+        "reactions",
+        "repos",
+        "search",
+        "secret-scanning",
+        "teams",
+        "users",
+        "webhooks",
+        "guides"
+      ],
+      "estimated_total_pages": 112,
+      "crawlable_via_navigation": true
+    }
+  },
+  "crawling_strategy": {
+    "crawling_phases": {
+      "phase_1_main_categories": {
+        "description": "Crawl all main API category pages",
+        "targets": [
+          "/en/rest/quickstart",
+          "/en/rest/about-the-rest-api",
+          "/en/rest/authentication",
+          "/en/rest/actions",
+          "/en/rest/apps",
+          "/en/rest/checks",
+          "/en/rest/code-scanning",
+          "/en/rest/codespaces",
+          "/en/rest/copilot",
+          "/en/rest/dependabot",
+          "/en/rest/git",
+          "/en/rest/issues",
+          "/en/rest/licenses",
+          "/en/rest/markdown",
+          "/en/rest/orgs",
+          "/en/rest/packages",
+          "/en/rest/projects",
+          "/en/rest/pulls",
+          "/en/rest/rate-limit",
+          "/en/rest/reactions",
+          "/en/rest/repos",
+          "/en/rest/search",
+          "/en/rest/secret-scanning",
+          "/en/rest/teams",
+          "/en/rest/users",
+          "/en/rest/webhooks",
+          "/en/rest/guides"
+        ],
+        "expected_endpoints_per_page": 5,
+        "priority": "high"
+      },
+      "phase_2_subcategories": {
+        "description": "Crawl all subcategory pages for detailed endpoints",
+        "targets": [
+          "/en/rest/actions/artifacts",
+          "/en/rest/actions/cache",
+          "/en/rest/actions/secrets",
+          "/en/rest/actions/variables",
+          "/en/rest/actions/workflow-jobs",
+          "/en/rest/actions/workflow-runs",
+          "/en/rest/actions/workflows",
+          "/en/rest/apps/apps",
+          "/en/rest/apps/installations",
+          "/en/rest/apps/oauth-applications",
+          "/en/rest/checks/runs",
+          "/en/rest/checks/suites",
+          "/en/rest/code-scanning/code-scanning",
+          "/en/rest/codespaces/codespaces",
+          "/en/rest/codespaces/machines",
+          "/en/rest/codespaces/secrets",
+          "/en/rest/copilot/copilot-usage",
+          "/en/rest/dependabot/alerts",
+          "/en/rest/dependabot/secrets",
+          "/en/rest/git/blobs",
+          "/en/rest/git/commits",
+          "/en/rest/git/refs",
+          "/en/rest/git/tags",
+          "/en/rest/git/trees",
+          "/en/rest/issues/assignees",
+          "/en/rest/issues/comments",
+          "/en/rest/issues/events",
+          "/en/rest/issues/issues",
+          "/en/rest/issues/labels",
+          "/en/rest/issues/milestones",
+          "/en/rest/issues/timeline",
+          "/en/rest/orgs/blocking",
+          "/en/rest/orgs/custom-roles",
+          "/en/rest/orgs/members",
+          "/en/rest/orgs/orgs",
+          "/en/rest/orgs/outside-collaborators",
+          "/en/rest/orgs/webhooks",
+          "/en/rest/projects/cards",
+          "/en/rest/projects/collaborators",
+          "/en/rest/projects/columns",
+          "/en/rest/projects/projects",
+          "/en/rest/pulls/comments",
+          "/en/rest/pulls/pulls",
+          "/en/rest/pulls/review-requests",
+          "/en/rest/pulls/reviews",
+          "/en/rest/repos/autolinks",
+          "/en/rest/repos/branches",
+          "/en/rest/repos/collaborators",
+          "/en/rest/repos/comments",
+          "/en/rest/repos/commits",
+          "/en/rest/repos/contents",
+          "/en/rest/repos/deploy-keys",
+          "/en/rest/repos/deployments",
+          "/en/rest/repos/environments",
+          "/en/rest/repos/forks",
+          "/en/rest/repos/merging",
+          "/en/rest/repos/pages",
+          "/en/rest/repos/releases",
+          "/en/rest/repos/repos",
+          "/en/rest/repos/rules",
+          "/en/rest/repos/statuses",
+          "/en/rest/repos/tags",
+          "/en/rest/repos/webhooks",
+          "/en/rest/secret-scanning/secret-scanning",
+          "/en/rest/teams/discussions",
+          "/en/rest/teams/members",
+          "/en/rest/teams/teams",
+          "/en/rest/users/blocking",
+          "/en/rest/users/emails",
+          "/en/rest/users/followers",
+          "/en/rest/users/gpg-keys",
+          "/en/rest/users/keys",
+          "/en/rest/users/users",
+          "/en/rest/webhooks/webhooks",
+          "/en/rest/guides/getting-started-with-the-rest-api"
+        ],
+        "expected_endpoints_per_page": 10,
+        "priority": "high"
+      },
+      "phase_3_guide_pages": {
+        "description": "Crawl guide and reference pages",
+        "targets": [
+          "/en/rest/quickstart",
+          "/en/rest/about-the-rest-api",
+          "/en/rest/authentication"
+        ],
+        "expected_endpoints_per_page": 2,
+        "priority": "medium"
+      }
+    },
+    "total_pages_to_crawl": 105,
+    "estimated_total_endpoints": 891,
+    "crawl_order": [
+      "phase_1_main_categories",
+      "phase_2_subcategories",
+      "phase_3_guide_pages"
+    ],
+    "memory_requirements": {
+      "pages_to_track": 105,
+      "expected_memory_entries": 210,
+      "deduplication_needed": true
+    },
+    "success_criteria": {
+      "min_endpoints_target": 623.6999999999999,
+      "completeness_threshold": 0.8,
+      "page_coverage_target": 0.95
+    }
+  },
+  "mcp_memory_integration": {
+    "mcp_memory_server": {
+      "name": "memory",
+      "package": "mcp-server-memory",
+      "purpose": "Track crawled pages and extracted endpoints",
+      "tools_needed": [
+        "add_memory",
+        "search_memories",
+        "list_memories"
+      ]
+    },
+    "memory_schema": {
+      "page_memory": {
+        "key": "github_api_page_{url_hash}",
+        "content": {
+          "url": "string",
+          "crawled_at": "timestamp",
+          "endpoints_found": "number",
+          "status": "string (success|error|skipped)",
+          "extraction_summary": "string"
+        }
+      },
+      "endpoint_memory": {
+        "key": "github_endpoint_{method}_{path_hash}",
+        "content": {
+          "method": "string",
+          "path": "string",
+          "source_page": "string",
+          "confidence": "float",
+          "description": "string",
+          "discovered_at": "timestamp"
+        }
+      }
+    },
+    "crawling_workflow": {
+      "1_check_memory": "Before crawling, check if page already processed",
+      "2_crawl_page": "Use fetch_webpage to get content",
+      "3_extract_endpoints": "Apply enhanced extraction strategies",
+      "4_store_page_memory": "Save page crawl results",
+      "5_store_endpoint_memories": "Save individual endpoints",
+      "6_update_queue": "Add newly discovered links to crawl queue",
+      "7_deduplication": "Check for duplicate endpoints across pages"
+    },
+    "queue_management": {
+      "priority_queue": [
+        "uncrawled_main_categories",
+        "uncrawled_subcategories",
+        "uncrawled_guide_pages",
+        "discovered_links"
+      ],
+      "skip_conditions": [
+        "already_in_memory",
+        "external_link",
+        "non_api_related"
+      ]
+    }
+  },
+  "sample_links": [
+    {
+      "href": "/en/rest?apiVersion=2022-11-28",
+      "absolute_url": "https://docs.github.com/en/rest?apiVersion=2022-11-28",
+      "context": "REST API",
+      "is_api_related": false,
+      "link_type": "api_main_page"
+    },
+    {
+      "href": "/en/rest/quickstart",
+      "absolute_url": "https://docs.github.com/en/rest/quickstart",
+      "context": "Quickstart",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    },
+    {
+      "href": "/en/rest/about-the-rest-api",
+      "absolute_url": "https://docs.github.com/en/rest/about-the-rest-api",
+      "context": "About the REST API",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    },
+    {
+      "href": "/en/rest/authentication",
+      "absolute_url": "https://docs.github.com/en/rest/authentication",
+      "context": "Authentication",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    },
+    {
+      "href": "/en/rest/actions",
+      "absolute_url": "https://docs.github.com/en/rest/actions",
+      "context": "Actions",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    },
+    {
+      "href": "/en/rest/actions/artifacts",
+      "absolute_url": "https://docs.github.com/en/rest/actions/artifacts",
+      "context": "Artifacts",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/actions/cache",
+      "absolute_url": "https://docs.github.com/en/rest/actions/cache",
+      "context": "Cache",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/actions/secrets",
+      "absolute_url": "https://docs.github.com/en/rest/actions/secrets",
+      "context": "Secrets",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/actions/variables",
+      "absolute_url": "https://docs.github.com/en/rest/actions/variables",
+      "context": "Variables",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/actions/workflow-jobs",
+      "absolute_url": "https://docs.github.com/en/rest/actions/workflow-jobs",
+      "context": "Workflow jobs",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/actions/workflow-runs",
+      "absolute_url": "https://docs.github.com/en/rest/actions/workflow-runs",
+      "context": "Workflow runs",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/actions/workflows",
+      "absolute_url": "https://docs.github.com/en/rest/actions/workflows",
+      "context": "Workflows",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/apps",
+      "absolute_url": "https://docs.github.com/en/rest/apps",
+      "context": "Apps",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    },
+    {
+      "href": "/en/rest/apps/apps",
+      "absolute_url": "https://docs.github.com/en/rest/apps/apps",
+      "context": "GitHub Apps",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/apps/installations",
+      "absolute_url": "https://docs.github.com/en/rest/apps/installations",
+      "context": "Installations",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/apps/oauth-applications",
+      "absolute_url": "https://docs.github.com/en/rest/apps/oauth-applications",
+      "context": "OAuth Applications",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/checks",
+      "absolute_url": "https://docs.github.com/en/rest/checks",
+      "context": "Checks",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    },
+    {
+      "href": "/en/rest/checks/runs",
+      "absolute_url": "https://docs.github.com/en/rest/checks/runs",
+      "context": "Check runs",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/checks/suites",
+      "absolute_url": "https://docs.github.com/en/rest/checks/suites",
+      "context": "Check suites",
+      "is_api_related": true,
+      "link_type": "api_endpoint_page"
+    },
+    {
+      "href": "/en/rest/code-scanning",
+      "absolute_url": "https://docs.github.com/en/rest/code-scanning",
+      "context": "Code scanning",
+      "is_api_related": true,
+      "link_type": "api_category_page"
+    }
+  ]
+}

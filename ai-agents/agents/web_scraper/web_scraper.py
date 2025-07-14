@@ -162,25 +162,107 @@ class WebScraperAgent(BaseAgent):
         """
         endpoints = []
         
-        # Simple regex patterns for common API endpoint formats
+        # Comprehensive regex patterns for REST API endpoint formats
+        # Include all standard HTTP methods plus common variations
+        http_methods = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)'
+        
         patterns = [
-            r'(GET|POST|PUT|DELETE|PATCH)\s+(/[^\s]+)',
-            r'`(GET|POST|PUT|DELETE|PATCH)\s+([^`]+)`',
-            r'<code>(GET|POST|PUT|DELETE|PATCH)\s+([^<]+)</code>',
+            # Standard format: METHOD /path
+            rf'{http_methods}\s+(/[^\s]+)',
+            # Markdown code blocks: `METHOD /path`
+            rf'`{http_methods}\s+([^`]+)`',
+            # HTML code tags: <code>METHOD /path</code>
+            rf'<code>{http_methods}\s+([^<]+)</code>',
+            # Bold markdown: **METHOD** /path
+            rf'\*\*{http_methods}\*\*\s+([^\s]+)',
+            # Documentation format: METHOD: /path
+            rf'{http_methods}:\s*(/[^\s]+)',
+            # API docs format: • METHOD /path or - METHOD /path
+            rf'[•\-]\s*{http_methods}\s+(/[^\s]+)',
+            # Table format: | METHOD | /path |
+            rf'\|\s*{http_methods}\s*\|\s*([^|]+)\s*\|',
+            # JSON/YAML format: "method": "GET", "path": "/api/..."
+            rf'"method":\s*"{http_methods}",\s*"path":\s*"([^"]+)"',
+            # OpenAPI format: get: /path or post: /path
+            rf'({http_methods.lower()}|{http_methods}):\s*(/[^\s]+)',
+            # Full URL patterns: METHOD https://domain/path
+            rf'{http_methods}\s+(https?://[^\s]+)',
+            # Endpoint documentation: endpoint: METHOD /path
+            rf'endpoint:\s*{http_methods}\s+(/[^\s]+)',
         ]
         
         for pattern in patterns:
-            matches = re.findall(pattern, content, re.IGNORECASE)
+            matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
             for match in matches:
-                if len(match) == 2:
-                    method, path = match
-                    endpoints.append({
-                        "method": method.upper(),
-                        "path": path.strip(),
-                        "source": "regex_extraction"
-                    })
+                if isinstance(match, tuple) and len(match) >= 2:
+                    # Handle tuple matches (method, path)
+                    method, path = match[0], match[1]
+                    # Clean up the path - remove common artifacts
+                    path = re.sub(r'[`<>]', '', path)  # Remove markdown/HTML artifacts
+                    path = path.strip().rstrip('.,;:|')  # Remove trailing punctuation
+                    path = path.split()[0] if path else ''  # Take first word if multiple
+                    
+                    # Skip if path doesn't look like an API path
+                    if path and (path.startswith('/') or path.startswith('http')) and len(path) > 1:
+                        endpoints.append({
+                            "method": method.upper(),
+                            "path": path,
+                            "source": "regex_extraction"
+                        })
+                elif isinstance(match, str):
+                    # Handle single string matches (for simpler patterns)
+                    parts = match.split(' ', 1)
+                    if len(parts) == 2:
+                        method, path = parts
+                        path = re.sub(r'[`<>]', '', path)
+                        path = path.strip().rstrip('.,;:|')
+                        path = path.split()[0] if path else ''
+                        
+                        if path and (path.startswith('/') or path.startswith('http')) and len(path) > 1:
+                            endpoints.append({
+                                "method": method.upper(),
+                                "path": path,
+                                "source": "regex_extraction"
+                            })
         
-        return endpoints[:20]  # Limit to first 20 endpoints found
+        # Additional patterns for REST API documentation sections
+        # Look for endpoint lists in common documentation formats
+        api_sections = [
+            # GitHub-style endpoint lists
+            r'REST API endpoints for ([^:]+):\s*\n((?:\s*-[^\n]+\n?)+)',
+            # Swagger/OpenAPI style paths
+            r'paths:\s*\n((?:\s+/[^:]+:\s*\n(?:\s+[^:]+:[^\n]*\n?)+)+)',
+            # Documentation endpoint listings
+            r'## ([^#\n]+)\s*\n((?:\s*[-*]\s*[A-Z]+\s+/[^\n]+\n?)+)',
+        ]
+        
+        for section_pattern in api_sections:
+            section_matches = re.findall(section_pattern, content, re.MULTILINE | re.IGNORECASE)
+            for section_match in section_matches:
+                if len(section_match) >= 2:
+                    section_name, section_content = section_match[0], section_match[1]
+                    # Extract individual endpoints from the section
+                    endpoint_lines = re.findall(r'[-*]\s*([A-Z]+)\s+(/[^\s\n]+)', section_content)
+                    for endpoint_match in endpoint_lines:
+                        if len(endpoint_match) == 2:
+                            method, path = endpoint_match
+                            endpoints.append({
+                                "method": method.upper(),
+                                "path": path.strip(),
+                                "source": "section_extraction",
+                                "category": section_name.strip()
+                            })
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_endpoints = []
+        for endpoint in endpoints:
+            key = (endpoint['method'], endpoint['path'])
+            if key not in seen:
+                seen.add(key)
+                unique_endpoints.append(endpoint)
+        
+        return unique_endpoints[:30]  # Limit to first 30 unique endpoints found
     
     async def handle_async_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
         """Handle async scraping task.
