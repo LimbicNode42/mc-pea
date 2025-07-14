@@ -21,11 +21,27 @@
           "type": "official",
           "repository": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
           "description": "Official MCP fetch server for web content retrieval",
-          "tools": ["fetch"],
+          "tools": ["fetch_webpage"],
           "installation": {
             "uv": "uvx mcp-server-fetch",
             "pip": "pip install mcp-server-fetch && python -m mcp_server_fetch",
             "docker": "docker run -i --rm mcp/fetch"
+          },
+          "lightweight": true,
+          "deployment_friendly": true,
+          "kubernetes_ready": true
+        },
+        {
+          "name": "memory",
+          "package": "mcp-server-memory",
+          "type": "official",
+          "repository": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+          "description": "Official MCP memory server for state management and tracking scraped pages",
+          "tools": ["store_memory", "retrieve_memory", "list_memories"],
+          "installation": {
+            "uv": "uvx mcp-server-memory",
+            "pip": "pip install mcp-server-memory && python -m mcp_server_memory",
+            "docker": "docker run -i --rm mcp/memory"
           },
           "lightweight": true,
           "deployment_friendly": true,
@@ -35,7 +51,7 @@
       "fallback_description": "Falls back to lightweight requests + BeautifulSoup when MCP fetch server unavailable",
       "deployment_friendly": true,
       "kubernetes_ready": true,
-      "docker_requirements": "Official MCP fetch server (lightweight Python)"
+      "docker_requirements": "Official MCP fetch and memory servers (lightweight Python)"
     },
     "mcp_generator": {
       "name": "mcp_generator",

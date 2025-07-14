@@ -1,8 +1,10 @@
 """
-Web Scraper Agent for crawling and scraping API documentation using the official MCP fetch server.
+Web Scraper Agent for crawling and scraping API documentation using MCP servers.
 
-This agent uses the official MCP fetch server (mcp-server-fetch) which provides lightweight,
-Kubernetes-ready web content fetching without browser dependencies.
+This agent orchestrates web crawling and content scraping using:
+- MCP fetch server (mcp-server-fetch) for web content retrieval
+- MCP memory server for tracking scraped pages and maintaining state
+- Modular architecture with separate crawler and scraper components
 """
 
 from typing import Dict, Any, List, Optional
@@ -13,9 +15,13 @@ import logging
 import re
 from urllib.parse import urljoin, urlparse
 
+# Import the separated modules
+from .web_crawler import WebCrawler
+from .content_scraper import ContentScraper
+
 
 class WebScraperAgent(BaseAgent):
-    """Agent responsible for crawling and scraping API documentation using the official MCP fetch server."""
+    """Agent responsible for orchestrating web crawling and content scraping using MCP servers."""
     
     def __init__(self, anthropic_client=None, crawl_depth: Optional[int] = None):
         # Load configuration from centralized config file
@@ -28,8 +34,11 @@ class WebScraperAgent(BaseAgent):
             goal=config_data.get("goal", "Crawl and scrape API documentation from websites using lightweight web fetching"),
             backstory=config_data.get("backstory", """
             You are an expert web scraper specializing in crawling API documentation websites.
-            You use the official MCP fetch server to efficiently extract content from documentation sites
-            and structure it in a standardized format for analysis by other agents.
+            You orchestrate web crawling and content scraping using modular components and MCP servers:
+            - WebCrawler for discovering links up to configured depth
+            - ContentScraper for extracting API endpoints and parameters
+            - MCP fetch server for lightweight web content retrieval
+            - MCP memory server for tracking scraped pages and maintaining state
             You're optimized for Kubernetes deployments with lightweight dependencies.
             """)
         )
@@ -42,12 +51,29 @@ class WebScraperAgent(BaseAgent):
         self.crawl_depth = crawl_depth if crawl_depth is not None else crawling_config.get("default_depth", 2)
         self.max_depth = crawling_config.get("max_depth", 5)
         self.min_depth = crawling_config.get("min_depth", 1)
-        self.follow_external_links = crawling_config.get("follow_external_links", False)
-        self.respect_robots_txt = crawling_config.get("respect_robots_txt", True)
-        self.max_pages_per_domain = crawling_config.get("max_pages_per_domain", 100)
-        self.request_delay_seconds = crawling_config.get("request_delay_seconds", 1.0)
+        
+        # Create crawling configuration for modules
+        module_config = {
+            "crawl_depth": self.crawl_depth,
+            "max_depth": self.max_depth,
+            "min_depth": self.min_depth,
+            "follow_external_links": crawling_config.get("follow_external_links", False),
+            "respect_robots_txt": crawling_config.get("respect_robots_txt", True),
+            "max_pages_per_domain": crawling_config.get("max_pages_per_domain", 100),
+            "request_delay_seconds": crawling_config.get("request_delay_seconds", 1.0)
+        }
         
         # Validate depth parameter
+        if self.crawl_depth < self.min_depth:
+            self.crawl_depth = self.min_depth
+        elif self.crawl_depth > self.max_depth:
+            self.crawl_depth = self.max_depth
+        
+        super().__init__(agent_config, anthropic_client)
+        
+        # Initialize the modular components after logger is available
+        self.web_crawler = WebCrawler(module_config, self.logger)
+        self.content_scraper = ContentScraper(module_config, self.logger)
         if self.crawl_depth < self.min_depth:
             self.crawl_depth = self.min_depth
         elif self.crawl_depth > self.max_depth:
@@ -73,15 +99,104 @@ class WebScraperAgent(BaseAgent):
                 "lightweight": True,
                 "deployment_friendly": True,
                 "kubernetes_ready": True
+            },
+            {
+                "name": "memory",
+                "package": "mcp-server-memory",
+                "type": "official", 
+                "repository": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+                "description": "Official MCP memory server for state management and tracking",
+                "tools": ["store_memory", "retrieve_memory", "list_memories"],
+                "installation": {
+                    "uv": "uvx mcp-server-memory",
+                    "pip": "pip install mcp-server-memory && python -m mcp_server_memory",
+                    "docker": "docker run -i --rm mcp/memory"
+                },
+                "lightweight": True,
+                "deployment_friendly": True,
+                "kubernetes_ready": True
             }
         ]
     
     def get_required_mcp_tools(self) -> List[str]:
         """Get list of required MCP tools for this agent."""
-        return ["fetch_webpage"]
+        return ["fetch_webpage", "store_memory", "retrieve_memory", "list_memories"]
+    
+    def crawl_and_scrape(self, base_url: str, query: str = None) -> Dict[str, Any]:
+        """Main method to crawl and scrape API documentation from a base URL.
+        
+        This method orchestrates the entire process:
+        1. Use WebCrawler to discover all links up to configured depth
+        2. Use ContentScraper to extract content and API endpoints from discovered pages
+        3. Use MCP memory server to track progress and avoid re-scraping
+        
+        Args:
+            base_url: Base URL of the API documentation
+            query: Optional query to guide extraction
+            
+        Returns:
+            Complete crawling and scraping results
+        """
+        self.logger.info(f"Starting crawl and scrape operation for: {base_url}")
+        
+        # Step 1: Crawl the website to discover all links
+        self.logger.info("Phase 1: Crawling website to discover links")
+        crawl_results = self.web_crawler.crawl_website(base_url, query)
+        
+        if crawl_results.get("status") == "error":
+            return {
+                "base_url": base_url,
+                "status": "error",
+                "error": crawl_results.get("error"),
+                "phase": "crawling"
+            }
+        
+        # Step 2: Scrape content from discovered pages
+        self.logger.info("Phase 2: Scraping content from discovered pages")
+        scraping_results = []
+        
+        for page_data in crawl_results.get("crawl_results", []):
+            scrape_result = self.content_scraper.scrape_page_content(page_data)
+            scraping_results.append(scrape_result)
+            
+            # Log progress
+            if scrape_result.get("status") == "scraped":
+                endpoints_count = scrape_result.get("endpoints_found", 0)
+                self.logger.info(f"Scraped {page_data.get('url')}: {endpoints_count} endpoints found")
+        
+        # Step 3: Aggregate results
+        all_endpoints = []
+        all_parameters = []
+        successful_scrapes = 0
+        
+        for scrape_result in scraping_results:
+            if scrape_result.get("status") in ["scraped", "already_scraped"]:
+                successful_scrapes += 1
+                content_summary = scrape_result.get("content_summary", {})
+                all_endpoints.extend(content_summary.get("endpoints", []))
+                all_parameters.extend(content_summary.get("parameters", []))
+        
+        return {
+            "base_url": base_url,
+            "status": "completed",
+            "crawl_results": crawl_results,
+            "scraping_results": scraping_results,
+            "summary": {
+                "pages_crawled": crawl_results.get("pages_crawled", 0),
+                "pages_scraped": successful_scrapes,
+                "total_endpoints": len(all_endpoints),
+                "total_parameters": len(all_parameters),
+                "unique_endpoints": len(set((ep.get("method"), ep.get("path")) for ep in all_endpoints)),
+                "crawl_depth_used": crawl_results.get("crawl_depth", self.crawl_depth)
+            },
+            "endpoints": all_endpoints,
+            "parameters": all_parameters,
+            "crawl_statistics": self.web_crawler.get_crawl_statistics(),
+            "scraping_statistics": self.content_scraper.get_scraping_statistics()
+        }
     
     def fetch_webpage_content(self, url: str, query: str = None) -> Dict[str, Any]:
-        """Fetch webpage content using the MCP fetch server.
+        """Fetch webpage content using the MCP fetch server (delegated to crawler).
         
         Args:
             url: URL to fetch
@@ -90,195 +205,53 @@ class WebScraperAgent(BaseAgent):
         Returns:
             Webpage content and metadata
         """
-        try:
-            # Attempt to use MCP fetch tool - this would be handled by the MCP environment
-            self.logger.info(f"Fetching webpage content from: {url}")
-            
-            # In a real MCP environment, this would use the fetch_webpage tool
-            # For testing/simulation, we can log the attempt
-            if query:
-                self.logger.info(f"Using query for focused extraction: {query}")
-            
-            # This is where the actual MCP tool call would happen
-            # The MCP environment would handle the tool invocation
-            # fetch_webpage_result = mcp_client.call_tool("fetch_webpage", {"url": url, "query": query})
-            
-            # For now, return a structure indicating the tool would be called
-            return {
-                "url": url,
-                "title": f"Content from {url}",
-                "content": f"MCP fetch_webpage tool would extract content from {url}",
-                "links": [],
-                "headings": [],
-                "status": "mcp_tool_required",
-                "tool_name": "fetch_webpage",
-                "tool_params": {"url": url, "query": query} if query else {"url": url},
-                "mcp_server": "mcp-server-fetch"
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error fetching webpage content: {str(e)}")
-            return {
-                "url": url,
-                "title": "Error",
-                "content": f"Failed to fetch content: {str(e)}",
-                "links": [],
-                "headings": [],
-                "status": "error",
-                "error": str(e)
-            }
+        return self.web_crawler.fetch_page_via_mcp(url, query)
     
     def scrape_api_documentation(self, base_url: str, query: str = None) -> Dict[str, Any]:
-        """Scrape API documentation from a base URL.
+        """Legacy method - now delegates to crawl_and_scrape for backward compatibility.
         
         Args:
             base_url: Base URL of the API documentation
             query: Optional query to guide extraction
             
         Returns:
-            Scraped documentation structure
+            Scraped documentation structure (backward compatible format)
         """
-        self.logger.info(f"Starting API documentation scraping for: {base_url}")
+        self.logger.info(f"Using legacy scrape_api_documentation method, delegating to crawl_and_scrape")
         
-        # Fetch the main page
-        main_page = self.fetch_webpage_content(base_url, query)
+        # Use the new orchestrated method
+        results = self.crawl_and_scrape(base_url, query)
         
-        if main_page.get("status") == "error":
+        # Convert to legacy format for backward compatibility
+        if results.get("status") == "error":
             return {
                 "base_url": base_url,
                 "pages": [],
                 "endpoints": [],
                 "status": "error",
-                "error": main_page.get("error")
+                "error": results.get("error")
             }
         
-        # Extract API endpoints and structure from the main page
-        # This would be enhanced with actual content parsing when MCP tools are available
-        endpoints = self._extract_endpoints_from_content(main_page.get("content", ""))
+        # Get the first page content for legacy compatibility
+        crawl_results = results.get("crawl_results", {})
+        first_page = None
+        if crawl_results.get("crawl_results"):
+            first_page_data = crawl_results["crawl_results"][0]
+            first_page = first_page_data.get("page_content", {})
         
         return {
             "base_url": base_url,
-            "title": main_page.get("title", "API Documentation"),
-            "pages": [main_page],
-            "endpoints": endpoints,
-            "links": main_page.get("links", []),
-            "headings": main_page.get("headings", []),
+            "title": first_page.get("title", "API Documentation") if first_page else "API Documentation",
+            "pages": [page_data.get("page_content", {}) for page_data in crawl_results.get("crawl_results", [])],
+            "endpoints": results.get("endpoints", []),
+            "parameters": results.get("parameters", []),
+            "links": crawl_results.get("discovered_links", []),
+            "headings": [],  # Could aggregate from all pages if needed
             "status": "success",
-            "mcp_tool_used": "fetch_webpage"
+            "mcp_tool_used": "fetch_webpage",
+            "summary": results.get("summary", {}),
+            "new_format_available": True  # Indicate that new format is available via crawl_and_scrape
         }
-    
-    def _extract_endpoints_from_content(self, content: str) -> List[Dict[str, Any]]:
-        """Extract API endpoints from content.
-        
-        Args:
-            content: Content to extract endpoints from
-            
-        Returns:
-            List of extracted endpoints
-        """
-        endpoints = []
-        
-        # Comprehensive regex patterns for REST API endpoint formats
-        # Include all standard HTTP methods plus common variations
-        http_methods = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)'
-        
-        patterns = [
-            # Standard format: METHOD /path
-            rf'{http_methods}\s+(/[^\s]+)',
-            # Markdown code blocks: `METHOD /path`
-            rf'`{http_methods}\s+([^`]+)`',
-            # HTML code tags: <code>METHOD /path</code>
-            rf'<code>{http_methods}\s+([^<]+)</code>',
-            # Bold markdown: **METHOD** /path
-            rf'\*\*{http_methods}\*\*\s+([^\s]+)',
-            # Documentation format: METHOD: /path
-            rf'{http_methods}:\s*(/[^\s]+)',
-            # API docs format: • METHOD /path or - METHOD /path
-            rf'[•\-]\s*{http_methods}\s+(/[^\s]+)',
-            # Table format: | METHOD | /path |
-            rf'\|\s*{http_methods}\s*\|\s*([^|]+)\s*\|',
-            # JSON/YAML format: "method": "GET", "path": "/api/..."
-            rf'"method":\s*"{http_methods}",\s*"path":\s*"([^"]+)"',
-            # OpenAPI format: get: /path or post: /path
-            rf'({http_methods.lower()}|{http_methods}):\s*(/[^\s]+)',
-            # Full URL patterns: METHOD https://domain/path
-            rf'{http_methods}\s+(https?://[^\s]+)',
-            # Endpoint documentation: endpoint: METHOD /path
-            rf'endpoint:\s*{http_methods}\s+(/[^\s]+)',
-        ]
-        
-        for pattern in patterns:
-            matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
-            for match in matches:
-                if isinstance(match, tuple) and len(match) >= 2:
-                    # Handle tuple matches (method, path)
-                    method, path = match[0], match[1]
-                    # Clean up the path - remove common artifacts
-                    path = re.sub(r'[`<>]', '', path)  # Remove markdown/HTML artifacts
-                    path = path.strip().rstrip('.,;:|')  # Remove trailing punctuation
-                    path = path.split()[0] if path else ''  # Take first word if multiple
-                    
-                    # Skip if path doesn't look like an API path
-                    if path and (path.startswith('/') or path.startswith('http')) and len(path) > 1:
-                        endpoints.append({
-                            "method": method.upper(),
-                            "path": path,
-                            "source": "regex_extraction"
-                        })
-                elif isinstance(match, str):
-                    # Handle single string matches (for simpler patterns)
-                    parts = match.split(' ', 1)
-                    if len(parts) == 2:
-                        method, path = parts
-                        path = re.sub(r'[`<>]', '', path)
-                        path = path.strip().rstrip('.,;:|')
-                        path = path.split()[0] if path else ''
-                        
-                        if path and (path.startswith('/') or path.startswith('http')) and len(path) > 1:
-                            endpoints.append({
-                                "method": method.upper(),
-                                "path": path,
-                                "source": "regex_extraction"
-                            })
-        
-        # Additional patterns for REST API documentation sections
-        # Look for endpoint lists in common documentation formats
-        api_sections = [
-            # GitHub-style endpoint lists
-            r'REST API endpoints for ([^:]+):\s*\n((?:\s*-[^\n]+\n?)+)',
-            # Swagger/OpenAPI style paths
-            r'paths:\s*\n((?:\s+/[^:]+:\s*\n(?:\s+[^:]+:[^\n]*\n?)+)+)',
-            # Documentation endpoint listings
-            r'## ([^#\n]+)\s*\n((?:\s*[-*]\s*[A-Z]+\s+/[^\n]+\n?)+)',
-        ]
-        
-        for section_pattern in api_sections:
-            section_matches = re.findall(section_pattern, content, re.MULTILINE | re.IGNORECASE)
-            for section_match in section_matches:
-                if len(section_match) >= 2:
-                    section_name, section_content = section_match[0], section_match[1]
-                    # Extract individual endpoints from the section
-                    endpoint_lines = re.findall(r'[-*]\s*([A-Z]+)\s+(/[^\s\n]+)', section_content)
-                    for endpoint_match in endpoint_lines:
-                        if len(endpoint_match) == 2:
-                            method, path = endpoint_match
-                            endpoints.append({
-                                "method": method.upper(),
-                                "path": path.strip(),
-                                "source": "section_extraction",
-                                "category": section_name.strip()
-                            })
-        
-        # Remove duplicates while preserving order
-        seen = set()
-        unique_endpoints = []
-        for endpoint in endpoints:
-            key = (endpoint['method'], endpoint['path'])
-            if key not in seen:
-                seen.add(key)
-                unique_endpoints.append(endpoint)
-        
-        return unique_endpoints[:30]  # Limit to first 30 unique endpoints found
     
     async def handle_async_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
         """Handle async scraping task.
@@ -291,12 +264,17 @@ class WebScraperAgent(BaseAgent):
         """
         url = task_data.get("url")
         query = task_data.get("query")
+        use_new_format = task_data.get("use_crawl_and_scrape", False)
         
         if not url:
             return {"error": "URL is required", "status": "error"}
         
         try:
-            result = self.scrape_api_documentation(url, query)
+            if use_new_format:
+                result = self.crawl_and_scrape(url, query)
+            else:
+                result = self.scrape_api_documentation(url, query)
+                
             return {
                 "status": "completed",
                 "result": result,
@@ -324,6 +302,7 @@ class WebScraperAgent(BaseAgent):
         if message_type == "scrape_request":
             url = message.get("url")
             query = message.get("query")
+            use_new_format = message.get("use_crawl_and_scrape", False)
             
             if not url:
                 return {
@@ -331,9 +310,30 @@ class WebScraperAgent(BaseAgent):
                     "error": "URL is required for scrape request"
                 }
             
-            result = self.scrape_api_documentation(url, query)
+            if use_new_format:
+                result = self.crawl_and_scrape(url, query)
+            else:
+                result = self.scrape_api_documentation(url, query)
+                
             return {
                 "type": "scrape_response",
+                "result": result,
+                "original_message": message
+            }
+        
+        elif message_type == "crawl_and_scrape_request":
+            url = message.get("url")
+            query = message.get("query")
+            
+            if not url:
+                return {
+                    "type": "error",
+                    "error": "URL is required for crawl and scrape request"
+                }
+            
+            result = self.crawl_and_scrape(url, query)
+            return {
+                "type": "crawl_and_scrape_response",
                 "result": result,
                 "original_message": message
             }
@@ -377,20 +377,25 @@ class WebScraperAgent(BaseAgent):
                 message_type = message.get('type', 'unknown')
                 content = message
             
-            if message_type == "scrape_documentation":
+            if message_type in ["scrape_documentation", "scrape_request"]:
                 url = content.get("url")
                 query = content.get("query")
+                use_new_format = content.get("use_crawl_and_scrape", False)
+                
                 if url:
-                    result = self.scrape_api_documentation(url, query)
+                    if use_new_format:
+                        result = self.crawl_and_scrape(url, query)
+                    else:
+                        result = self.scrape_api_documentation(url, query)
                     return {"success": True, "result": result}
                 else:
                     return {"success": False, "error": "URL not provided in message"}
             
-            elif message_type == "scrape_request":
+            elif message_type == "crawl_and_scrape":
                 url = content.get("url")
                 query = content.get("query")
                 if url:
-                    result = self.scrape_api_documentation(url, query)
+                    result = self.crawl_and_scrape(url, query)
                     return {"success": True, "result": result}
                 else:
                     return {"success": False, "error": "URL not provided in message"}
@@ -417,8 +422,22 @@ class WebScraperAgent(BaseAgent):
             if task_type == "scrape_api_documentation":
                 url = task.get("url")
                 query = task.get("query")
+                use_new_format = task.get("use_crawl_and_scrape", False)
+                
                 if url:
-                    result = self.scrape_api_documentation(url, query)
+                    if use_new_format:
+                        result = self.crawl_and_scrape(url, query)
+                    else:
+                        result = self.scrape_api_documentation(url, query)
+                    return {"success": True, "result": result}
+                else:
+                    return {"success": False, "error": "URL not provided in task"}
+            
+            elif task_type == "crawl_and_scrape":
+                url = task.get("url")
+                query = task.get("query")
+                if url:
+                    result = self.crawl_and_scrape(url, query)
                     return {"success": True, "result": result}
                 else:
                     return {"success": False, "error": "URL not provided in task"}
@@ -445,10 +464,10 @@ class WebScraperAgent(BaseAgent):
             "crawl_depth": self.crawl_depth,
             "max_depth": self.max_depth,
             "min_depth": self.min_depth,
-            "follow_external_links": self.follow_external_links,
-            "respect_robots_txt": self.respect_robots_txt,
-            "max_pages_per_domain": self.max_pages_per_domain,
-            "request_delay_seconds": self.request_delay_seconds
+            "follow_external_links": self.web_crawler.follow_external_links,
+            "respect_robots_txt": self.web_crawler.respect_robots_txt,
+            "max_pages_per_domain": self.web_crawler.max_pages_per_domain,
+            "request_delay_seconds": self.web_crawler.request_delay_seconds
         }
     
     def update_crawl_depth(self, new_depth: int) -> bool:
@@ -465,5 +484,30 @@ class WebScraperAgent(BaseAgent):
             return False
             
         self.crawl_depth = new_depth
+        self.web_crawler.crawl_depth = new_depth
         self.logger.info(f"Updated crawl depth to {new_depth}")
         return True
+    
+    def get_modular_components(self) -> Dict[str, Any]:
+        """Get information about the modular components.
+        
+        Returns:
+            Information about crawler and scraper modules
+        """
+        return {
+            "web_crawler": {
+                "class": "WebCrawler",
+                "description": "Handles website crawling and link discovery",
+                "statistics": self.web_crawler.get_crawl_statistics()
+            },
+            "content_scraper": {
+                "class": "ContentScraper", 
+                "description": "Handles content extraction and API endpoint discovery",
+                "statistics": self.content_scraper.get_scraping_statistics()
+            },
+            "architecture": "modular",
+            "mcp_integration": {
+                "fetch_server": "mcp-server-fetch",
+                "memory_server": "mcp-server-memory"
+            }
+        }
