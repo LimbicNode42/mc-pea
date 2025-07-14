@@ -17,7 +17,7 @@ from urllib.parse import urljoin, urlparse
 class WebScraperAgent(BaseAgent):
     """Agent responsible for crawling and scraping API documentation using the official MCP fetch server."""
     
-    def __init__(self, anthropic_client=None):
+    def __init__(self, anthropic_client=None, crawl_depth: Optional[int] = None):
         # Load configuration from centralized config file
         config_data = get_agent_config("web_scraper")
         
@@ -36,6 +36,22 @@ class WebScraperAgent(BaseAgent):
         
         # Store config data for later use
         self._config_data = config_data
+        
+        # Configure crawling parameters
+        crawling_config = config_data.get("crawling", {})
+        self.crawl_depth = crawl_depth if crawl_depth is not None else crawling_config.get("default_depth", 2)
+        self.max_depth = crawling_config.get("max_depth", 5)
+        self.min_depth = crawling_config.get("min_depth", 1)
+        self.follow_external_links = crawling_config.get("follow_external_links", False)
+        self.respect_robots_txt = crawling_config.get("respect_robots_txt", True)
+        self.max_pages_per_domain = crawling_config.get("max_pages_per_domain", 100)
+        self.request_delay_seconds = crawling_config.get("request_delay_seconds", 1.0)
+        
+        # Validate depth parameter
+        if self.crawl_depth < self.min_depth:
+            self.crawl_depth = self.min_depth
+        elif self.crawl_depth > self.max_depth:
+            self.crawl_depth = self.max_depth
         
         super().__init__(agent_config, anthropic_client)
     
@@ -422,3 +438,32 @@ class WebScraperAgent(BaseAgent):
         except Exception as e:
             self.logger.error(f"Error executing task: {e}")
             return {"success": False, "error": str(e)}
+
+    def get_crawling_config(self) -> Dict[str, Any]:
+        """Get current crawling configuration."""
+        return {
+            "crawl_depth": self.crawl_depth,
+            "max_depth": self.max_depth,
+            "min_depth": self.min_depth,
+            "follow_external_links": self.follow_external_links,
+            "respect_robots_txt": self.respect_robots_txt,
+            "max_pages_per_domain": self.max_pages_per_domain,
+            "request_delay_seconds": self.request_delay_seconds
+        }
+    
+    def update_crawl_depth(self, new_depth: int) -> bool:
+        """Update the crawl depth with validation.
+        
+        Args:
+            new_depth: New depth value to set
+            
+        Returns:
+            True if update was successful, False if depth was out of bounds
+        """
+        if new_depth < self.min_depth or new_depth > self.max_depth:
+            self.logger.warning(f"Depth {new_depth} out of bounds [{self.min_depth}, {self.max_depth}]")
+            return False
+            
+        self.crawl_depth = new_depth
+        self.logger.info(f"Updated crawl depth to {new_depth}")
+        return True

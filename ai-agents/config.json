@@ -140,10 +140,25 @@
         "memory": false,
         "step_callback": null,
         "custom_settings": null
+      },
+      "web_scraper": {
+        "agent_type": "web_scraper",
+        "anthropic_overrides": {
+          "model": "claude-3-5-sonnet-20241022",
+          "temperature": 0.5,
+          "max_tokens": 4000,
+          "reasoning_effort": "medium"
+        },
+        "max_iterations": 5,
+        "verbose": true,
+        "allow_delegation": false,
+        "memory": true,
+        "step_callback": null,
+        "custom_settings": null
       }
     }
   },
   "version": "1.0.0",
-  "last_updated": "2025-07-10T20:38:26.705318",
+  "last_updated": "2025-07-14T22:32:11.647156",
   "config_file_path": "config.json"
 }
