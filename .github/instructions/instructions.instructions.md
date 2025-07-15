@@ -224,6 +224,14 @@ Every contribution must meet these standards before merge approval.
 4. **State Management**: Persistent state handling across agent interactions
 5. **Error Handling**: Graceful degradation and recovery mechanisms
 
+### AI-First Development Philosophy
+- **ALWAYS prioritize AI models over static patterns** - Use Claude/Anthropic for intelligent analysis
+- **NEVER implement fallback methods** - Agents must rely on AI reasoning, not hardcoded logic
+- **PROHIBIT regex patterns and static rules** - Dynamic AI analysis ensures adaptability
+- **REQUIRE AI for content analysis** - No pre-built functions for parsing or extraction
+- **ENFORCE Claude dependency** - Agents should fail gracefully if AI is unavailable rather than fall back
+- **MAXIMIZE AI utilization** - Let AI handle complexity instead of programming around it
+
 ### Python Development Standards
 ```python
 # Agent class pattern
