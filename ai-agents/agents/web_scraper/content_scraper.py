@@ -4,6 +4,8 @@ Content Scraper Module for extracting API endpoints and parameters from web page
 This module handles the content extraction and analysis aspect of web scraping,
 focusing on extracting API endpoints, parameters, and documentation structure
 from the pages discovered by the web crawler.
+
+Uses Claude AI for intelligent endpoint extraction instead of static regex patterns.
 """
 
 from typing import Dict, Any, List, Optional, Set
@@ -12,63 +14,44 @@ import re
 import json
 import time
 from urllib.parse import urlparse, urljoin
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class ContentScraper:
     """Handles content extraction and API endpoint discovery."""
     
-    def __init__(self, config: Dict[str, Any], logger: logging.Logger):
+    def __init__(self, config: Dict[str, Any], logger: logging.Logger, mcp_client=None):
         """Initialize the content scraper.
         
         Args:
             config: Scraping configuration
             logger: Logger instance
+            mcp_client: MCP client for fetch operations (optional, may not need it)
         """
         self.config = config
         self.logger = logger
+        self.mcp_client = mcp_client
         
         # Track scraped pages using MCP memory server
         self.scraped_pages: Set[str] = set()
         self.extracted_endpoints: List[Dict[str, Any]] = []
         
-        # Patterns for API endpoint detection
-        self.endpoint_patterns = self._compile_endpoint_patterns()
+        # Initialize Anthropic client for intelligent endpoint extraction
+        try:
+            from core.anthropic_client import AnthropicClient
+            self.anthropic_client = AnthropicClient(logger)
+            self.use_claude_extraction = True
+            self.logger.info("✅ Anthropic Claude client initialized for intelligent endpoint extraction")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize Anthropic client: {e}")
+            self.logger.error("� No fallback methods allowed - AI-first approach required")
+            raise RuntimeError(f"Anthropic client is mandatory for AI-first approach: {e}")
         
-    def _compile_endpoint_patterns(self) -> List[re.Pattern]:
-        """Compile regex patterns for API endpoint detection.
+        # NO FALLBACK PATTERNS - AI-first approach only
         
-        Returns:
-            List of compiled regex patterns
-        """
-        http_methods = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)'
-        
-        patterns = [
-            # Standard format: METHOD /path
-            re.compile(rf'{http_methods}\s+(/[^\s]+)', re.IGNORECASE | re.MULTILINE),
-            # Markdown code blocks: `METHOD /path`
-            re.compile(rf'`{http_methods}\s+([^`]+)`', re.IGNORECASE),
-            # HTML code tags: <code>METHOD /path</code>
-            re.compile(rf'<code>{http_methods}\s+([^<]+)</code>', re.IGNORECASE),
-            # Bold markdown: **METHOD** /path
-            re.compile(rf'\*\*{http_methods}\*\*\s+([^\s]+)', re.IGNORECASE),
-            # Documentation format: METHOD: /path
-            re.compile(rf'{http_methods}:\s*(/[^\s]+)', re.IGNORECASE),
-            # API docs format: • METHOD /path or - METHOD /path
-            re.compile(rf'[•\-]\s*{http_methods}\s+(/[^\s]+)', re.IGNORECASE),
-            # Table format: | METHOD | /path |
-            re.compile(rf'\|\s*{http_methods}\s*\|\s*([^|]+)\s*\|', re.IGNORECASE),
-            # JSON/YAML format: "method": "GET", "path": "/api/..."
-            re.compile(rf'"method":\s*"{http_methods}",\s*"path":\s*"([^"]+)"', re.IGNORECASE),
-            # OpenAPI format: get: /path or post: /path
-            re.compile(rf'({http_methods.lower()}|{http_methods}):\s*(/[^\s]+)', re.IGNORECASE),
-            # Full URL patterns: METHOD https://domain/path
-            re.compile(rf'{http_methods}\s+(https?://[^\s]+)', re.IGNORECASE),
-            # Endpoint documentation: endpoint: METHOD /path
-            re.compile(rf'endpoint:\s*{http_methods}\s+(/[^\s]+)', re.IGNORECASE),
-        ]
-        
-        return patterns
-    
     def store_scraped_page_in_memory(self, url: str, content_summary: Dict[str, Any]) -> Dict[str, Any]:
         """Store scraped page information in MCP memory server.
         
@@ -160,7 +143,7 @@ class ContentScraper:
             }
     
     def extract_endpoints_from_content(self, content: str, source_url: str = None) -> List[Dict[str, Any]]:
-        """Extract API endpoints from content using comprehensive patterns.
+        """Extract API endpoints from content using Claude AI for intelligent analysis.
         
         Args:
             content: Content to extract endpoints from
@@ -169,175 +152,51 @@ class ContentScraper:
         Returns:
             List of extracted endpoints with metadata
         """
-        endpoints = []
+        self.logger.info(f"🔍 Extracting endpoints from content using Claude AI analysis")
         
-        # Use compiled patterns for better performance
-        for pattern in self.endpoint_patterns:
-            matches = pattern.findall(content)
+        # ONLY use Claude for endpoint extraction - no fallbacks
+        if not self.anthropic_client:
+            self.logger.error("❌ Anthropic client not available - cannot extract endpoints")
+            raise RuntimeError("Anthropic client is required for endpoint extraction - no fallback methods allowed")
+        
+        if not self.use_claude_extraction:
+            self.logger.error("❌ Claude extraction is disabled - cannot extract endpoints")
+            raise RuntimeError("Claude extraction must be enabled - no fallback methods allowed")
+        
+        # Use Claude for intelligent endpoint extraction
+        try:
+            self.logger.info("🤖 Analyzing content with Claude for API endpoints...")
+            claude_result = self.anthropic_client.analyze_content_for_endpoints(content, source_url)
             
-            for match in matches:
-                if isinstance(match, tuple) and len(match) >= 2:
-                    # Handle tuple matches (method, path)
-                    method, path = match[0], match[1]
-                    # Clean up the path - remove common artifacts
-                    path = re.sub(r'[`<>]', '', path)  # Remove markdown/HTML artifacts
-                    path = path.strip().rstrip('.,;:|')  # Remove trailing punctuation
-                    path = path.split()[0] if path else ''  # Take first word if multiple
-                    
-                    # Skip if path doesn't look like an API path
-                    if path and (path.startswith('/') or path.startswith('http')) and len(path) > 1:
-                        endpoint = {
-                            "method": method.upper(),
-                            "path": path,
-                            "source": "pattern_extraction",
-                            "source_url": source_url,
-                            "extraction_timestamp": time.time()
-                        }
-                        
-                        # Try to extract additional context around the endpoint
-                        context = self._extract_endpoint_context(content, method, path)
-                        if context:
-                            endpoint.update(context)
-                        
-                        endpoints.append(endpoint)
-                        
-                elif isinstance(match, str):
-                    # Handle single string matches (for simpler patterns)
-                    parts = match.split(' ', 1)
-                    if len(parts) == 2:
-                        method, path = parts
-                        path = re.sub(r'[`<>]', '', path)
-                        path = path.strip().rstrip('.,;:|')
-                        path = path.split()[0] if path else ''
-                        
-                        if path and (path.startswith('/') or path.startswith('http')) and len(path) > 1:
-                            endpoint = {
-                                "method": method.upper(),
-                                "path": path,
-                                "source": "pattern_extraction",
-                                "source_url": source_url,
-                                "extraction_timestamp": time.time()
-                            }
-                            
-                            context = self._extract_endpoint_context(content, method, path)
-                            if context:
-                                endpoint.update(context)
-                            
-                            endpoints.append(endpoint)
-        
-        # Extract endpoints from structured sections
-        section_endpoints = self._extract_endpoints_from_sections(content, source_url)
-        endpoints.extend(section_endpoints)
-        
-        # Remove duplicates while preserving order
-        seen = set()
-        unique_endpoints = []
-        for endpoint in endpoints:
-            key = (endpoint['method'], endpoint['path'])
-            if key not in seen:
-                seen.add(key)
-                unique_endpoints.append(endpoint)
-        
-        return unique_endpoints[:50]  # Limit to first 50 unique endpoints found
-    
-    def _extract_endpoint_context(self, content: str, method: str, path: str) -> Dict[str, Any]:
-        """Extract additional context around an endpoint.
-        
-        Args:
-            content: Full content
-            method: HTTP method
-            path: Endpoint path
+            endpoints = claude_result.get("endpoints", [])
             
-        Returns:
-            Additional context information
-        """
-        context = {}
-        
-        # Look for the endpoint in context
-        endpoint_pattern = re.escape(f"{method} {path}")
-        match = re.search(rf'(.{{0,200}}){endpoint_pattern}(.{{0,200}})', content, re.IGNORECASE | re.DOTALL)
-        
-        if match:
-            before_context = match.group(1)
-            after_context = match.group(2)
+            # Add additional metadata to each endpoint
+            for endpoint in endpoints:
+                endpoint.update({
+                    "source": "claude_ai_analysis",
+                    "source_url": source_url,
+                    "extraction_timestamp": time.time(),
+                    "extraction_method": "claude_intelligent_analysis"
+                })
             
-            # Extract description from surrounding text
-            description_patterns = [
-                r'description[:\s]+([^.\n]+)',
-                r'summary[:\s]+([^.\n]+)',
-                r'title[:\s]+([^.\n]+)',
-            ]
+            self.logger.info(f"✅ Claude extracted {len(endpoints)} endpoints")
             
-            for desc_pattern in description_patterns:
-                desc_match = re.search(desc_pattern, before_context + after_context, re.IGNORECASE)
-                if desc_match:
-                    context['description'] = desc_match.group(1).strip()
-                    break
+            # Log analysis metadata
+            metadata = claude_result.get("analysis_metadata", {})
+            confidence = metadata.get("confidence_score", 0.0)
+            content_type = metadata.get("content_type", "unknown")
             
-            # Extract parameters
-            param_patterns = [
-                r'parameters?[:\s]*\n((?:\s*[-*]\s*[^\n]+\n?)+)',
-                r'params?[:\s]*\n((?:\s*[-*]\s*[^\n]+\n?)+)',
-                r'\{([^}]+)\}',  # Path parameters
-                r'\?([^&\s]+)',  # Query parameters
-            ]
+            self.logger.info(f"📊 Analysis confidence: {confidence:.2f}, Content type: {content_type}")
             
-            for param_pattern in param_patterns:
-                param_matches = re.findall(param_pattern, after_context, re.IGNORECASE)
-                if param_matches:
-                    if 'parameters' not in context:
-                        context['parameters'] = []
-                    for param_match in param_matches:
-                        if isinstance(param_match, str):
-                            context['parameters'].append(param_match.strip())
-        
-        return context
-    
-    def _extract_endpoints_from_sections(self, content: str, source_url: str = None) -> List[Dict[str, Any]]:
-        """Extract endpoints from structured documentation sections.
-        
-        Args:
-            content: Content to search
-            source_url: Source URL for context
+            return endpoints
             
-        Returns:
-            List of endpoints found in sections
-        """
-        endpoints = []
-        
-        # Additional patterns for REST API documentation sections
-        section_patterns = [
-            # GitHub-style endpoint lists
-            r'REST API endpoints for ([^:]+):\s*\n((?:\s*-[^\n]+\n?)+)',
-            # Swagger/OpenAPI style paths
-            r'paths:\s*\n((?:\s+/[^:]+:\s*\n(?:\s+[^:]+:[^\n]*\n?)+)+)',
-            # Documentation endpoint listings
-            r'## ([^#\n]+)\s*\n((?:\s*[-*]\s*[A-Z]+\s+/[^\n]+\n?)+)',
-        ]
-        
-        for section_pattern in section_patterns:
-            section_matches = re.findall(section_pattern, content, re.MULTILINE | re.IGNORECASE)
-            for section_match in section_matches:
-                if len(section_match) >= 2:
-                    section_name, section_content = section_match[0], section_match[1]
-                    # Extract individual endpoints from the section
-                    endpoint_lines = re.findall(r'[-*]\s*([A-Z]+)\s+(/[^\s\n]+)', section_content)
-                    for endpoint_match in endpoint_lines:
-                        if len(endpoint_match) == 2:
-                            method, path = endpoint_match
-                            endpoints.append({
-                                "method": method.upper(),
-                                "path": path.strip(),
-                                "source": "section_extraction",
-                                "category": section_name.strip(),
-                                "source_url": source_url,
-                                "extraction_timestamp": time.time()
-                            })
-        
-        return endpoints
+        except Exception as e:
+            self.logger.error(f"❌ Claude endpoint extraction failed: {e}")
+            # NO FALLBACK - raise the error to ensure only Claude is used
+            raise RuntimeError(f"Claude endpoint extraction failed and no fallback allowed: {e}")
     
     def extract_api_parameters(self, content: str, endpoint_path: str = None) -> List[Dict[str, Any]]:
-        """Extract API parameters from content.
+        """Extract API parameters from content using Claude AI for intelligent analysis.
         
         Args:
             content: Content to extract parameters from
@@ -346,47 +205,37 @@ class ContentScraper:
         Returns:
             List of extracted parameters
         """
-        parameters = []
+        self.logger.info(f"🔍 Extracting API parameters using Claude AI analysis")
         
-        # Parameter patterns
-        param_patterns = [
-            # JSON schema style
-            r'"([^"]+)":\s*\{\s*"type":\s*"([^"]+)"(?:,\s*"description":\s*"([^"]+)")?',
-            # OpenAPI parameter definitions
-            r'- name:\s*([^\n]+)\s*\n\s*in:\s*([^\n]+)\s*\n\s*description:\s*([^\n]+)',
-            # Table format parameters
-            r'\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|',
-            # Path parameters in braces
-            r'\{([^}]+)\}',
-            # Query parameters
-            r'\?([^&\s=]+)=',
-        ]
+        # ONLY use Claude for parameter extraction - no fallbacks
+        if not self.anthropic_client:
+            self.logger.error("❌ Anthropic client not available - cannot extract parameters")
+            raise RuntimeError("Anthropic client is required for parameter extraction - no fallback methods allowed")
         
-        for pattern in param_patterns:
-            matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
-            for match in matches:
-                if isinstance(match, tuple) and len(match) >= 1:
-                    param_name = match[0].strip()
-                    param_type = match[1].strip() if len(match) > 1 else "string"
-                    param_desc = match[2].strip() if len(match) > 2 else ""
-                    
-                    parameters.append({
-                        "name": param_name,
-                        "type": param_type,
-                        "description": param_desc,
-                        "endpoint_path": endpoint_path,
-                        "extraction_timestamp": time.time()
-                    })
-                elif isinstance(match, str):
-                    parameters.append({
-                        "name": match.strip(),
-                        "type": "string",
-                        "description": "",
-                        "endpoint_path": endpoint_path,
-                        "extraction_timestamp": time.time()
-                    })
-        
-        return parameters[:20]  # Limit to first 20 parameters
+        # Use Claude for intelligent parameter extraction
+        try:
+            self.logger.info("🤖 Analyzing content with Claude for API parameters...")
+            claude_result = self.anthropic_client.analyze_content_for_parameters(content, endpoint_path)
+            
+            parameters = claude_result.get("parameters", [])
+            
+            # Add additional metadata to each parameter
+            for parameter in parameters:
+                parameter.update({
+                    "source": "claude_ai_analysis",
+                    "endpoint_path": endpoint_path,
+                    "extraction_timestamp": time.time(),
+                    "extraction_method": "claude_intelligent_analysis"
+                })
+            
+            self.logger.info(f"✅ Claude extracted {len(parameters)} parameters")
+            
+            return parameters
+            
+        except Exception as e:
+            self.logger.error(f"❌ Claude parameter extraction failed: {e}")
+            # NO FALLBACK - raise the error to ensure only Claude is used
+            raise RuntimeError(f"Claude parameter extraction failed and no fallback allowed: {e}")
     
     def scrape_page_content(self, page_data: Dict[str, Any]) -> Dict[str, Any]:
         """Scrape and analyze content from a single page.
@@ -515,3 +364,17 @@ class ContentScraper:
             method = endpoint.get("method", "UNKNOWN")
             method_counts[method] = method_counts.get(method, 0) + 1
         return method_counts
+    
+    def cleanup(self):
+        """Clean up resources, including Anthropic client if needed."""
+        try:
+            if hasattr(self, 'anthropic_client') and self.anthropic_client:
+                # Close Anthropic client if it has cleanup methods
+                if hasattr(self.anthropic_client, 'close'):
+                    self.anthropic_client.close()
+                self.anthropic_client = None
+            
+            self.logger.info("🧹 ContentScraper cleanup completed")
+            
+        except Exception as e:
+            self.logger.warning(f"⚠️ Error during ContentScraper cleanup: {e}")

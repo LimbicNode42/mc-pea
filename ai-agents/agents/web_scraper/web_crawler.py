@@ -16,15 +16,17 @@ import re
 class WebCrawler:
     """Handles web crawling and link discovery using MCP fetch server."""
     
-    def __init__(self, config: Dict[str, Any], logger: logging.Logger):
+    def __init__(self, config: Dict[str, Any], logger: logging.Logger, mcp_client=None):
         """Initialize the web crawler.
         
         Args:
             config: Crawling configuration
             logger: Logger instance
+            mcp_client: MCP client for fetch operations
         """
         self.config = config
         self.logger = logger
+        self.mcp_client = mcp_client
         
         # Crawling parameters from config
         self.crawl_depth = config.get("crawl_depth", 2)
@@ -133,17 +135,19 @@ class WebCrawler:
         # Get links from MCP fetch server result if available
         if 'links' in page_content and isinstance(page_content['links'], list):
             for link in page_content['links']:
-                if isinstance(link, dict) and 'href' in link:
-                    href = link['href']
+                if isinstance(link, dict):
+                    # Handle both 'href' and 'url' formats
+                    href = link.get('href') or link.get('url')
+                    if href:
+                        # Convert relative to absolute URL
+                        absolute_url = urljoin(base_url, href)
+                        normalized_url = self.normalize_url(absolute_url)
+                        links.append(normalized_url)
                 elif isinstance(link, str):
-                    href = link
-                else:
-                    continue
-                
-                # Convert relative to absolute URL
-                absolute_url = urljoin(base_url, href)
-                normalized_url = self.normalize_url(absolute_url)
-                links.append(normalized_url)
+                    # Convert relative to absolute URL
+                    absolute_url = urljoin(base_url, link)
+                    normalized_url = self.normalize_url(absolute_url)
+                    links.append(normalized_url)
         
         # Also extract links from content using regex as fallback
         content = page_content.get('content', '')
@@ -181,23 +185,55 @@ class WebCrawler:
         try:
             self.logger.info(f"Fetching page via MCP: {url}")
             
-            # This would be the actual MCP tool call in a real environment
-            # For now, return a structure indicating the tool would be called
-            result = {
+            # Use the actual MCP client to fetch the webpage
+            if self.mcp_client:
+                params = {"url": url}
+                if query:
+                    params["query"] = query
+                
+                result = self.mcp_client.call_tool("fetch_webpage", params)
+                
+                if result.get("status") == "success":
+                    # Track domain page count
+                    domain = urlparse(url).netloc.lower()
+                    self.domain_page_counts[domain] = self.domain_page_counts.get(domain, 0) + 1
+                    
+                    # Add metadata
+                    result["timestamp"] = time.time()
+                    result["domain"] = domain
+                    result["query_used"] = query
+                    
+                    return result
+                else:
+                    self.logger.error(f"MCP fetch failed for {url}: {result.get('error', 'Unknown error')}")
+                    return {
+                        "url": url,
+                        "status": "error",
+                        "error": result.get("error", "MCP fetch failed"),
+                        "timestamp": time.time()
+                    }
+            else:
+                # Fallback if no MCP client available
+                self.logger.warning("No MCP client available, using fallback")
+                return {
+                    "url": url,
+                    "title": f"Content from {url}",
+                    "text": f"No MCP client available to fetch content from {url}",
+                    "links": [],
+                    "headings": [],
+                    "status": "error",
+                    "error": "No MCP client available",
+                    "timestamp": time.time()
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error fetching page {url}: {e}")
+            return {
                 "url": url,
-                "title": f"Content from {url}",
-                "content": f"MCP fetch_webpage tool would extract content from {url}",
-                "links": [],
-                "headings": [],
-                "status": "mcp_tool_required",
-                "tool_name": "fetch_webpage",
-                "tool_params": {"url": url, "query": query} if query else {"url": url},
-                "mcp_server": "mcp-server-fetch",
+                "status": "error",
+                "error": str(e),
                 "timestamp": time.time()
             }
-            
-            # Track domain page count
-            domain = urlparse(url).netloc.lower()
             self.domain_page_counts[domain] = self.domain_page_counts.get(domain, 0) + 1
             
             return result

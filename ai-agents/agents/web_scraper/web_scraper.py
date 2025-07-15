@@ -69,17 +69,17 @@ class WebScraperAgent(BaseAgent):
         elif self.crawl_depth > self.max_depth:
             self.crawl_depth = self.max_depth
         
-        super().__init__(agent_config, anthropic_client)
+        # Initialize base agent (without anthropic_client parameter)
+        super().__init__(agent_config)
         
-        # Initialize the modular components after logger is available
-        self.web_crawler = WebCrawler(module_config, self.logger)
-        self.content_scraper = ContentScraper(module_config, self.logger)
-        if self.crawl_depth < self.min_depth:
-            self.crawl_depth = self.min_depth
-        elif self.crawl_depth > self.max_depth:
-            self.crawl_depth = self.max_depth
+        # Initialize MCP client manager for accessing MCP tools
+        from core.mcp_client import MCPClientManager
+        self.mcp_manager = MCPClientManager(self.logger)
+        self.fetch_client = self.mcp_manager.get_client("fetch")
         
-        super().__init__(agent_config, anthropic_client)
+        # Initialize the modular components after logger is available, passing MCP client
+        self.web_crawler = WebCrawler(module_config, self.logger, self.fetch_client)
+        self.content_scraper = ContentScraper(module_config, self.logger, self.fetch_client)
     
     def get_mcp_dependencies(self) -> List[Dict[str, Any]]:
         """Get MCP server dependencies for this agent."""
@@ -511,3 +511,16 @@ class WebScraperAgent(BaseAgent):
                 "memory_server": "mcp-server-memory"
             }
         }
+    
+    def cleanup(self):
+        """Cleanup method to shutdown MCP clients."""
+        if hasattr(self, 'mcp_manager'):
+            self.logger.info("Shutting down MCP clients")
+            self.mcp_manager.shutdown_all()
+    
+    def __del__(self):
+        """Destructor to ensure cleanup happens."""
+        try:
+            self.cleanup()
+        except Exception:
+            pass  # Ignore errors during cleanup
