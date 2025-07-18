@@ -1,5 +1,5 @@
 """
-Content Scraper Module for extracting API endpoints and parameters from web pages.
+Content Extractor Module for extracting API endpoints and parameters from web pages.
 
 This module handles the content extraction and analysis aspect of web scraping,
 focusing on extracting API endpoints, parameters, and documentation structure
@@ -20,11 +20,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class ContentScraper:
+class ContentExtractor:
     """Handles content extraction and API endpoint discovery."""
     
     def __init__(self, config: Dict[str, Any], logger: logging.Logger, mcp_client=None):
-        """Initialize the content scraper.
+        """Initialize the content extractor.
         
         Args:
             config: Scraping configuration
@@ -47,7 +47,7 @@ class ContentScraper:
             self.logger.info("✅ Anthropic Claude client initialized for intelligent endpoint extraction")
         except Exception as e:
             self.logger.error(f"❌ Failed to initialize Anthropic client: {e}")
-            self.logger.error("� No fallback methods allowed - AI-first approach required")
+            self.logger.error("❌ No fallback methods allowed - AI-first approach required")
             raise RuntimeError(f"Anthropic client is mandatory for AI-first approach: {e}")
         
         # NO FALLBACK PATTERNS - AI-first approach only
@@ -374,7 +374,7 @@ class ContentScraper:
                     self.anthropic_client.close()
                 self.anthropic_client = None
             
-            self.logger.info("🧹 ContentScraper cleanup completed")
+            self.logger.info("🧹 ContentExtractor cleanup completed")
             
         except Exception as e:
-            self.logger.warning(f"⚠️ Error during ContentScraper cleanup: {e}")
+            self.logger.warning(f"⚠️ Error during ContentExtractor cleanup: {e}")

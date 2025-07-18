@@ -42,6 +42,25 @@ class WebCrawler:
         self.domain_page_counts: Dict[str, int] = {}
         self.crawl_results: List[Dict[str, Any]] = []
         
+    def update_config(self, new_config: Dict[str, Any]) -> None:
+        """Update crawler configuration.
+        
+        Args:
+            new_config: New configuration parameters
+        """
+        self.config.update(new_config)
+        
+        # Update parameters
+        self.crawl_depth = new_config.get("crawl_depth", self.crawl_depth)
+        self.max_depth = new_config.get("max_depth", self.max_depth)
+        self.min_depth = new_config.get("min_depth", self.min_depth)
+        self.follow_external_links = new_config.get("follow_external_links", self.follow_external_links)
+        self.respect_robots_txt = new_config.get("respect_robots_txt", self.respect_robots_txt)
+        self.max_pages_per_domain = new_config.get("max_pages_per_domain", self.max_pages_per_domain)
+        self.request_delay_seconds = new_config.get("request_delay_seconds", self.request_delay_seconds)
+        
+        self.logger.info("WebCrawler configuration updated")
+        
     def normalize_url(self, url: str) -> str:
         """Normalize URL for consistent comparison.
         
@@ -120,15 +139,15 @@ class WebCrawler:
             self.logger.warning(f"Error validating URL {url}: {e}")
             return False
     
-    def extract_links_from_page(self, page_content: Dict[str, Any], base_url: str) -> List[str]:
-        """Extract links from a page's content.
+    def extract_links_from_page(self, page_content: Dict[str, Any], base_url: str) -> List[Dict[str, Any]]:
+        """Extract links from a page's content with metadata.
         
         Args:
             page_content: Page content from MCP fetch server
             base_url: Base URL for resolving relative links
             
         Returns:
-            List of absolute URLs found on the page
+            List of link dictionaries with metadata
         """
         links = []
         
@@ -142,35 +161,112 @@ class WebCrawler:
                         # Convert relative to absolute URL
                         absolute_url = urljoin(base_url, href)
                         normalized_url = self.normalize_url(absolute_url)
-                        links.append(normalized_url)
+                        
+                        link_data = {
+                            "url": normalized_url,
+                            "title": link.get('text', link.get('title', '')),
+                            "type": self._classify_link_type(normalized_url),
+                            "source": "mcp_fetch_server",
+                            "anchor_text": link.get('text', ''),
+                            "discovered_from": base_url
+                        }
+                        links.append(link_data)
                 elif isinstance(link, str):
                     # Convert relative to absolute URL
                     absolute_url = urljoin(base_url, link)
                     normalized_url = self.normalize_url(absolute_url)
-                    links.append(normalized_url)
+                    
+                    link_data = {
+                        "url": normalized_url,
+                        "title": "",
+                        "type": self._classify_link_type(normalized_url),
+                        "source": "mcp_fetch_server",
+                        "anchor_text": "",
+                        "discovered_from": base_url
+                    }
+                    links.append(link_data)
         
         # Also extract links from content using regex as fallback
         content = page_content.get('content', '')
         if content:
             # Find href attributes in HTML
-            href_pattern = r'href\s*=\s*["\']([^"\']+)["\']'
-            href_matches = re.findall(href_pattern, content, re.IGNORECASE)
+            href_pattern = r'<a[^>]+href\s*=\s*["\']([^"\']+)["\'][^>]*>([^<]*)</a>'
+            href_matches = re.findall(href_pattern, content, re.IGNORECASE | re.DOTALL)
             
-            for href in href_matches:
+            for href, anchor_text in href_matches:
                 absolute_url = urljoin(base_url, href)
                 normalized_url = self.normalize_url(absolute_url)
-                links.append(normalized_url)
+                
+                link_data = {
+                    "url": normalized_url,
+                    "title": anchor_text.strip(),
+                    "type": self._classify_link_type(normalized_url),
+                    "source": "regex_extraction",
+                    "anchor_text": anchor_text.strip(),
+                    "discovered_from": base_url
+                }
+                links.append(link_data)
             
             # Find markdown links
             markdown_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
             markdown_matches = re.findall(markdown_pattern, content)
             
-            for _, href in markdown_matches:
+            for anchor_text, href in markdown_matches:
                 absolute_url = urljoin(base_url, href)
                 normalized_url = self.normalize_url(absolute_url)
-                links.append(normalized_url)
+                
+                link_data = {
+                    "url": normalized_url,
+                    "title": anchor_text.strip(),
+                    "type": self._classify_link_type(normalized_url),
+                    "source": "markdown_extraction",
+                    "anchor_text": anchor_text.strip(),
+                    "discovered_from": base_url
+                }
+                links.append(link_data)
         
-        return list(set(links))  # Remove duplicates
+        # Remove duplicates based on URL
+        unique_links = {}
+        for link in links:
+            url = link["url"]
+            if url not in unique_links:
+                unique_links[url] = link
+        
+        return list(unique_links.values())
+    
+    def _classify_link_type(self, url: str) -> str:
+        """Classify a link based on its URL pattern.
+        
+        Args:
+            url: URL to classify
+            
+        Returns:
+            Link type classification
+        """
+        url_lower = url.lower()
+        path = urlparse(url).path.lower()
+        
+        # API-related patterns
+        if any(keyword in url_lower for keyword in ['api', '/rest/', '/graphql', '/v1/', '/v2/', '/endpoint']):
+            return "api"
+        
+        # Documentation patterns
+        if any(keyword in url_lower for keyword in ['docs/', 'documentation', 'guide', 'tutorial', 'reference']):
+            return "documentation"
+        
+        # Example patterns
+        if any(keyword in url_lower for keyword in ['example', 'sample', 'demo']):
+            return "example"
+        
+        # GitHub/repository patterns
+        if any(keyword in url_lower for keyword in ['github.com', 'gitlab.com', 'bitbucket.org']):
+            return "repository"
+        
+        # File extensions
+        if any(path.endswith(ext) for ext in ['.json', '.yaml', '.yml', '.xml']):
+            return "specification"
+        
+        return "general"
     
     def fetch_page_via_mcp(self, url: str, query: str = None) -> Dict[str, Any]:
         """Fetch a page using MCP fetch_webpage tool.
@@ -187,7 +283,7 @@ class WebCrawler:
             
             # Use the actual MCP client to fetch the webpage
             if self.mcp_client:
-                params = {"url": url}
+                params = {"urls": [url]}
                 if query:
                     params["query"] = query
                 
@@ -218,7 +314,7 @@ class WebCrawler:
                 return {
                     "url": url,
                     "title": f"Content from {url}",
-                    "text": f"No MCP client available to fetch content from {url}",
+                    "content": f"No MCP client available to fetch content from {url}",
                     "links": [],
                     "headings": [],
                     "status": "error",
@@ -226,18 +322,6 @@ class WebCrawler:
                     "timestamp": time.time()
                 }
                 
-        except Exception as e:
-            self.logger.error(f"Error fetching page {url}: {e}")
-            return {
-                "url": url,
-                "status": "error",
-                "error": str(e),
-                "timestamp": time.time()
-            }
-            self.domain_page_counts[domain] = self.domain_page_counts.get(domain, 0) + 1
-            
-            return result
-            
         except Exception as e:
             self.logger.error(f"Error fetching page {url}: {e}")
             return {
@@ -257,8 +341,8 @@ class WebCrawler:
         Returns:
             Crawling results with discovered pages and links
         """
-        self.logger.info(f"Starting website crawl from: {start_url}")
-        self.logger.info(f"Crawl depth: {self.crawl_depth}, Max pages per domain: {self.max_pages_per_domain}")
+        self.logger.info(f"🕷️ Starting website crawl from: {start_url}")
+        self.logger.info(f"📊 Crawl depth: {self.crawl_depth}, Max pages per domain: {self.max_pages_per_domain}")
         
         # Initialize crawl state
         start_url_normalized = self.normalize_url(start_url)
@@ -266,14 +350,15 @@ class WebCrawler:
         
         # Queue for BFS crawling: (url, depth)
         crawl_queue = deque([(start_url_normalized, 0)])
-        crawl_results = []
-        discovered_links = set()
+        crawled_pages = []
+        all_discovered_links = []
+        discovered_urls = set()
         
         # Reset state
         self.visited_urls.clear()
         self.domain_page_counts.clear()
         
-        while crawl_queue and len(crawl_results) < self.max_pages_per_domain:
+        while crawl_queue and len(crawled_pages) < self.max_pages_per_domain:
             current_url, current_depth = crawl_queue.popleft()
             
             # Skip if already visited
@@ -299,19 +384,23 @@ class WebCrawler:
                 "url": current_url,
                 "depth": current_depth,
                 "page_content": page_content,
-                "crawl_timestamp": time.time()
+                "crawl_timestamp": time.time(),
+                "status": page_content.get("status", "unknown")
             }
-            crawl_results.append(crawl_result)
+            crawled_pages.append(crawl_result)
             
             # Extract links for next level crawling
             if current_depth < self.crawl_depth and page_content.get("status") != "error":
                 page_links = self.extract_links_from_page(page_content, current_url)
                 
-                for link in page_links:
-                    if link not in self.visited_urls and link not in discovered_links:
-                        if self.is_valid_url(link, base_domain):
-                            crawl_queue.append((link, current_depth + 1))
-                            discovered_links.add(link)
+                for link_data in page_links:
+                    link_url = link_data["url"]
+                    all_discovered_links.append(link_data)
+                    
+                    if link_url not in self.visited_urls and link_url not in discovered_urls:
+                        if self.is_valid_url(link_url, base_domain):
+                            crawl_queue.append((link_url, current_depth + 1))
+                            discovered_urls.add(link_url)
             
             # Respect request delay
             if self.request_delay_seconds > 0:
@@ -321,16 +410,33 @@ class WebCrawler:
             "start_url": start_url,
             "base_domain": base_domain,
             "crawl_depth": self.crawl_depth,
-            "pages_crawled": len(crawl_results),
-            "links_discovered": len(discovered_links),
-            "crawl_results": crawl_results,
-            "discovered_links": list(discovered_links),
+            "pages_crawled": len(crawled_pages),
+            "total_links_discovered": len(all_discovered_links),
+            "unique_urls_discovered": len(discovered_urls),
+            "crawled_pages": crawled_pages,
+            "discovered_links": all_discovered_links,
             "domain_page_counts": dict(self.domain_page_counts),
+            "link_types": self._analyze_link_types(all_discovered_links),
             "status": "completed",
             "timestamp": time.time()
         }
     
-    def get_crawl_statistics(self) -> Dict[str, Any]:
+    def _analyze_link_types(self, links: List[Dict[str, Any]]) -> Dict[str, int]:
+        """Analyze the types of discovered links.
+        
+        Args:
+            links: List of link data
+            
+        Returns:
+            Count of links by type
+        """
+        type_counts = {}
+        for link in links:
+            link_type = link.get("type", "unknown")
+            type_counts[link_type] = type_counts.get(link_type, 0) + 1
+        return type_counts
+    
+    def get_crawling_statistics(self) -> Dict[str, Any]:
         """Get statistics about the current crawl session.
         
         Returns:
@@ -344,3 +450,16 @@ class WebCrawler:
             "follow_external_links": self.follow_external_links,
             "request_delay_seconds": self.request_delay_seconds
         }
+    
+    def cleanup(self):
+        """Clean up crawler resources."""
+        try:
+            # Clear state
+            self.visited_urls.clear()
+            self.domain_page_counts.clear()
+            self.crawl_results.clear()
+            
+            self.logger.info("🧹 WebCrawler cleanup completed")
+            
+        except Exception as e:
+            self.logger.warning(f"⚠️ Error during WebCrawler cleanup: {e}")

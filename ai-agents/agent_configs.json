@@ -92,6 +92,93 @@
       "kubernetes_ready": true,
       "docker_requirements": "Official MCP fetch server (lightweight Python)"
     },
+    "api_link_discovery": {
+      "name": "api_link_discovery",
+      "role": "API Link Discovery Specialist",
+      "goal": "Discover and catalog API-related web links for documentation analysis",
+      "backstory": "You are a specialized web crawling expert focused on discovering and mapping API-related web links. You systematically explore websites to build comprehensive maps of available API documentation, endpoint references, and related content. You use MCP servers for lightweight operations and are optimized for Kubernetes deployments with minimal resource usage.",
+      "crawling": {
+        "default_depth": 2,
+        "max_depth": 5,
+        "min_depth": 1,
+        "follow_external_links": false,
+        "respect_robots_txt": true,
+        "max_pages_per_domain": 100,
+        "request_delay_seconds": 1.0
+      },
+      "mcp_dependencies": [
+        {
+          "name": "fetch",
+          "package": "mcp-server-fetch",
+          "type": "official",
+          "repository": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+          "description": "Official MCP fetch server for web content retrieval",
+          "tools": ["fetch_webpage"],
+          "installation": {
+            "uv": "uvx mcp-server-fetch",
+            "pip": "pip install mcp-server-fetch && python -m mcp_server_fetch",
+            "docker": "docker run -i --rm mcp/fetch"
+          },
+          "lightweight": true,
+          "deployment_friendly": true,
+          "kubernetes_ready": true
+        },
+        {
+          "name": "memory",
+          "package": "mcp-server-memory",
+          "type": "official",
+          "repository": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+          "description": "Official MCP memory server for tracking discovered links and crawl state",
+          "tools": ["store_memory", "retrieve_memory", "list_memories"],
+          "installation": {
+            "uv": "uvx mcp-server-memory",
+            "pip": "pip install mcp-server-memory && python -m mcp_server_memory",
+            "docker": "docker run -i --rm mcp/memory"
+          },
+          "lightweight": true,
+          "deployment_friendly": true,
+          "kubernetes_ready": true
+        }
+      ],
+      "fallback_description": "Falls back to lightweight requests when MCP fetch server unavailable",
+      "deployment_friendly": true,
+      "kubernetes_ready": true,
+      "docker_requirements": "Official MCP fetch and memory servers (lightweight Python)"
+    },
+    "api_content_extraction": {
+      "name": "api_content_extraction",
+      "role": "API Content Extraction Specialist",
+      "goal": "Extract and analyze API endpoints and documentation content",
+      "backstory": "You are a specialized content analysis expert focused on extracting API endpoints and documentation. You use advanced AI analysis to understand complex documentation structures and identify API patterns. You rely exclusively on Claude AI for intelligent content analysis - no static patterns or fallbacks. You use MCP servers for efficient operations and are optimized for AI-first analysis.",
+      "extraction": {
+        "ai_first_approach": true,
+        "require_anthropic_client": true,
+        "no_fallback_patterns": true,
+        "analysis_confidence_threshold": 0.7
+      },
+      "mcp_dependencies": [
+        {
+          "name": "memory",
+          "package": "mcp-server-memory",
+          "type": "official",
+          "repository": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+          "description": "Official MCP memory server for tracking extracted content and analysis state",
+          "tools": ["store_memory", "retrieve_memory", "list_memories"],
+          "installation": {
+            "uv": "uvx mcp-server-memory",
+            "pip": "pip install mcp-server-memory && python -m mcp_server_memory",
+            "docker": "docker run -i --rm mcp/memory"
+          },
+          "lightweight": true,
+          "deployment_friendly": true,
+          "kubernetes_ready": true
+        }
+      ],
+      "fallback_description": "No fallback methods - requires Anthropic Claude AI for content analysis",
+      "deployment_friendly": true,
+      "kubernetes_ready": true,
+      "docker_requirements": "Official MCP memory server (lightweight Python), Anthropic API access required"
+    },
     "validator": {
       "name": "validator",
       "role": "MCP Server Validator",
