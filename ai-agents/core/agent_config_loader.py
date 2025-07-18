@@ -1,11 +1,11 @@
 """
 Agent Configuration Loader
 
-Utility for loading agent configurations from the centralized agent_configs.json file.
+Utility for loading agent configurations from the centralized configs/agent_configs.yaml file.
 This allows for easy management and updates of agent settings without modifying code.
 """
 
-import json
+import yaml
 import os
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -20,34 +20,34 @@ class AgentConfigLoader:
         """Initialize the config loader.
         
         Args:
-            config_file_path: Optional path to config file. Defaults to agent_configs.json in ai-agents root directory.
+            config_file_path: Optional path to config file. Defaults to agent_configs.yaml in configs directory.
         """
         if config_file_path is None:
-            # Default to agent_configs.json in the ai-agents root directory
+            # Default to agent_configs.yaml in the configs directory
             current_dir = Path(__file__).parent  # core directory
             ai_agents_root = current_dir.parent  # ai-agents directory
-            config_file_path = ai_agents_root / "agent_configs.json"
+            config_file_path = ai_agents_root / "configs" / "agent_configs.yaml"
         
         self.config_file_path = Path(config_file_path)
         self._config = None
         self._load_config()
     
     def _load_config(self) -> None:
-        """Load configuration from the JSON file."""
+        """Load configuration from the YAML file."""
         try:
             if not self.config_file_path.exists():
                 logger.error(f"Config file not found: {self.config_file_path}")
-                self._config = {"agents": {}, "global_settings": {}}
+                self._config = {}
                 return
             
             with open(self.config_file_path, 'r', encoding='utf-8') as f:
-                self._config = json.load(f)
+                self._config = yaml.safe_load(f) or {}
                 
             logger.info(f"Loaded agent configurations from {self.config_file_path}")
             
         except Exception as e:
             logger.error(f"Error loading config file {self.config_file_path}: {e}")
-            self._config = {"agents": {}, "global_settings": {}}
+            self._config = {}
     
     def reload_config(self) -> None:
         """Reload configuration from file."""
@@ -66,20 +66,17 @@ class AgentConfigLoader:
             logger.warning("No configuration loaded")
             return {}
         
-        agent_config = self._config.get("agents", {}).get(agent_name, {})
+        # In the new YAML format, agents are stored directly at the root level
+        agent_config = self._config.get(agent_name, {})
         
         if not agent_config:
             logger.warning(f"No configuration found for agent: {agent_name}")
             return {}
         
-        # Merge with global settings
+        # Add the agent name to the config if not present
         merged_config = agent_config.copy()
-        global_settings = self._config.get("global_settings", {})
-        
-        # Add global settings that don't conflict with agent-specific settings
-        for key, value in global_settings.items():
-            if key not in merged_config:
-                merged_config[f"global_{key}"] = value
+        if 'name' not in merged_config:
+            merged_config['name'] = agent_name
         
         return merged_config
     
@@ -92,7 +89,13 @@ class AgentConfigLoader:
         if not self._config:
             return []
         
-        return list(self._config.get("agents", {}).keys())
+        # In the new YAML format, filter out non-agent entries (like global_settings, etc.)
+        agent_names = []
+        for key, value in self._config.items():
+            if isinstance(value, dict) and ('role' in value or 'goal' in value):
+                agent_names.append(key)
+        
+        return agent_names
     
     def get_global_settings(self) -> Dict[str, Any]:
         """Get global settings.
@@ -143,20 +146,17 @@ class AgentConfigLoader:
         """
         try:
             if not self._config:
-                self._config = {"agents": {}, "global_settings": {}}
+                self._config = {}
             
-            if "agents" not in self._config:
-                self._config["agents"] = {}
-            
-            if agent_name not in self._config["agents"]:
-                self._config["agents"][agent_name] = {}
+            if agent_name not in self._config:
+                self._config[agent_name] = {}
             
             # Update the configuration
-            self._config["agents"][agent_name].update(config_updates)
+            self._config[agent_name].update(config_updates)
             
             # Save to file
             with open(self.config_file_path, 'w', encoding='utf-8') as f:
-                json.dump(self._config, f, indent=2, ensure_ascii=False)
+                yaml.dump(self._config, f, default_flow_style=False, allow_unicode=True, indent=2)
             
             logger.info(f"Updated configuration for agent: {agent_name}")
             return True
