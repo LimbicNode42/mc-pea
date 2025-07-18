@@ -29,7 +29,7 @@ class ApiLinkDiscoveryAgent(Agent):
             backstory=config_data.get("backstory"),
             llm=config_data.get("llm", "claude-sonnet-4-20250514"),
             tools=[scraper_tool],
-            verbose=config_data.get("verbose", False)
+            verbose=config_data.get("verbose", False),
         )
         
         # Store config data for later use

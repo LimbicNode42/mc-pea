@@ -1,7 +1,7 @@
 """
 Agent Configuration Loader
 
-Utility for loading agent configurations from the centralized configs/agent_configs.yaml file.
+Utility for loading agent configurations from the centralized configs/agents.yaml file.
 This allows for easy management and updates of agent settings without modifying code.
 """
 
@@ -20,13 +20,13 @@ class AgentConfigLoader:
         """Initialize the config loader.
         
         Args:
-            config_file_path: Optional path to config file. Defaults to agent_configs.yaml in configs directory.
+            config_file_path: Optional path to config file. Defaults to agents.yaml in configs directory.
         """
         if config_file_path is None:
-            # Default to agent_configs.yaml in the configs directory
+            # Default to agents.yaml in the configs directory
             current_dir = Path(__file__).parent  # core directory
             ai_agents_root = current_dir.parent  # ai-agents directory
-            config_file_path = ai_agents_root / "configs" / "agent_configs.yaml"
+            config_file_path = ai_agents_root / "configs" / "agents.yaml"
         
         self.config_file_path = Path(config_file_path)
         self._config = None

@@ -15,7 +15,7 @@ try:
 except ImportError:
     def get_agent_config(agent_name: str) -> Dict[str, Any]:
         """Fallback agent config loader."""
-        config_file = Path(__file__).parent.parent / "agent_configs.json"
+        config_file = Path(__file__).parent.parent / "agents.json"
         if config_file.exists():
             with open(config_file, 'r') as f:
                 configs = json.load(f)
@@ -423,7 +423,7 @@ def save_agent_config(agent_name: str, config_data: Dict[str, Any]):
         agent_name: Name of the agent
         config_data: Configuration data to save
     """
-    config_file = Path(__file__).parent.parent / "agent_configs.json"
+    config_file = Path(__file__).parent.parent / "agents.json"
     
     # Load existing configuration
     if config_file.exists():
