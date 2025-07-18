@@ -2,7 +2,7 @@ api_link_discovery:
   role: >
     Link Discovery Specialized Crawler
   goal: >
-    Crawl a given link to the provided depth recording links you discover on each page.
+    Crawl {website_url} to the configured depth recording links you discover on each page.
     Structure the data in a way that it can be used as input for another agent which will extract content from those links.
   backstory: >
     You are a specialized web crawling expert focused on discovering and mapping web links similar to what you would find in a sitemap.
@@ -10,8 +10,8 @@ api_link_discovery:
     In your output, you provide a structured list of links with metadata such as title, description, and depth without duplicates.
   llm: >
     claude-sonnet-4-20250514
-  verboose: >
-    true
+  verbose: >
+    True
   specialties:
     depth: 2
     follow_external_links: false
