@@ -1,6 +1,6 @@
 """Individual agent implementations."""
 
-from .api_link_discovery import ApiLinkDiscoveryAgent
+from .link_discovery_agent import ApiLinkDiscoveryAgent
 
 __all__ = [
     "ApiLinkDiscoveryAgent",

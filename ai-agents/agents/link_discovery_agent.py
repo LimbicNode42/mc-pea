@@ -10,7 +10,7 @@ This agent specializes in web crawling and link discovery using MCP servers:
 
 from crewai import Agent
 from crewai_tools import ScrapeWebsiteTool
-from core.agent_config_loader import get_agent_config
+from core.agent_config_loader import AgentConfigLoader
 
 
 class ApiLinkDiscoveryAgent(Agent):
@@ -18,7 +18,8 @@ class ApiLinkDiscoveryAgent(Agent):
 
     def __init__(self, website_url: str):
         # Load configuration from centralized config file
-        config_data = get_agent_config("api_link_discovery")
+        agent_loader = AgentConfigLoader()
+        config_data = agent_loader.get_agent_config("api_link_discovery")
 
         scraper_tool = ScrapeWebsiteTool(website_url=website_url)
         

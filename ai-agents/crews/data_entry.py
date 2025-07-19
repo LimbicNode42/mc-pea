@@ -1,10 +1,11 @@
 from crewai import Crew
-from core.crew_config_loader import get_crew_config
+from core.crew_config_loader import CrewConfigLoader
 
 class DataEntry(Crew):
   def __init__(self):
     # Load configuration from centralized config file
-    config_data = get_crew_config("data_entry")
+    crew_loader = CrewConfigLoader()
+    config_data = crew_loader.get_crew_config("data_entry")
       
     # Initialize the CrewAI Agent with the loaded configuration
     super().__init__(
