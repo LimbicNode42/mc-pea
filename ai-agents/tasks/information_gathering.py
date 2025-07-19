@@ -11,11 +11,12 @@ from core.task_config_loader import get_task_config
 class ApiLinkDiscoveryAgent(Task):
   def __init__(self, website_url: str, depth: int = 2):
     # Load configuration from centralized config file
-    config_data = get_task_config("scrape")
+    config_data = get_task_config("api_link_discovery")
       
     # Initialize the CrewAI Agent with the loaded configuration
     super().__init__(
-        description=config_data.get("description"), expected_output=config_data.get("expected_output"),
+        description=config_data.get("description"), 
+        expected_output=config_data.get("expected_output"),
         agent=config_data.get("agent"),
         markdown=config_data.get("markdown", False),
     )

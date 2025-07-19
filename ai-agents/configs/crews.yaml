@@ -1,0 +1,11 @@
+data_entry:
+  tasks: >
+    api_link_discovery
+  agents: >
+    api_link_discovery
+  process: >
+    sequential
+  verbose: >
+    True
+  memory: >
+    True
