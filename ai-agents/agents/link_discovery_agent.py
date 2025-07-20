@@ -10,8 +10,8 @@ This agent specializes in web crawling and link discovery using MCP servers:
 
 from crewai import Agent
 from crewai_tools import ScrapeWebsiteTool
+from langchain_anthropic import ChatAnthropic
 from core.agent_config_loader import AgentConfigLoader
-
 
 class ApiLinkDiscoveryAgent(Agent):
     """Agent responsible for discovering and cataloging API-related web links."""
@@ -21,6 +21,8 @@ class ApiLinkDiscoveryAgent(Agent):
         agent_loader = AgentConfigLoader()
         config_data = agent_loader.get_agent_config("api_link_discovery")
 
+        llm = ChatAnthropic(model=config_data.get("llm"))
+
         scraper_tool = ScrapeWebsiteTool(website_url=website_url)
         
         # Initialize the CrewAI Agent with the loaded configuration
@@ -28,7 +30,7 @@ class ApiLinkDiscoveryAgent(Agent):
             role=config_data.get("role"),
             goal=config_data.get("goal"),
             backstory=config_data.get("backstory"),
-            llm=config_data.get("llm", "claude-sonnet-4-20250514"),
+            llm=llm,
             tools=[scraper_tool],
             verbose=config_data.get("verbose", False),
         )

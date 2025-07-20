@@ -16,7 +16,11 @@ class ApiLinkDiscoveryTask(Task):
       
     # Initialize the CrewAI Task with the loaded configuration
     # Format description and expected_output with provided parameters
-    description = config_data.get("description").format(
+    description_template = config_data.get("description", "")
+    if not description_template:
+        raise ValueError("No description found in task configuration")
+    
+    description = description_template.format(
         website_url=website_url, 
         depth=depth
     )
@@ -24,7 +28,8 @@ class ApiLinkDiscoveryTask(Task):
     super().__init__(
         description=description, 
         expected_output=config_data.get("expected_output"),
-        agent=config_data.get("agent"),
+        # Don't pass agent from config - it should be assigned later
+        # agent=config_data.get("agent"),
         markdown=config_data.get("markdown", False),
     )
     

@@ -5,7 +5,5 @@ data_entry:
     api_link_discovery
   process: >
     sequential
-  verbose: >
-    True
-  memory: >
-    True
+  verbose: True
+  memory: True

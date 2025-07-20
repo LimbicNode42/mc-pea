@@ -7,5 +7,4 @@ api_link_discovery:
     Organize links by type (API docs, tutorials, reference, etc.).
   agent: >
     ApiLinkDiscoveryAgent
-  markdown: >
-    True
+  markdown: True

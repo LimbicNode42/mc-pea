@@ -15,14 +15,17 @@ import sys
 import logging
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Add current directory to Python path for imports
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
 from core.crew_config_loader import CrewConfigLoader
-from core.agent_config_loader import AgentConfigLoader
-from core.task_config_loader import TaskConfigLoader
 from agents.link_discovery_agent import ApiLinkDiscoveryAgent
 from tasks.information_gathering import ApiLinkDiscoveryTask
 from crewai import Crew
@@ -33,6 +36,15 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Verify API key is loaded
+anthropic_key = os.getenv('ANTHROPIC_API_KEY')
+if not anthropic_key:
+    logger.error("❌ ANTHROPIC_API_KEY not found in environment variables")
+    logger.error("   Please ensure you have a .env file with ANTHROPIC_API_KEY set")
+    sys.exit(1)
+else:
+    logger.info(f"✅ Anthropic API key loaded (ending with: ...{anthropic_key[-4:]})")
 
 
 def setup_argument_parser() -> argparse.ArgumentParser:
@@ -58,8 +70,7 @@ Examples:
     parser.add_argument(
         '-u', '--url',
         type=str,
-        required=True,
-        help='Target website URL to crawl (required)'
+        help='Target website URL to crawl (required unless using --list-crews)'
     )
     
     parser.add_argument(
@@ -123,13 +134,11 @@ def list_available_crews() -> None:
         sys.exit(1)
 
 
-def create_data_entry_crew(url: str, depth: int, verbose: bool = None, memory: bool = None) -> Crew:
+def create_data_entry_crew(url: str, depth: int) -> Crew:
     """Create and configure the data_entry crew with provided parameters."""
     try:
         # Load configurations
         crew_loader = CrewConfigLoader()
-        agent_loader = AgentConfigLoader()
-        task_loader = TaskConfigLoader()
         
         # Get crew configuration
         crew_config = crew_loader.get_crew_config("data_entry")
@@ -146,17 +155,13 @@ def create_data_entry_crew(url: str, depth: int, verbose: bool = None, memory: b
         task.agent = agent  # Assign the agent to the task
         
         # Override configuration with command line arguments if provided
-        crew_verbose = verbose if verbose is not None else crew_loader.is_crew_verbose("data_entry")
-        crew_memory = memory if memory is not None else crew_loader.is_crew_memory_enabled("data_entry")
         crew_process = crew_loader.get_crew_process("data_entry")
         
         # Create the crew
         crew = Crew(
             agents=[agent],
             tasks=[task],
-            process=crew_process,
-            verbose=crew_verbose,
-            memory=crew_memory
+            process=crew_process
         )
         
         logger.info(f"Created data_entry crew with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
@@ -167,7 +172,7 @@ def create_data_entry_crew(url: str, depth: int, verbose: bool = None, memory: b
         raise
 
 
-def run_crew(crew_name: str, url: str, depth: int, verbose: bool = None, memory: bool = None, dry_run: bool = False) -> Optional[str]:
+def run_crew(crew_name: str, url: str, depth: int, dry_run: bool = False) -> Optional[str]:
     """Run the specified crew with given parameters."""
     try:
         logger.info(f"Starting crew execution: {crew_name}")
@@ -178,7 +183,7 @@ def run_crew(crew_name: str, url: str, depth: int, verbose: bool = None, memory:
             raise ValueError(f"Crew '{crew_name}' is not yet implemented. Only 'data_entry' is available.")
         
         # Create the crew
-        crew = create_data_entry_crew(url, depth, verbose, memory)
+        crew = create_data_entry_crew(url, depth)
         
         if dry_run:
             print("\n🔍 Dry Run - Crew Configuration:")
@@ -196,10 +201,16 @@ def run_crew(crew_name: str, url: str, depth: int, verbose: bool = None, memory:
         
         # Execute the crew
         logger.info("🚀 Starting crew execution...")
-        result = crew.kickoff()
-        
-        logger.info("✅ Crew execution completed successfully")
-        return result
+        try:
+            result = crew.kickoff()
+            logger.info("✅ Crew execution completed successfully")
+            return result
+        except Exception as execution_error:
+            logger.error(f"❌ Error during crew execution: {execution_error}")
+            logger.error(f"❌ Error type: {type(execution_error)}")
+            import traceback
+            logger.error(f"❌ Full traceback: {traceback.format_exc()}")
+            raise
         
     except Exception as e:
         logger.error(f"❌ Error running crew {crew_name}: {e}")
@@ -225,21 +236,11 @@ def main():
         if not (args.url.startswith('http://') or args.url.startswith('https://')):
             logger.warning(f"URL '{args.url}' should start with http:// or https://")
         
-        # Validate depth
-        if args.depth < 1 or args.depth > 10:
-            parser.error("--depth must be between 1 and 10")
-        
-        # Determine verbose and memory settings
-        verbose = args.verbose if args.verbose else None
-        memory = False if args.no_memory else None
-        
         # Run the crew
         result = run_crew(
             crew_name=args.crew,
             url=args.url,
             depth=args.depth,
-            verbose=verbose,
-            memory=memory,
             dry_run=args.dry_run
         )
         

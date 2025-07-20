@@ -8,7 +8,5 @@ api_link_discovery:
     You are a specialized web crawling expert focused on discovering and mapping web links similar to what you would find in a sitemap.
     You maintain a memory of discovered links and systematically explore websites.
     In your output, you provide a structured list of links with metadata such as title, description, and depth without duplicates.
-  llm: >
-    claude-sonnet-4-20250514
-  verbose: >
-    True
+  llm: claude-sonnet-4-20250514
+  verbose: True
