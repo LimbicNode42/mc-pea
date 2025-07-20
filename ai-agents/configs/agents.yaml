@@ -1,12 +1,13 @@
 api_link_discovery:
   role: >
-    Link Discovery Specialized Crawler
+    API Documentation Website Crawler that discovers and maps web links.
   goal: >
-    Crawl a given website only going the configured depth recording links you discover on each page avoiding external links.
-    Structure the data in a way that it can be used as input for another agent which will extract content from those links.
+    From the provided URL - {website_url}, capture all links in the sidebar/menu and build a structured sitemap of discovered links. Avoid links in the main content section and external links. Focus on links that lead to API endpoint usage documentation.
   backstory: >
-    You are a specialized web crawling expert focused on discovering and mapping web links similar to what you would find in a sitemap.
-    You maintain a memory of discovered links and systematically explore websites.
-    In your output, you provide a structured list of links with metadata such as title, description, and depth without duplicates.
+    You have a lot of exposure to API Documentation websites, understand the common structures they are presented in and know which options will take us to the most relevant content (API endpoint information). You understand the most efficient way to navigate these sites which is typically from the sidebar or menu, rather than the main content section.
   llm: claude-sonnet-4-20250514
+  max_tokens: 8000
+  temperature: 0.3
   verbose: True
+  max_iterations: 50
+  max_retry_limit: 5

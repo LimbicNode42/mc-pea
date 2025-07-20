@@ -1,10 +1,8 @@
 api_link_discovery:
   description: >
-    Scrape {website_url} to a depth of {depth} and build a sitemap of discovered links.
-    Focus on finding API documentation, developer resources, and technical content.
+    Scrape {website_url} and create a sitemap of discovered links. Find all links in the sidebar/menu that lead to API endpoint usage Documentation. Focus on links from the sidebar or menu and avoid links in the main content section. Also avoid external links.
   expected_output: >
-    A structured list of links with metadata including title, description, and categorization.
-    Organize links by type (API docs, tutorials, reference, etc.).
+    A structured list of links containing page titles and url links.
   agent: >
     ApiLinkDiscoveryAgent
   markdown: True
