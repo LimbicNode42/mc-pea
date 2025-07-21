@@ -5,4 +5,15 @@ api_link_discovery:
     A structured list of links containing page titles and url links.
   agent: >
     ApiLinkDiscoveryAgent
-  markdown: True
+  # markdown: True # for test purposes, can be removed later
+
+api_link_content_extractor:
+  description: >
+    Extract API endpoint usage information from the provided list of URLs - outputted from {website_urls}. Focus on structured data that includes endpoint paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values and purpose.
+  expected_output: >
+    A structured list of API endpoint usage information including paths, methods, parameters, headers, expected outputs, and purpose.
+  agent: >
+    ApiLinkContentExtractorAgent
+  context: >
+    api_link_discovery
+  markdown: True # for test purposes, can be removed later

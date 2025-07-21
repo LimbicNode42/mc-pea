@@ -6,7 +6,9 @@ from configs/tasks.yaml, following the same pattern as agent configuration.
 """
 
 from .information_gathering import ApiLinkDiscoveryTask
+from .information_gathering import ApiLinkContentExtractorTask
 
 __all__ = [
-    "ApiLinkDiscoveryTask"
+    "ApiLinkDiscoveryTask",
+    "ApiLinkContentExtractorTask"
 ]

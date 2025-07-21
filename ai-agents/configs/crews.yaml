@@ -1,8 +1,10 @@
 data_entry:
-  tasks: >
-    api_link_discovery
-  agents: >
-    api_link_discovery
+  tasks:
+    - api_link_discovery
+    - api_link_content_extractor
+  agents:
+    - api_link_discovery
+    - api_link_content_extractor
   process: >
     sequential
   verbose: True

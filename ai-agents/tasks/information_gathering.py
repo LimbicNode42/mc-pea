@@ -9,7 +9,7 @@ from crewai import Task
 from core.task_config_loader import TaskConfigLoader
 
 class ApiLinkDiscoveryTask(Task):
-  def __init__(self, website_url: str, depth: int = 2):
+  def __init__(self, website_url: str, depth: int = 3):
     # Load configuration from centralized config file
     task_loader = TaskConfigLoader()
     config_data = task_loader.get_task_config("api_link_discovery")
@@ -30,6 +30,34 @@ class ApiLinkDiscoveryTask(Task):
         expected_output=config_data.get("expected_output"),
         # Don't pass agent from config - it should be assigned later
         # agent=config_data.get("agent"),
+        markdown=config_data.get("markdown", False),
+    )
+    
+    # Store config data for later use
+    self._config_data = config_data
+
+class ApiLinkContentExtractorTask(Task):
+  def __init__(self):
+    # Load configuration from centralized config file
+    task_loader = TaskConfigLoader()
+    config_data = task_loader.get_task_config("api_link_content_extractor")
+
+    # Initialize the CrewAI Task with the loaded configuration
+    # Format description and expected_output with provided parameters
+    description_template = config_data.get("description")
+    if not description_template:
+        raise ValueError("No description found in task configuration")
+    
+    description = description_template.format(
+        website_urls=config_data.get("context")
+    )
+    
+    super().__init__(
+        description=description,
+        expected_output=config_data.get("expected_output"),
+        # Don't pass agent from config - it should be assigned later
+        # agent=config_data.get("agent"),
+        context=config_data.get("context"),
         markdown=config_data.get("markdown", False),
     )
     
