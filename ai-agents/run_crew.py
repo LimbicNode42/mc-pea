@@ -26,8 +26,7 @@ current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
 from core.crew_config_loader import CrewConfigLoader
-from agents.link_discovery_agent import ApiLinkDiscoveryAgent
-from tasks.information_gathering import ApiLinkDiscoveryTask
+from crews.data_entry import DataEntry
 from crewai import Crew
 
 # Configure logging
@@ -134,35 +133,13 @@ def list_available_crews() -> None:
         sys.exit(1)
 
 
-def create_data_entry_crew(url: str, depth: int) -> Crew:
+def create_data_entry_crew(url: str, depth: int) -> DataEntry:
     """Create and configure the data_entry crew with provided parameters."""
     try:
-        # Load configurations
-        crew_loader = CrewConfigLoader()
+        logger.info(f"Creating DataEntry crew for URL: {url} with depth: {depth}")
         
-        # Get crew configuration
-        crew_config = crew_loader.get_crew_config("data_entry")
-        if not crew_config:
-            raise ValueError("data_entry crew configuration not found")
-        
-        # Create agent instance
-        logger.info(f"Creating ApiLinkDiscoveryAgent for URL: {url}")
-        agent = ApiLinkDiscoveryAgent(website_url=url)
-        
-        # Create task instance with dynamic parameters
-        logger.info(f"Creating ApiLinkDiscoveryTask with depth: {depth}")
-        task = ApiLinkDiscoveryTask(website_url=url, depth=depth)
-        task.agent = agent  # Assign the agent to the task
-        
-        # Override configuration with command line arguments if provided
-        crew_process = crew_loader.get_crew_process("data_entry")
-        
-        # Create the crew
-        crew = Crew(
-            agents=[agent],
-            tasks=[task],
-            process=crew_process
-        )
+        # Use the DataEntry class which handles all configuration
+        crew = DataEntry(website_url=url, depth=depth)
         
         logger.info(f"Created data_entry crew with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
         return crew

@@ -5,7 +5,6 @@ data_entry:
   agents:
     - api_link_discovery
     - api_link_content_extractor
-  process: >
-    sequential
+  process: sequential
   verbose: True
   memory: True
