@@ -1,651 +1,511 @@
+```json
 {
   "categories": [
     {
-      "name": "REST API",
-      "description": "GitHub REST API documentation - Create integrations, retrieve data, and automate your workflows with the GitHub REST API.",
-      "category_path": ["REST API"],
-      "parent_category": null,
-      "level": 0,
-      "endpoints": []
-    },
-    {
-      "name": "Using the REST API",
-      "description": "Learn how to use the GitHub REST API, including getting started, rate limits, pagination, libraries, best practices, troubleshooting, timezones, CORS and JSONP, issue event types, and GitHub event types.",
-      "category_path": ["REST API", "Using the REST API"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": []
-    },
-    {
       "name": "Authentication",
-      "description": "Authentication methods for the GitHub REST API including authenticating, keeping API credentials secure, and various endpoint permissions for different token types.",
-      "category_path": ["REST API", "Authentication"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": []
-    },
-    {
-      "name": "Guides",
-      "description": "Practical guides for using the REST API including scripting with JavaScript and Ruby, discovering resources, delivering deployments, rendering data as graphs, working with comments, building CI servers, Git database interactions, checks, and encrypting secrets.",
-      "category_path": ["REST API", "Guides"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": []
-    },
-    {
-      "name": "Actions",
-      "description": "REST API endpoints for GitHub Actions including artifacts, cache, GitHub-hosted runners, OIDC, permissions, secrets, self-hosted runner groups, self-hosted runners, variables, workflow jobs, workflow runs, and workflows.",
-      "category_path": ["REST API", "Actions"],
-      "parent_category": "REST API",
-      "level": 1,
+      "description": "Endpoints for authenticating to the REST API",
       "endpoints": [
         {
-          "name": "Actions",
-          "description": "REST API endpoints for GitHub Actions",
-          "method": "GET",
-          "path": "/actions",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions",
-          "headers": [
+          "name": "Create GitHub App installation token",
+          "description": "Creates an installation access token for a GitHub App.",
+          "method": "POST",
+          "path": "/app/installations/{installation_id}/access_tokens",
+          "category_path": [
+            "Authentication",
+            "GitHub Apps"
+          ],
+          "source_url": "https://docs.github.com/en/rest/apps/installation-tokens?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "installation_id",
+              "description": "The ID of the installation.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Create a new Codespace",
+          "description": "Creates a new Codespace for a GitHub App user.",
+          "method": "POST",
+          "path": "/app/codespaces/new",
+          "category_path": [
+            "Authentication",
+            "GitHub Apps"
+          ],
+          "source_url": "https://docs.github.com/en/rest/apps/user-tokens?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        }
+      ]
+    },
+    {
+      "name": "Actions Artifacts",
+      "description": "Endpoints for managing Actions artifacts",
+      "endpoints": [
+        {
+          "name": "Delete an artifact",
+          "description": "Deletes an artifact.",
+          "method": "DELETE",
+          "path": "/repos/{owner}/{repo}/actions/artifacts/{artifact_id}",
+          "category_path": [
+            "Actions",
+            "Artifacts"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             },
             {
-              "name": "Accept",
-              "description": "Media type to return",
-              "required": false,
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
               "type": "string",
-              "default_value": "application/vnd.github+json"
+              "default_value": ""
+            },
+            {
+              "name": "artifact_id",
+              "description": "The unique identifier of the artifact.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "403": "Forbidden"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Artifacts",
-          "description": "REST API endpoints for GitHub Actions artifacts",
+          "name": "Get an artifact",
+          "description": "Gets a specific artifact.",
           "method": "GET",
-          "path": "/actions/artifacts",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/artifacts",
-          "headers": [
+          "path": "/repos/{owner}/{repo}/actions/artifacts/{artifact_id}",
+          "category_path": [
+            "Actions",
+            "Artifacts"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "artifact_id",
+              "description": "The unique identifier of the artifact.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "List artifacts for a repository",
+          "description": "Lists all artifacts for a repository.",
+          "method": "GET",
+          "path": "/repos/{owner}/{repo}/actions/artifacts",
+          "category_path": [
+            "Actions",
+            "Artifacts"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Cache",
-          "description": "REST API endpoints for GitHub Actions cache",
+          "name": "List artifacts for a workflow run",
+          "description": "Lists all artifacts for a workflow run.",
           "method": "GET",
-          "path": "/actions/cache",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/cache",
-          "headers": [
+          "path": "/repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+          "category_path": [
+            "Actions",
+            "Artifacts"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "run_id",
+              "description": "The unique identifier of the workflow run.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Update an artifact",
+          "description": "Updates an artifact.",
+          "method": "PATCH",
+          "path": "/repos/{owner}/{repo}/actions/artifacts/{artifact_id}",
+          "category_path": [
+            "Actions",
+            "Artifacts"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "artifact_id",
+              "description": "The unique identifier of the artifact.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Download an artifact",
+          "description": "Downloads an artifact.",
+          "method": "GET",
+          "path": "/repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}",
+          "category_path": [
+            "Actions",
+            "Artifacts"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "artifact_id",
+              "description": "The unique identifier of the artifact.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
+            },
+            {
+              "name": "archive_format",
+              "description": "The format of the archive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "GitHub-hosted runners",
-          "description": "GitHub-hosted runners REST API endpoints",
-          "method": "GET",
-          "path": "/actions/runners",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/github-hosted-runners",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "OIDC",
-          "description": "REST API endpoints for GitHub Actions OIDC",
-          "method": "GET",
-          "path": "/actions/oidc",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/oidc",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Permissions",
-          "description": "REST API endpoints for GitHub Actions permissions",
-          "method": "GET",
-          "path": "/actions/permissions",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/permissions",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Secrets",
-          "description": "REST API endpoints for GitHub Actions Secrets",
-          "method": "GET",
-          "path": "/actions/secrets",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/secrets",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Self-hosted runner groups",
-          "description": "REST API endpoints for self-hosted runner groups",
-          "method": "GET",
-          "path": "/actions/runner-groups",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/self-hosted-runner-groups",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Self-hosted runners",
-          "description": "REST API endpoints for self-hosted runners",
-          "method": "GET",
-          "path": "/actions/self-hosted-runners",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/self-hosted-runners",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Variables",
-          "description": "REST API endpoints for GitHub Actions variables",
-          "method": "GET",
-          "path": "/actions/variables",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/variables",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Workflow jobs",
-          "description": "REST API endpoints for workflow jobs",
-          "method": "GET",
-          "path": "/actions/jobs",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/workflow-jobs",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Workflow runs",
-          "description": "REST API endpoints for workflow runs",
-          "method": "GET",
-          "path": "/actions/runs",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/workflow-runs",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Workflows",
-          "description": "REST API endpoints for workflows",
-          "method": "GET",
-          "path": "/actions/workflows",
-          "category_path": ["REST API", "Actions"],
-          "source_url": "https://docs.github.com/en/rest/actions/workflows",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         }
       ]
     },
     {
-      "name": "Activity",
-      "description": "REST API endpoints for activity including events, feeds, notifications, starring, and watching.",
-      "category_path": ["REST API", "Activity"],
-      "parent_category": "REST API",
-      "level": 1,
+      "name": "Actions Cache",
+      "description": "Endpoints for managing Actions cache",
       "endpoints": [
         {
-          "name": "Events",
-          "description": "REST API endpoints for events",
-          "method": "GET",
-          "path": "/events",
-          "category_path": ["REST API", "Activity"],
-          "source_url": "https://docs.github.com/en/rest/activity/events",
-          "headers": [
+          "name": "Delete a GitHub Actions cache",
+          "description": "Deletes a GitHub Actions cache.",
+          "method": "DELETE",
+          "path": "/repos/{owner}/{repo}/actions/caches/{cache_id}",
+          "category_path": [
+            "Actions",
+            "Cache"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/cache?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "cache_id",
+              "description": "The unique identifier of the cache.",
+              "required": true,
+              "type": "integer",
+              "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Feeds",
-          "description": "REST API endpoints for feeds",
+          "name": "List GitHub Actions caches for a repository",
+          "description": "Lists all GitHub Actions caches for a repository.",
           "method": "GET",
-          "path": "/feeds",
-          "category_path": ["REST API", "Activity"],
-          "source_url": "https://docs.github.com/en/rest/activity/feeds",
-          "headers": [
+          "path": "/repos/{owner}/{repo}/actions/caches",
+          "category_path": [
+            "Actions",
+            "Cache"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/cache?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Notifications",
-          "description": "REST API endpoints for notifications",
-          "method": "GET",
-          "path": "/notifications",
-          "category_path": ["REST API", "Activity"],
-          "source_url": "https://docs.github.com/en/rest/activity/notifications",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Starring",
-          "description": "REST API endpoints for starring",
-          "method": "GET",
-          "path": "/user/starred",
-          "category_path": ["REST API", "Activity"],
-          "source_url": "https://docs.github.com/en/rest/activity/starring",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        },
-        {
-          "name": "Watching",
-          "description": "REST API endpoints for watching",
-          "method": "GET",
-          "path": "/user/subscriptions",
-          "category_path": ["REST API", "Activity"],
-          "source_url": "https://docs.github.com/en/rest/activity/watching",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         }
       ]
     },
     {
-      "name": "Apps",
-      "description": "REST API endpoints for apps including GitHub Apps, installations, marketplace, OAuth authorizations, and webhooks.",
-      "category_path": ["REST API", "Apps"],
-      "parent_category": "REST API",
-      "level": 1,
+      "name": "Actions Permissions",
+      "description": "Endpoints for managing Actions permissions",
       "endpoints": [
         {
-          "name": "GitHub Apps",
-          "description": "REST API endpoints for GitHub Apps",
+          "name": "Get GitHub Actions permissions",
+          "description": "Gets the GitHub Actions permissions policy for a repository.",
           "method": "GET",
-          "path": "/apps",
-          "category_path": ["REST API", "Apps"],
-          "source_url": "https://docs.github.com/en/rest/apps/apps",
-          "headers": [
+          "path": "/repos/{owner}/{repo}/actions/permissions",
+          "category_path": [
+            "Actions",
+            "Permissions"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Installations",
-          "description": "REST API endpoints for GitHub App installations",
-          "method": "GET",
-          "path": "/app/installations",
-          "category_path": ["REST API", "Apps"],
-          "source_url": "https://docs.github.com/en/rest/apps/installations",
-          "headers": [
+          "name": "Set GitHub Actions permissions",
+          "description": "Sets the GitHub Actions permissions policy for a repository.",
+          "method": "PUT",
+          "path": "/repos/{owner}/{repo}/actions/permissions",
+          "category_path": [
+            "Actions",
+            "Permissions"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Marketplace",
-          "description": "REST API endpoints for GitHub Marketplace",
+          "name": "Get allowed actions and reusable workflows for a repository",
+          "description": "Gets the set of allowed actions and reusable workflows for a repository.",
           "method": "GET",
-          "path": "/marketplace_listing",
-          "category_path": ["REST API", "Apps"],
-          "source_url": "https://docs.github.com/en/rest/apps/marketplace",
-          "headers": [
+          "path": "/repos/{owner}/{repo}/actions/permissions/workflow",
+          "category_path": [
+            "Actions",
+            "Permissions"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         },
         {
-          "name": "OAuth authorizations",
-          "description": "REST API endpoints for OAuth authorizations",
-          "method": "GET",
-          "path": "/authorizations",
-          "category_path": ["REST API", "Apps"],
-          "source_url": "https://docs.github.com/en/rest/apps/oauth-authorizations",
-          "headers": [
+          "name": "Set allowed actions and reusable workflows for a repository",
+          "description": "Sets the set of allowed actions and reusable workflows for a repository.",
+          "method": "PUT",
+          "path": "/repos/{owner}/{repo}/actions/permissions/workflow/{workflow_file_name}",
+          "category_path": [
+            "Actions",
+            "Permissions"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "workflow_file_name",
+              "description": "The name of the workflow file.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
-          "path_parameters": [],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Webhooks",
-          "description": "REST API endpoints for GitHub App webhooks",
+          "name": "Get GitHub Actions permissions for an organization",
+          "description": "Gets the GitHub Actions permissions policy for an organization.",
           "method": "GET",
-          "path": "/app/hook",
-          "category_path": ["REST API", "Apps"],
-          "source_url": "https://docs.github.com/en/rest/apps/webhooks",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
+          "path": "/orgs/{org}/actions/permissions",
+          "category_path": [
+            "Actions",
+            "Permissions"
           ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Billing",
-      "description": "REST API endpoints for billing including billing and enhanced billing platform.",
-      "category_path": ["REST API", "Billing"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": [
-        {
-          "name": "Billing",
-          "description": "REST API endpoints for billing",
-          "method": "GET",
-          "path": "/orgs/{org}/billing",
-          "category_path": ["REST API", "Billing"],
-          "source_url": "https://docs.github.com/en/rest/billing/billing",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
           "path_parameters": [
             {
               "name": "org",
-              "description": "The organization name",
+              "description": "The organization name. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
@@ -653,32 +513,23 @@
           ],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Enhanced billing platform",
-          "description": "Enhanced billing platform",
-          "method": "GET",
-          "path": "/orgs/{org}/billing/enhanced",
-          "category_path": ["REST API", "Billing"],
-          "source_url": "https://docs.github.com/en/rest/billing/enhanced-billing-platform",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
+          "name": "Set GitHub Actions permissions for an organization",
+          "description": "Sets the GitHub Actions permissions policy for an organization.",
+          "method": "PUT",
+          "path": "/orgs/{org}/actions/permissions",
+          "category_path": [
+            "Actions",
+            "Permissions"
           ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
           "path_parameters": [
             {
               "name": "org",
-              "description": "The organization name",
+              "description": "The organization name. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
@@ -686,137 +537,23 @@
           ],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Branches",
-      "description": "REST API endpoints for branches and their settings including branches and protected branches.",
-      "category_path": ["REST API", "Branches"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": [
-        {
-          "name": "Branches",
-          "description": "REST API endpoints for branches",
-          "method": "GET",
-          "path": "/repos/{owner}/{repo}/branches",
-          "category_path": ["REST API", "Branches"],
-          "source_url": "https://docs.github.com/en/rest/branches/branches",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [
-            {
-              "name": "owner",
-              "description": "The account owner of the repository",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            },
-            {
-              "name": "repo",
-              "description": "The name of the repository",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Protected branches",
-          "description": "REST API endpoints for protected branches",
+          "name": "Get selected actions for an organization",
+          "description": "Gets the list of selected actions that are allowed to run in an organization.",
           "method": "GET",
-          "path": "/repos/{owner}/{repo}/branches/{branch}/protection",
-          "category_path": ["REST API", "Branches"],
-          "source_url": "https://docs.github.com/en/rest/branches/branch-protection",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
+          "path": "/orgs/{org}/actions/permissions/selected-actions",
+          "category_path": [
+            "Actions",
+            "Permissions"
           ],
-          "path_parameters": [
-            {
-              "name": "owner",
-              "description": "The account owner of the repository",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            },
-            {
-              "name": "repo",
-              "description": "The name of the repository",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            },
-            {
-              "name": "branch",
-              "description": "The name of the branch",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Campaigns",
-      "description": "REST API endpoints for security campaigns.",
-      "category_path": ["REST API", "Campaigns"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": [
-        {
-          "name": "Security campaigns",
-          "description": "REST API endpoints for security campaigns",
-          "method": "GET",
-          "path": "/orgs/{org}/security-campaigns",
-          "category_path": ["REST API", "Campaigns"],
-          "source_url": "https://docs.github.com/en/rest/security-campaigns/security-campaigns",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
           "path_parameters": [
             {
               "name": "org",
-              "description": "The organization name",
+              "description": "The organization name. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
@@ -824,88 +561,84 @@
           ],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Checks",
-      "description": "REST API endpoints for checks including check runs and check suites.",
-      "category_path": ["REST API", "Checks"],
-      "parent_category": "REST API",
-      "level": 1,
-      "endpoints": [
-        {
-          "name": "Check runs",
-          "description": "REST API endpoints for check runs",
-          "method": "GET",
-          "path": "/repos/{owner}/{repo}/check-runs",
-          "category_path": ["REST API", "Checks"],
-          "source_url": "https://docs.github.com/en/rest/checks/runs",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "path_parameters": [
-            {
-              "name": "owner",
-              "description": "The account owner of the repository",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            },
-            {
-              "name": "repo",
-              "description": "The name of the repository",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
-          ],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
+          "response_codes": {}
         },
         {
-          "name": "Check suites",
-          "description": "REST API endpoints for check suites",
-          "method": "GET",
-          "path": "/repos/{owner}/{repo}/check-suites",
-          "category_path": ["REST API", "Checks"],
-          "source_url": "https://docs.github.com/en/rest/checks/suites",
-          "headers": [
+          "name": "Set selected actions for an organization",
+          "description": "Sets the list of selected actions that are allowed to run in an organization.",
+          "method": "PUT",
+          "path": "/orgs/{org}/actions/permissions/selected-actions",
+          "category_path": [
+            "Actions",
+            "Permissions"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
             {
-              "name": "Authorization",
-              "description": "Authentication token",
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             }
           ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Get allowed actions for an organization",
+          "description": "Gets the list of allowed actions that are allowed to run in an organization.",
+          "method": "GET",
+          "path": "/orgs/{org}/actions/permissions/allowed-actions",
+          "category_path": [
+            "Actions",
+            "Permissions"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/permissions?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        }
+      ]
+    },
+    {
+      "name": "Actions Secrets",
+      "description": "Endpoints for managing Actions secrets",
+      "endpoints": [
+        {
+          "name": "List repository secrets",
+          "description": "Lists all secrets available in a repository.",
+          "method": "GET",
+          "path": "/repos/{owner}/{repo}/actions/secrets",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
           "path_parameters": [
             {
               "name": "owner",
-              "description": "The account owner of the repository",
+              "description": "The account owner of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
             },
             {
               "name": "repo",
-              "description": "The name of the repository",
+              "description": "The name of the repository. The name is not case sensitive.",
               "required": true,
               "type": "string",
               "default_value": ""
@@ -913,48 +646,307 @@
           ],
           "query_parameters": [],
           "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized",
-            "404": "Not Found"
-          }
+          "response_codes": {}
+        },
+        {
+          "name": "Get a repository secret",
+          "description": "Gets a single repository secret.",
+          "method": "GET",
+          "path": "/repos/{owner}/{repo}/actions/secrets/{secret_name}",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "secret_name",
+              "description": "The name of the secret.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Create or update a repository secret",
+          "description": "Creates or updates a repository secret.",
+          "method": "PUT",
+          "path": "/repos/{owner}/{repo}/actions/secrets/{secret_name}",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "secret_name",
+              "description": "The name of the secret.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Delete a repository secret",
+          "description": "Deletes a repository secret.",
+          "method": "DELETE",
+          "path": "/repos/{owner}/{repo}/actions/secrets/{secret_name}",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "secret_name",
+              "description": "The name of the secret.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "List organization secrets",
+          "description": "Lists all secrets available in an organization.",
+          "method": "GET",
+          "path": "/orgs/{org}/actions/secrets",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Get an organization secret",
+          "description": "Gets a single organization secret.",
+          "method": "GET",
+          "path": "/orgs/{org}/actions/secrets/{secret_name}",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "secret_name",
+              "description": "The name of the secret.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Create or update an organization secret",
+          "description": "Creates or updates an organization secret.",
+          "method": "PUT",
+          "path": "/orgs/{org}/actions/secrets/{secret_name}",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "secret_name",
+              "description": "The name of the secret.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Delete an organization secret",
+          "description": "Deletes an organization secret.",
+          "method": "DELETE",
+          "path": "/orgs/{org}/actions/secrets/{secret_name}",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "secret_name",
+              "description": "The name of the secret.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Get a repository public key",
+          "description": "Gets the public key that is used to encrypt secrets.",
+          "method": "GET",
+          "path": "/repos/{owner}/{repo}/actions/secrets/public-key",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "owner",
+              "description": "The account owner of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "name": "repo",
+              "description": "The name of the repository. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
+        },
+        {
+          "name": "Get an organization public key",
+          "description": "Gets the public key that is used to encrypt secrets.",
+          "method": "GET",
+          "path": "/orgs/{org}/actions/secrets/public-key",
+          "category_path": [
+            "Actions",
+            "Secrets"
+          ],
+          "source_url": "https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28",
+          "headers": [],
+          "path_parameters": [
+            {
+              "name": "org",
+              "description": "The organization name. The name is not case sensitive.",
+              "required": true,
+              "type": "string",
+              "default_value": ""
+            }
+          ],
+          "query_parameters": [],
+          "body_parameters": [],
+          "response_codes": {}
         }
       ]
     },
     {
-      "name": "Classroom",
-      "description": "REST API endpoints for GitHub Classroom.",
-      "category_path": ["REST API", "Classroom"],
-      "parent_category": "REST API",
-      "level": 1,
+      "name": "Self-hosted runner groups",
+      "description": "Endpoints for managing Self-hosted runner groups",
       "endpoints": [
         {
-          "name": "Classroom",
-          "description": "REST API endpoints for GitHub Classroom",
+          "name": "List runner groups for an organization",
+          "description": "Lists all runner groups configured in an organization.",
           "method": "GET",
-          "path": "/classrooms",
-          "category_path": ["REST API", "Classroom"],
-          "source_url": "https://docs.github.com/en/rest/classroom/classroom",
-          "headers": [
-            {
-              "name": "Authorization",
-              "description": "Authentication token",
-              "required": true,
-              "type": "string",
-              "default_value": ""
-            }
+          "path": "/orgs/{org}/actions/runner-groups",
+          "category_path": [
+            "Actions",
+            "Self-hosted runner groups"
           ],
-          "path_parameters": [],
-          "query_parameters": [],
-          "body_parameters": [],
-          "response_codes": {
-            "200": "OK",
-            "401": "Unauthorized"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Code scanning",
-      "description": "REST API endpoints for code scanning including code scanning, code security settings, and configurations.",
-      "category_path": ["REST API", "Code scanning"],
+          "source_url": "https

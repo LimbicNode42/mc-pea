@@ -32,6 +32,7 @@ class DataEntry(Crew):
         process=config_data.get("process"),
         verbose=config_data.get("verbose", False),
         memory=config_data.get("memory", True),
+        output_log_file="data_entry.json"
     )
     
     # Store config data for later use

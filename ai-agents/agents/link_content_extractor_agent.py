@@ -1,22 +1,47 @@
-from crewai import Agent
+from dotenv import load_dotenv
+import os
+from crewai import Agent, LLM
 from crewai_tools import ScrapeWebsiteTool
 from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
 from core.agent_config_loader import AgentConfigLoader
 
 class ApiLinkContentExtractorAgent(Agent):
     """Agent responsible for discovering and cataloging API-related web links."""
 
     def __init__(self, website_url: str):
+        load_dotenv()
+
         # Load configuration from centralized config file
         agent_loader = AgentConfigLoader()
         config_data = agent_loader.get_agent_config("api_link_content_extractor")
 
-        llm = ChatAnthropic(
-            model=config_data.get("llm"),
-            max_tokens=config_data.get("max_tokens", 8000),
-            temperature=config_data.get("temperature", 0.3),
-            max_retries=config_data.get("max_retry_limit", 2),
-        )
+        if "claude" in config_data.get("llm"):
+            llm = ChatAnthropic(
+                model=config_data.get("llm"),
+                max_tokens=config_data.get("max_tokens", 8000),
+                temperature=config_data.get("temperature", 0.3),
+                max_retries=config_data.get("max_retry_limit", 2),
+            )
+            print("Using Claude LLM for link content extraction")
+        elif "gemini" in config_data.get("llm"):
+            google_api_key = os.getenv('GOOGLE_API_KEY')
+            if not google_api_key:
+                raise ValueError("GOOGLE_API_KEY environment variable is required for Gemini models")
+            
+            # Extract just the model name (remove the provider prefix)
+            model_name = config_data.get("llm").replace("gemini/", "")
+            
+            # Use CrewAI's LLM class for Gemini models
+            llm = LLM(
+                model=f"gemini/{model_name}",
+                max_tokens=config_data.get("max_tokens", 8000),
+                temperature=config_data.get("temperature", 0.3),
+                api_key=google_api_key,
+            )
+            print(f"Using Gemini LLM for link content extraction: {model_name}")
+        else:
+            raise ValueError("Unsupported LLM type in configuration")
 
         scraper_tool = ScrapeWebsiteTool(website_url=website_url)
         

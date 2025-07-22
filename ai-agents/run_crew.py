@@ -45,6 +45,14 @@ if not anthropic_key:
 else:
     logger.info(f"✅ Anthropic API key loaded (ending with: ...{anthropic_key[-4:]})")
 
+google_key = os.getenv('GOOGLE_API_KEY')
+if not google_key:
+    logger.error("❌ GOOGLE_API_KEY not found in environment variables")
+    logger.error("   Please ensure you have a .env file with GOOGLE_API_KEY set")
+    sys.exit(1)
+else:
+    logger.info(f"✅ Google API key loaded (ending with: ...{google_key[-4:]})")
+
 
 def setup_argument_parser() -> argparse.ArgumentParser:
     """Set up command line argument parser."""
