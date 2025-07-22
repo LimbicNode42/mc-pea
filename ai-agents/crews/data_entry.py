@@ -1,6 +1,5 @@
 from crewai import Crew
 from core.crew_config_loader import CrewConfigLoader
-from models.link_discovery_output import ApiLinkDiscoveryOutput
 from agents.link_discovery_agent import ApiLinkDiscoveryAgent
 from agents.link_content_extractor_agent import ApiLinkContentExtractorAgent
 from tasks.information_gathering import ApiLinkDiscoveryTask, ApiLinkContentExtractorTask
@@ -31,7 +30,6 @@ class DataEntry(Crew):
         agents=[discovery_agent, extractor_agent],
         tasks=[discovery_task, extractor_task],
         process=config_data.get("process"),
-        output_json=ApiLinkDiscoveryOutput,
         verbose=config_data.get("verbose", False),
         memory=config_data.get("memory", True),
     )

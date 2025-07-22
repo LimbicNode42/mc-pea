@@ -7,6 +7,8 @@ from configs/tasks.yaml, similar to how agents load their configuration.
 
 from crewai import Task
 from core.task_config_loader import TaskConfigLoader
+from models.link_discovery_output import ApiLinkDiscoveryOutput
+from models.link_content_extractor_output import ApiLinkContentExtractorOutput
 
 class ApiLinkDiscoveryTask(Task):
   def __init__(self, website_url: str, depth: int = 3):
@@ -30,7 +32,9 @@ class ApiLinkDiscoveryTask(Task):
         expected_output=config_data.get("expected_output"),
         # Don't pass agent from config - it should be assigned later
         # agent=config_data.get("agent"),
+        ooutput_json=ApiLinkDiscoveryOutput,
         markdown=config_data.get("markdown", False),
+        output_file=config_data.get("output_file", None),
     )
     
     # Store config data for later use
@@ -56,8 +60,9 @@ class ApiLinkContentExtractorTask(Task):
         expected_output=config_data.get("expected_output"),
         # Don't pass agent from config - it should be assigned later
         # agent=config_data.get("agent"),
-        # Context will be set when creating the crew
+        output_json=ApiLinkContentExtractorOutput,
         markdown=config_data.get("markdown", False),
+        output_file=config_data.get("output_file", None),
     )
     
     # Store config data for later use

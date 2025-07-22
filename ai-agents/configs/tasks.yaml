@@ -5,7 +5,9 @@ api_link_discovery:
     A structured list of links containing page titles and url links.
   agent: >
     ApiLinkDiscoveryAgent
-  # markdown: True # for test purposes, can be removed later
+  # The following are for test purposes
+  # markdown: True
+  # output_file: api_link_discovery_output.json
 
 api_link_content_extractor:
   description: >
@@ -16,4 +18,6 @@ api_link_content_extractor:
     ApiLinkContentExtractorAgent
   context: >
     api_link_discovery
-  markdown: True # for test purposes, can be removed later
+  # The following are for test purposes
+  # markdown: True
+  output_file: api_link_content_extractor_output.json
