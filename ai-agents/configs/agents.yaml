@@ -9,7 +9,7 @@ api_link_discovery:
   max_tokens: 8000
   temperature: 0.3
   verbose: True
-  max_iterations: 50
+  max_iterations: 100
   max_retry_limit: 5
 
 api_link_content_extractor:
@@ -23,5 +23,5 @@ api_link_content_extractor:
   max_tokens: 8000
   temperature: 0.3
   verbose: True
-  max_iterations: 50
+  max_iterations: 500
   max_retry_limit: 5

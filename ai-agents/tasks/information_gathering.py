@@ -32,7 +32,7 @@ class ApiLinkDiscoveryTask(Task):
         expected_output=config_data.get("expected_output"),
         # Don't pass agent from config - it should be assigned later
         # agent=config_data.get("agent"),
-        ooutput_json=ApiLinkDiscoveryOutput,
+        output_json=ApiLinkDiscoveryOutput,
         markdown=config_data.get("markdown", False),
         output_file=config_data.get("output_file", None),
     )

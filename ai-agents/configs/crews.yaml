@@ -7,4 +7,4 @@ data_entry:
     - api_link_content_extractor
   process: sequential
   verbose: True
-  memory: True
+  memory: False

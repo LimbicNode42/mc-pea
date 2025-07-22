@@ -7,7 +7,7 @@ api_link_discovery:
     ApiLinkDiscoveryAgent
   # The following are for test purposes
   # markdown: True
-  # output_file: api_link_discovery_output.json
+  output_file: api_link_discovery_output.json
 
 api_link_content_extractor:
   description: >

@@ -1,0 +1,774 @@
+{
+  "categories": [
+    {
+      "category_name": "REST API",
+      "category_path": ["REST API"],
+      "parent_category": null,
+      "level": 0,
+      "links": [
+        {
+          "title": "Quickstart",
+          "link": "https://docs.github.com/en/rest/quickstart",
+          "category_path": ["REST API"],
+          "depth_level": 1
+        },
+        {
+          "title": "About the REST API",
+          "link": "https://docs.github.com/en/rest/about-the-rest-api",
+          "category_path": ["REST API"],
+          "depth_level": 1
+        },
+        {
+          "title": "API Versions",
+          "link": "https://docs.github.com/en/rest/api-versions",
+          "category_path": ["REST API"],
+          "depth_level": 1
+        },
+        {
+          "title": "Breaking changes",
+          "link": "https://docs.github.com/en/rest/breaking-changes",
+          "category_path": ["REST API"],
+          "depth_level": 1
+        },
+        {
+          "title": "OpenAPI description",
+          "link": "https://docs.github.com/en/rest/openapi-description",
+          "category_path": ["REST API"],
+          "depth_level": 1
+        }
+      ]
+    },
+    {
+      "category_name": "Using the REST API",
+      "category_path": ["REST API", "Using the REST API"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Getting started",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/getting-started-with-the-rest-api",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Rate limits",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Pagination",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/pagination",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Libraries",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/libraries",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Best practices",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/best-practices",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Troubleshooting",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/troubleshooting",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Timezones",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/timezones",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "CORS and JSONP",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/cors-and-jsonp",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "Issue event types",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/issue-event-types",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        },
+        {
+          "title": "GitHub event types",
+          "link": "https://docs.github.com/en/rest/using-the-rest-api/github-event-types",
+          "category_path": ["REST API", "Using the REST API"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Authentication",
+      "category_path": ["REST API", "Authentication"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Authenticating",
+          "link": "https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        },
+        {
+          "title": "Keeping API credentials secure",
+          "link": "https://docs.github.com/en/rest/authentication/keeping-your-api-credentials-secure",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        },
+        {
+          "title": "Endpoints for GitHub App installation tokens",
+          "link": "https://docs.github.com/en/rest/authentication/endpoints-available-for-github-app-installation-access-tokens",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        },
+        {
+          "title": "Endpoints for GitHub App user tokens",
+          "link": "https://docs.github.com/en/rest/authentication/endpoints-available-for-github-app-user-access-tokens",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        },
+        {
+          "title": "Endpoints for fine-grained PATs",
+          "link": "https://docs.github.com/en/rest/authentication/endpoints-available-for-fine-grained-personal-access-tokens",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        },
+        {
+          "title": "Permissions for GitHub Apps",
+          "link": "https://docs.github.com/en/rest/authentication/permissions-required-for-github-apps",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        },
+        {
+          "title": "Permissions for fine-grained PATs",
+          "link": "https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens",
+          "category_path": ["REST API", "Authentication"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Guides",
+      "category_path": ["REST API", "Guides"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Script with JavaScript",
+          "link": "https://docs.github.com/en/rest/guides/scripting-with-the-rest-api-and-javascript",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Script with Ruby",
+          "link": "https://docs.github.com/en/rest/guides/scripting-with-the-rest-api-and-ruby",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Discover resources for a user",
+          "link": "https://docs.github.com/en/rest/guides/discovering-resources-for-a-user",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Delivering deployments",
+          "link": "https://docs.github.com/en/rest/guides/delivering-deployments",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Rendering data as graphs",
+          "link": "https://docs.github.com/en/rest/guides/rendering-data-as-graphs",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Working with comments",
+          "link": "https://docs.github.com/en/rest/guides/working-with-comments",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Building a CI server",
+          "link": "https://docs.github.com/en/rest/guides/building-a-ci-server",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Get started - Git database",
+          "link": "https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-your-git-database",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Get started - Checks",
+          "link": "https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-checks",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        },
+        {
+          "title": "Encrypt secrets",
+          "link": "https://docs.github.com/en/rest/guides/encrypting-secrets-for-the-rest-api",
+          "category_path": ["REST API", "Guides"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Actions",
+      "category_path": ["REST API", "Actions"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Actions",
+          "link": "https://docs.github.com/en/rest/actions",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Artifacts",
+          "link": "https://docs.github.com/en/rest/actions/artifacts",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Cache",
+          "link": "https://docs.github.com/en/rest/actions/cache",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "GitHub-hosted runners",
+          "link": "https://docs.github.com/en/rest/actions/github-hosted-runners",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "OIDC",
+          "link": "https://docs.github.com/en/rest/actions/oidc",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Permissions",
+          "link": "https://docs.github.com/en/rest/actions/permissions",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Secrets",
+          "link": "https://docs.github.com/en/rest/actions/secrets",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Self-hosted runner groups",
+          "link": "https://docs.github.com/en/rest/actions/self-hosted-runner-groups",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Self-hosted runners",
+          "link": "https://docs.github.com/en/rest/actions/self-hosted-runners",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Variables",
+          "link": "https://docs.github.com/en/rest/actions/variables",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Workflow jobs",
+          "link": "https://docs.github.com/en/rest/actions/workflow-jobs",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Workflow runs",
+          "link": "https://docs.github.com/en/rest/actions/workflow-runs",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        },
+        {
+          "title": "Workflows",
+          "link": "https://docs.github.com/en/rest/actions/workflows",
+          "category_path": ["REST API", "Actions"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Activity",
+      "category_path": ["REST API", "Activity"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Events",
+          "link": "https://docs.github.com/en/rest/activity/events",
+          "category_path": ["REST API", "Activity"],
+          "depth_level": 2
+        },
+        {
+          "title": "Feeds",
+          "link": "https://docs.github.com/en/rest/activity/feeds",
+          "category_path": ["REST API", "Activity"],
+          "depth_level": 2
+        },
+        {
+          "title": "Notifications",
+          "link": "https://docs.github.com/en/rest/activity/notifications",
+          "category_path": ["REST API", "Activity"],
+          "depth_level": 2
+        },
+        {
+          "title": "Starring",
+          "link": "https://docs.github.com/en/rest/activity/starring",
+          "category_path": ["REST API", "Activity"],
+          "depth_level": 2
+        },
+        {
+          "title": "Watching",
+          "link": "https://docs.github.com/en/rest/activity/watching",
+          "category_path": ["REST API", "Activity"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Apps",
+      "category_path": ["REST API", "Apps"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "GitHub Apps",
+          "link": "https://docs.github.com/en/rest/apps/apps",
+          "category_path": ["REST API", "Apps"],
+          "depth_level": 2
+        },
+        {
+          "title": "Installations",
+          "link": "https://docs.github.com/en/rest/apps/installations",
+          "category_path": ["REST API", "Apps"],
+          "depth_level": 2
+        },
+        {
+          "title": "Marketplace",
+          "link": "https://docs.github.com/en/rest/apps/marketplace",
+          "category_path": ["REST API", "Apps"],
+          "depth_level": 2
+        },
+        {
+          "title": "OAuth authorizations",
+          "link": "https://docs.github.com/en/rest/apps/oauth-authorizations",
+          "category_path": ["REST API", "Apps"],
+          "depth_level": 2
+        },
+        {
+          "title": "Webhooks",
+          "link": "https://docs.github.com/en/rest/apps/webhooks",
+          "category_path": ["REST API", "Apps"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Billing",
+      "category_path": ["REST API", "Billing"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Billing",
+          "link": "https://docs.github.com/en/rest/billing/billing",
+          "category_path": ["REST API", "Billing"],
+          "depth_level": 2
+        },
+        {
+          "title": "Enhanced billing platform",
+          "link": "https://docs.github.com/en/rest/billing/enhanced-billing-platform",
+          "category_path": ["REST API", "Billing"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Branches",
+      "category_path": ["REST API", "Branches"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Branches",
+          "link": "https://docs.github.com/en/rest/branches/branches",
+          "category_path": ["REST API", "Branches"],
+          "depth_level": 2
+        },
+        {
+          "title": "Protected branches",
+          "link": "https://docs.github.com/en/rest/branches/branch-protection",
+          "category_path": ["REST API", "Branches"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Campaigns",
+      "category_path": ["REST API", "Campaigns"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Security campaigns",
+          "link": "https://docs.github.com/en/rest/security-campaigns/security-campaigns",
+          "category_path": ["REST API", "Campaigns"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Checks",
+      "category_path": ["REST API", "Checks"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Check runs",
+          "link": "https://docs.github.com/en/rest/checks/runs",
+          "category_path": ["REST API", "Checks"],
+          "depth_level": 2
+        },
+        {
+          "title": "Check suites",
+          "link": "https://docs.github.com/en/rest/checks/suites",
+          "category_path": ["REST API", "Checks"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Classroom",
+      "category_path": ["REST API", "Classroom"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Classroom",
+          "link": "https://docs.github.com/en/rest/classroom/classroom",
+          "category_path": ["REST API", "Classroom"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Code scanning",
+      "category_path": ["REST API", "Code scanning"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Code scanning",
+          "link": "https://docs.github.com/en/rest/code-scanning/code-scanning",
+          "category_path": ["REST API", "Code scanning"],
+          "depth_level": 2
+        },
+        {
+          "title": "Code security settings",
+          "link": "https://docs.github.com/en/rest/code-scanning/code-security-and-analysis",
+          "category_path": ["REST API", "Code scanning"],
+          "depth_level": 2
+        },
+        {
+          "title": "Configurations",
+          "link": "https://docs.github.com/en/rest/code-scanning/configurations",
+          "category_path": ["REST API", "Code scanning"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Codes of conduct",
+      "category_path": ["REST API", "Codes of conduct"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Codes of conduct",
+          "link": "https://docs.github.com/en/rest/codes-of-conduct/codes-of-conduct",
+          "category_path": ["REST API", "Codes of conduct"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Codespaces",
+      "category_path": ["REST API", "Codespaces"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Codespaces",
+          "link": "https://docs.github.com/en/rest/codespaces/codespaces",
+          "category_path": ["REST API", "Codespaces"],
+          "depth_level": 2
+        },
+        {
+          "title": "Organizations",
+          "link": "https://docs.github.com/en/rest/codespaces/organizations",
+          "category_path": ["REST API", "Codespaces"],
+          "depth_level": 2
+        },
+        {
+          "title": "Organization secrets",
+          "link": "https://docs.github.com/en/rest/codespaces/organization-secrets",
+          "category_path": ["REST API", "Codespaces"],
+          "depth_level": 2
+        },
+        {
+          "title": "Machines",
+          "link": "https://docs.github.com/en/rest/codespaces/machines",
+          "category_path": ["REST API", "Codespaces"],
+          "depth_level": 2
+        },
+        {
+          "title": "Repository secrets",
+          "link": "https://docs.github.com/en/rest/codespaces/repository-secrets",
+          "category_path": ["REST API", "Codespaces"],
+          "depth_level": 2
+        },
+        {
+          "title": "User secrets",
+          "link": "https://docs.github.com/en/rest/codespaces/user-secrets",
+          "category_path": ["REST API", "Codespaces"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Collaborators",
+      "category_path": ["REST API", "Collaborators"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Collaborators",
+          "link": "https://docs.github.com/en/rest/collaborators/collaborators",
+          "category_path": ["REST API", "Collaborators"],
+          "depth_level": 2
+        },
+        {
+          "title": "Invitations",
+          "link": "https://docs.github.com/en/rest/collaborators/invitations",
+          "category_path": ["REST API", "Collaborators"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Commits",
+      "category_path": ["REST API", "Commits"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Commits",
+          "link": "https://docs.github.com/en/rest/commits/commits",
+          "category_path": ["REST API", "Commits"],
+          "depth_level": 2
+        },
+        {
+          "title": "Commit comments",
+          "link": "https://docs.github.com/en/rest/commits/comments",
+          "category_path": ["REST API", "Commits"],
+          "depth_level": 2
+        },
+        {
+          "title": "Commit statuses",
+          "link": "https://docs.github.com/en/rest/commits/statuses",
+          "category_path": ["REST API", "Commits"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Copilot",
+      "category_path": ["REST API", "Copilot"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Copilot metrics",
+          "link": "https://docs.github.com/en/rest/copilot/copilot-metrics",
+          "category_path": ["REST API", "Copilot"],
+          "depth_level": 2
+        },
+        {
+          "title": "Copilot user management",
+          "link": "https://docs.github.com/en/rest/copilot/copilot-user-management",
+          "category_path": ["REST API", "Copilot"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Credentials",
+      "category_path": ["REST API", "Credentials"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Revocation",
+          "link": "https://docs.github.com/en/rest/credentials/revocation",
+          "category_path": ["REST API", "Credentials"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Dependabot",
+      "category_path": ["REST API", "Dependabot"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Alerts",
+          "link": "https://docs.github.com/en/rest/dependabot/alerts",
+          "category_path": ["REST API", "Dependabot"],
+          "depth_level": 2
+        },
+        {
+          "title": "Repository access",
+          "link": "https://docs.github.com/en/rest/dependabot/repository-access",
+          "category_path": ["REST API", "Dependabot"],
+          "depth_level": 2
+        },
+        {
+          "title": "Secrets",
+          "link": "https://docs.github.com/en/rest/dependabot/secrets",
+          "category_path": ["REST API", "Dependabot"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Dependency graph",
+      "category_path": ["REST API", "Dependency graph"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Dependency review",
+          "link": "https://docs.github.com/en/rest/dependency-graph/dependency-review",
+          "category_path": ["REST API", "Dependency graph"],
+          "depth_level": 2
+        },
+        {
+          "title": "Dependency submission",
+          "link": "https://docs.github.com/en/rest/dependency-graph/dependency-submission",
+          "category_path": ["REST API", "Dependency graph"],
+          "depth_level": 2
+        },
+        {
+          "title": "Software bill of materials (SBOM)",
+          "link": "https://docs.github.com/en/rest/dependency-graph/sboms",
+          "category_path": ["REST API", "Dependency graph"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Deploy keys",
+      "category_path": ["REST API", "Deploy keys"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Deploy keys",
+          "link": "https://docs.github.com/en/rest/deploy-keys/deploy-keys",
+          "category_path": ["REST API", "Deploy keys"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Deployments",
+      "category_path": ["REST API", "Deployments"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Deployment branch policies",
+          "link": "https://docs.github.com/en/rest/deployments/branch-policies",
+          "category_path": ["REST API", "Deployments"],
+          "depth_level": 2
+        },
+        {
+          "title": "Deployments",
+          "link": "https://docs.github.com/en/rest/deployments/deployments",
+          "category_path": ["REST API", "Deployments"],
+          "depth_level": 2
+        },
+        {
+          "title": "Environments",
+          "link": "https://docs.github.com/en/rest/deployments/environments",
+          "category_path": ["REST API", "Deployments"],
+          "depth_level": 2
+        },
+        {
+          "title": "Protection rules",
+          "link": "https://docs.github.com/en/rest/deployments/protection-rules",
+          "category_path": ["REST API", "Deployments"],
+          "depth_level": 2
+        },
+        {
+          "title": "Deployment statuses",
+          "link": "https://docs.github.com/en/rest/deployments/statuses",
+          "category_path": ["REST API", "Deployments"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Emojis",
+      "category_path": ["REST API", "Emojis"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Emojis",
+          "link": "https://docs.github.com/en/rest/emojis/emojis",
+          "category_path": ["REST API", "Emojis"],
+          "depth_level": 2
+        }
+      ]
+    },
+    {
+      "category_name": "Gists",
+      "category_path": ["REST API", "Gists"],
+      "parent_category": "REST API",
+      "level": 1,
+      "links": [
+        {
+          "title": "Gists",
+          "link": "https://docs.github.com/en/rest/gists/gists",
+          "category_path": ["REST API", "Gists"],
+          "depth_level": 2
+        },
+        {
+          "title": "Comments",
+          "link": "https://docs.github.com/en/rest/gists/comments",
+          "category
