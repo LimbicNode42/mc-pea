@@ -6,11 +6,15 @@ api_link_discovery:
   backstory: >
     You have a lot of exposure to API Documentation websites, understand the common structures they are presented in and know which options will take us to the most relevant content (API endpoint information). You understand the most efficient way to navigate these sites which is typically from the sidebar or menu, rather than the main content section.
   llm: gemini-2.0-flash
-  max_tokens: 500000
-  temperature: 0.3
-  verbose: True
-  max_iterations: 100
+  max_tokens: 1000000
+  temperature: 0.1
+  cache: False
+  respect_context_window: False
+  reasoning: False
+  reasoning_effort: none
+  max_iterations: 20
   max_retry_limit: 2
+  verbose: True
 
 api_link_content_extractor:
   role: >
@@ -20,8 +24,12 @@ api_link_content_extractor:
   backstory: >
     You have a lot of exposure to API Documentation websites, understand the common structures they are presented in and know what information is relevant for API endpoint usage. You can recognize and extract structured data from these pages efficiently. You understand that all endpoint usage is preceded by an API endpoint authentication. You can also reason the chains of API calls that are required to complete a task, and can extract the relevant information from the documentation.
   llm: gemini-2.0-flash
-  max_tokens: 500000
-  temperature: 0.3
-  verbose: True
-  max_iterations: 100
+  max_tokens: 1000000
+  temperature: 0.1
+  cache: False
+  respect_context_window: False
+  reasoning: False
+  reasoning_effort: none
+  max_iterations: 20
   max_retry_limit: 2
+  verbose: True

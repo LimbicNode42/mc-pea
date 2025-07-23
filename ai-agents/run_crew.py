@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 import os
+import agentops
 
 # Load environment variables from .env file
 load_dotenv()
@@ -156,6 +157,23 @@ def create_data_entry_crew(url: str, depth: int) -> DataEntry:
         logger.error(f"Error creating data_entry crew: {e}")
         raise
 
+def init_observability() -> None:
+    """Initialize observability tools like logging and monitoring."""
+    # This is a placeholder for any observability setup you might want to do
+    logger.info("Initializing observability tools...")
+
+    agentops_key = os.getenv('AGENTOPS_API_KEY')
+    if not agentops_key:
+        logger.error("❌ AGENTOPS_API_KEY not found in environment variables")
+        logger.error("   Please ensure you have a .env file with AGENTOPS_API_KEY set")
+        logger.error("Observability failed to initialize.")
+        sys.exit(1)
+    else:
+        logger.info(f"✅ AgentOps API key loaded (ending with: ...{agentops_key[-4:]})")
+        # You can add more observability setup here if needed
+        # For example, integrating with a monitoring service or setting up metrics
+        agentops.init()  # Initialize AgentOps if needed
+        logger.info("Observability initialized successfully.")
 
 def run_crew(crew_name: str, url: str, depth: int, dry_run: bool = False) -> Optional[str]:
     """Run the specified crew with given parameters."""
@@ -221,6 +239,8 @@ def main():
         if not (args.url.startswith('http://') or args.url.startswith('https://')):
             logger.warning(f"URL '{args.url}' should start with http:// or https://")
         
+        init_observability()
+
         # Run the crew
         result = run_crew(
             crew_name=args.crew,

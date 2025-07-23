@@ -3,10 +3,9 @@ api_link_discovery:
     Scrape {website_url} and create a comprehensive sitemap of discovered links. Find ALL links in the sidebar/menu that lead to API endpoint usage Documentation. Process the site systematically:
     1. Extract all navigation links from sidebar/menu structures
     2. Categorize links by API sections (authentication, endpoints, webhooks, etc.)
-    3. Prioritize links containing keywords: 'api', 'endpoint', 'reference', 'guide', 'authentication'
-    4. Focus on links from the sidebar or menu and avoid links in the main content section
-    5. Avoid external links but include all internal documentation paths
-    6. Create a hierarchical structure showing parent-child relationships between documentation sections
+    3. Focus on links from the sidebar or menu and avoid links in the main content section
+    4. Avoid external links but include all internal documentation paths
+    5. Create a hierarchical structure showing parent-child relationships between documentation sections
   expected_output: >
     A comprehensive structured list of links with categories, priorities, and hierarchical relationships. Include page titles, URLs, estimated content type, and processing priority (1-5 scale).
   agent: >
@@ -17,7 +16,7 @@ api_link_discovery:
 
 api_link_content_extractor:
   description: >
-    Extract API endpoint usage information from the provided list of URLs using a systematic approach. Focus on the most critical information: endpoint paths, HTTP methods, and basic parameters.
+    Extract API endpoint usage information from the provided list of URLs using a systematic approach. Focus on the most critical information: endpoint paths, HTTP methods, and all parameters.
   expected_output: >
     A focused dataset of API endpoint information: paths, methods, and key parameters. Keep output concise and structured.
   agent: >

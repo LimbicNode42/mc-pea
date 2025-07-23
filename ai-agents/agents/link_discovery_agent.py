@@ -14,7 +14,6 @@ import os
 from crewai import Agent, LLM
 from crewai_tools import ScrapeWebsiteTool
 from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
 from core.agent_config_loader import AgentConfigLoader
 
 class ApiLinkDiscoveryAgent(Agent):
@@ -30,7 +29,7 @@ class ApiLinkDiscoveryAgent(Agent):
         if "claude" in config_data.get("llm"):
             llm = ChatAnthropic(
                 model=config_data.get("llm"),
-                max_tokens=config_data.get("max_tokens", 8000),
+                # max_tokens=config_data.get("max_tokens", 8000),
                 temperature=config_data.get("temperature", 0.3),
                 max_retries=config_data.get("max_retry_limit", 2),
             )
@@ -46,9 +45,10 @@ class ApiLinkDiscoveryAgent(Agent):
             # Use CrewAI's LLM class for Gemini models
             llm = LLM(
                 model=f"gemini/{model_name}",
-                max_tokens=config_data.get("max_tokens", 8000),
-                temperature=config_data.get("temperature", 0.3),
                 api_key=google_api_key,
+                # max_tokens=config_data.get("max_tokens", 8000),
+                temperature=config_data.get("temperature", 0.3),
+                reasoning_effort=config_data.get("reasoning_effort", "none"),
             )
             print(f"Using Gemini LLM for link discovery: {model_name}")
         else:
@@ -63,9 +63,12 @@ class ApiLinkDiscoveryAgent(Agent):
             backstory=config_data.get("backstory"),
             llm=llm,
             tools=[scraper_tool],
+            respect_context_window=config_data.get("respect_context_window", True),
+            cache=config_data.get("cache", True),
+            reasoning=config_data.get("reasoning", False),
+            max_iter=config_data.get("max_iterations", 20),
+            max_retry_limit=config_data.get("max_retry_limit", 2),
             verbose=config_data.get("verbose", False),
-            max_iterations=config_data.get("max_iterations", 20),
-            max_retry_limit=config_data.get("max_retry_limit", 2)
         )
         
         # Store config data for later use

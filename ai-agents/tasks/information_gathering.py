@@ -33,8 +33,8 @@ class ApiLinkDiscoveryTask(Task):
         # Don't pass agent from config - it should be assigned later
         # agent=config_data.get("agent"),
         output_json=ApiLinkDiscoveryOutput,
-        markdown=config_data.get("markdown", False),
-        output_file=config_data.get("output_file", None),
+        markdown=config_data.get("markdown"),
+        output_file=config_data.get("output_file"),
     )
     
     # Store config data for later use
@@ -61,8 +61,8 @@ class ApiLinkContentExtractorTask(Task):
         # Don't pass agent from config - it should be assigned later
         # agent=config_data.get("agent"),
         output_json=ApiLinkContentExtractorOutput,
-        markdown=config_data.get("markdown", False),
-        output_file=config_data.get("output_file", None),
+        markdown=config_data.get("markdown"),
+        output_file=config_data.get("output_file"),
     )
     
     # Store config data for later use

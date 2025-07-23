@@ -27,12 +27,15 @@ class DataEntry(Crew):
     
     # Initialize the CrewAI Crew with actual instances
     super().__init__(
-        agents=[discovery_agent, extractor_agent],
-        tasks=[discovery_task, extractor_task],
+        # agents=[discovery_agent, extractor_agent],
+        # tasks=[discovery_task, extractor_task],
+        agents=[discovery_agent],
+        tasks=[discovery_task],
         process=config_data.get("process"),
-        verbose=config_data.get("verbose", False),
-        memory=config_data.get("memory", True),
-        output_log_file="data_entry.json"
+        memory=config_data.get("memory"),
+        cache=config_data.get("cache"),
+        verbose=config_data.get("verbose"),
+        output_log_file=config_data.get("output_log_file"),
     )
     
     # Store config data for later use
