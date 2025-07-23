@@ -1,0 +1,695 @@
+
+
+Thought: I have the content of the page. Now I need to parse it and extract all the links from the sidebar and the main content, categorize them, and format them into the required JSON structure. The sidebar seems to contain the majority of the links. I will focus on links that start with "REST API endpoints for". I will also extract the "About the REST API", "Using the REST API", "Authenticating to the REST API", and "Guides" sections.
+
+```json
+{
+  "categories": [
+    {
+      "category_name": "Quickstart",
+      "links": [
+        {
+          "title": "About the REST API",
+          "link": "https://docs.github.com/en/rest/quickstart/about-the-rest-api?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Getting started with the REST API",
+          "link": "https://docs.github.com/en/rest/quickstart/getting-started?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Authenticating to the REST API",
+          "link": "https://docs.github.com/en/rest/quickstart/authenticating-to-the-rest-api?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Best practices for using the REST API",
+          "link": "https://docs.github.com/en/rest/quickstart/best-practices?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Rate limits for the REST API",
+          "link": "https://docs.github.com/en/rest/quickstart/rate-limits?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Troubleshooting the REST API",
+          "link": "https://docs.github.com/en/rest/quickstart/troubleshooting?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Scripting with the REST API and JavaScript",
+          "link": "https://docs.github.com/en/rest/quickstart/scripting-with-javascript?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Keeping your API credentials secure",
+          "link": "https://docs.github.com/en/rest/quickstart/keeping-your-api-credentials-secure?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Guides",
+      "links": [
+        {
+          "title": "Delivering deployments",
+          "link": "https://docs.github.com/en/rest/guides/delivering-deployments?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Using the REST API to interact with checks",
+          "link": "https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-checks?apiVersion=2022-11-28"
+        },
+        {
+          "title": "Using pagination in the REST API",
+          "link": "https://docs.github.com/en/rest/guides/using-pagination-in-the-rest-api?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Activity",
+      "links": [
+        {
+          "title": "REST API endpoints for activity",
+          "link": "https://docs.github.com/en/rest/activity?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for events",
+          "link": "https://docs.github.com/en/rest/activity/events?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for feeds",
+          "link": "https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for notifications",
+          "link": "https://docs.github.com/en/rest/activity/notifications?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for starring",
+          "link": "https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for watching",
+          "link": "https://docs.github.com/en/rest/activity/watching?apiVersion=2022-11-28"
+      ]
+    },
+    {
+      "category_name": "Apps",
+      "links": [
+        {
+          "title": "REST API endpoints for apps",
+          "link": "https://docs.github.com/en/rest/apps?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for GitHub Apps",
+          "link": "https://docs.github.com/en/rest/apps/github-apps?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for GitHub App installations",
+          "link": "https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for GitHub Marketplace",
+          "link": "https://docs.github.com/en/rest/apps/marketplace?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for OAuth authorizations",
+          "link": "https://docs.github.com/en/rest/apps/oauth-authorizations?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for GitHub App webhooks",
+          "link": "https://docs.github.com/en/rest/apps/webhooks?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Billing",
+      "links": [
+        {
+          "title": "REST API endpoints for billing",
+          "link": "https://docs.github.com/en/rest/billing?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for billing Enhanced billing platform",
+          "link": "https://docs.github.com/en/rest/billing/enhanced?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Branches",
+      "links": [
+        {
+          "title": "REST API endpoints for branches and their settings",
+          "link": "https://docs.github.com/en/rest/branches?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for branches",
+          "link": "https://docs.github.com/en/rest/branches/branches?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for protected branches",
+          "link": "https://docs.github.com/en/rest/branches/protection?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Campaigns",
+      "links": [
+        {
+          "title": "REST API endpoints for security campaigns",
+          "link": "https://docs.github.com/en/rest/campaigns?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for security campaigns",
+          "link": "https://docs.github.com/en/rest/campaigns/campaigns?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Checks",
+      "links": [
+        {
+          "title": "REST API endpoints for checks",
+          "link": "https://docs.github.com/en/rest/checks?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for check runs",
+          "link": "https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for check suites",
+          "link": "https://docs.github.com/en/rest/checks/suites?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Classroom",
+      "links": [
+        {
+          "title": "REST API endpoints for GitHub Classroom",
+          "link": "https://docs.github.com/en/rest/classroom?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for GitHub Classroom",
+          "link": "https://docs.github.com/en/rest/classroom/classroom?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Code scanning",
+      "links": [
+        {
+          "title": "REST API endpoints for code scanning",
+          "link": "https://docs.github.com/en/rest/code-scanning?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for code scanning",
+          "link": "https://docs.github.com/en/rest/code-scanning/code-scanning?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for code security settings",
+          "link": "https://docs.github.com/en/rest/code-scanning/code-security-settings?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Codes of conduct",
+      "links": [
+        {
+          "title": "REST API endpoints for codes of conduct",
+          "link": "https://docs.github.com/en/rest/codes-of-conduct?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for codes of conduct",
+          "link": "https://docs.github.com/en/rest/codes-of-conduct/codes-of-conduct?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Codespaces",
+      "links": [
+        {
+          "title": "REST API endpoints for Codespaces",
+          "link": "https://docs.github.com/en/rest/codespaces?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Codespaces",
+          "link": "https://docs.github.com/en/rest/codespaces/codespaces?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Codespaces organizations",
+          "link": "https://docs.github.com/en/rest/codespaces/organizations?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Codespaces organization secrets",
+          "link": "https://docs.github.com/en/rest/codespaces/organization-secrets?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Codespaces machines",
+          "link": "https://docs.github.com/en/rest/codespaces/machines?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Codespaces repository secrets",
+          "link": "https://docs.github.com/en/rest/codespaces/repository-secrets?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Codespaces user secrets",
+          "link": "https://docs.github.com/en/rest/codespaces/user-secrets?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Collaborators",
+      "links": [
+        {
+          "title": "REST API endpoints for collaborators",
+          "link": "https://docs.github.com/en/rest/collaborators?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for collaborators",
+          "link": "https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for repository invitations",
+          "link": "https://docs.github.com/en/rest/collaborators/invitations?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Commits",
+      "links": [
+        {
+          "title": "REST API endpoints for commits",
+          "link": "https://docs.github.com/en/rest/commits?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for commits",
+          "link": "https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for commit comments",
+          "link": "https://docs.github.com/en/rest/commits/comments?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for commit statuses",
+          "link": "https://docs.github.com/en/rest/commits/statuses?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Copilot",
+      "links": [
+        {
+          "title": "REST API endpoints for Copilot",
+          "link": "https://docs.github.com/en/rest/copilot?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Copilot metrics",
+          "link": "https://docs.github.com/en/rest/copilot/metrics?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Copilot user management",
+          "link": "https://docs.github.com/en/rest/copilot/user-management?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Credentials Revocation",
+      "links": [
+        {
+          "title": "REST API endpoints for Credentials Revocation",
+          "link": "https://docs.github.com/en/rest/credentials-revocation?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Dependabot",
+      "links": [
+        {
+          "title": "REST API endpoints for Dependabot",
+          "link": "https://docs.github.com/en/rest/dependabot?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Dependabot alerts",
+          "link": "https://docs.github.com/en/rest/dependabot/alerts?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Dependabot repository access",
+          "link": "https://docs.github.com/en/rest/dependabot/repository-access?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Dependabot secrets",
+          "link": "https://docs.github.com/en/rest/dependabot/secrets?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Dependency graph",
+      "links": [
+        {
+          "title": "REST API endpoints for the dependency graph",
+          "link": "https://docs.github.com/en/rest/dependency-graph?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for dependency review",
+          "link": "https://docs.github.com/en/rest/dependency-graph/dependency-review?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for dependency submission",
+          "link": "https://docs.github.com/en/rest/dependency-graph/dependency-submission?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for software bill of materials (SBOM)",
+          "link": "https://docs.github.com/en/rest/dependency-graph/sbom?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Deploy keys",
+      "links": [
+        {
+          "title": "REST API endpoints for deploy keys",
+          "link": "https://docs.github.com/en/rest/deploy-keys?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for deploy keys",
+          "link": "https://docs.github.com/en/rest/deploy-keys/deploy-keys?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Deployments",
+      "links": [
+        {
+          "title": "REST API endpoints for deployments",
+          "link": "https://docs.github.com/en/rest/deployments?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for deployment branch policies",
+          "link": "https://docs.github.com/en/rest/deployments/branch-policies?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for deployments",
+          "link": "https://docs.github.com/en/rest/deployments/deployments?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for deployment environments",
+          "link": "https://docs.github.com/en/rest/deployments/environments?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for protection rules",
+          "link": "https://docs.github.com/en/rest/deployments/protection-rules?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for deployment statuses",
+          "link": "https://docs.github.com/en/rest/deployments/statuses?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Emojis",
+      "links": [
+        {
+          "title": "REST API endpoints for emojis",
+          "link": "https://docs.github.com/en/rest/emojis?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for emojis",
+          "link": "https://docs.github.com/en/rest/emojis/emojis?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Gists",
+      "links": [
+        {
+          "title": "REST API endpoints for gists and gist comments",
+          "link": "https://docs.github.com/en/rest/gists?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for gists",
+          "link": "https://docs.github.com/en/rest/gists/gists?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for gist comments",
+          "link": "https://docs.github.com/en/rest/gists/comments?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Git database",
+      "links": [
+        {
+          "title": "REST API endpoints for Git database",
+          "link": "https://docs.github.com/en/rest/git?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Git blobs",
+          "link": "https://docs.github.com/en/rest/git/blobs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Git commits",
+          "link": "https://docs.github.com/en/rest/git/commits?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Git references",
+          "link": "https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Git tags",
+          "link": "https://docs.github.com/en/rest/git/tags?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Git trees",
+          "link": "https://docs.github.com/en/rest/git/trees?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "gitignore",
+      "links": [
+        {
+          "title": "REST API endpoints for gitignore",
+          "link": "https://docs.github.com/en/rest/gitignore?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for gitignore",
+          "link": "https://docs.github.com/en/rest/gitignore/gitignore?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Interactions",
+      "links": [
+        {
+          "title": "REST API endpoints for interactions",
+          "link": "https://docs.github.com/en/rest/interactions?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for organization interactions",
+          "link": "https://docs.github.com/en/rest/interactions/orgs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for repository interactions",
+          "link": "https://docs.github.com/en/rest/interactions/repos?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for user interactions",
+          "link": "https://docs.github.com/en/rest/interactions/users?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Issues",
+      "links": [
+        {
+          "title": "REST API endpoints for issues",
+          "link": "https://docs.github.com/en/rest/issues?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for issue assignees",
+          "link": "https://docs.github.com/en/rest/issues/assignees?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for issue comments",
+          "link": "https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for issue events",
+          "link": "https://docs.github.com/en/rest/issues/events?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for issues",
+          "link": "https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for labels",
+          "link": "https://docs.github.com/en/rest/issues/labels?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for milestones",
+          "link": "https://docs.github.com/en/rest/issues/milestones?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for sub-issues",
+          "link": "https://docs.github.com/en/rest/issues/timeline?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for timeline events",
+          "link": "https://docs.github.com/en/rest/issues/timeline?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Licenses",
+      "links": [
+        {
+          "title": "REST API endpoints for licenses",
+          "link": "https://docs.github.com/en/rest/licenses?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for licenses",
+          "link": "https://docs.github.com/en/rest/licenses/licenses?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Markdown",
+      "links": [
+        {
+          "title": "REST API endpoints for Markdown",
+          "link": "https://docs.github.com/en/rest/markdown?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for Markdown",
+          "link": "https://docs.github.com/en/rest/markdown/markdown?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Meta",
+      "links": [
+        {
+          "title": "REST API endpoints for meta data",
+          "link": "https://docs.github.com/en/rest/meta?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for meta data",
+          "link": "https://docs.github.com/en/rest/meta/meta?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Metrics",
+      "links": [
+        {
+          "title": "REST API endpoints for metrics",
+          "link": "https://docs.github.com/en/rest/metrics?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for community metrics",
+          "link": "https://docs.github.com/en/rest/metrics/community?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for repository statistics",
+          "link": "https://docs.github.com/en/rest/metrics/statistics?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for repository traffic",
+          "link": "https://docs.github.com/en/rest/metrics/traffic?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Migrations",
+      "links": [
+        {
+          "title": "REST API endpoints for migrations",
+          "link": "https://docs.github.com/en/rest/migrations?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for organization migrations",
+          "link": "https://docs.github.com/en/rest/migrations/orgs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for source imports",
+          "link": "https://docs.github.com/en/rest/migrations/source-imports?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for user migrations",
+          "link": "https://docs.github.com/en/rest/migrations/users?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Models",
+      "links": [
+        {
+          "title": "REST API endpoints for models catalog",
+          "link": "https://docs.github.com/en/rest/models?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for model embeddings",
+          "link": "https://docs.github.com/en/rest/models/embeddings?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for models inference",
+          "link": "https://docs.github.com/en/rest/models/inferences?apiVersion=2022-11-28"
+        }
+      ]
+    },
+    {
+      "category_name": "Organizations",
+      "links": [
+        {
+          "title": "REST API endpoints for organizations",
+          "link": "https://docs.github.com/en/rest/orgs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for API Insights",
+          "link": "https://docs.github.com/en/rest/orgs/api-insights?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for artifact attestations",
+          "link": "https://docs.github.com/en/rest/orgs/artifact-attestations?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for blocking users",
+          "link": "https://docs.github.com/en/rest/orgs/blocking?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for custom properties",
+          "link": "https://docs.github.com/en/rest/orgs/custom-properties?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for issue types",
+          "link": "https://docs.github.com/en/rest/orgs/issue-types?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for organization members",
+          "link": "https://docs.github.com/en/rest/orgs/members?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for network configurations",
+          "link": "https://docs.github.com/en/rest/orgs/network-configurations?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for organization roles",
+          "link": "https://docs.github.com/en/rest/orgs/organization-roles?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for organizations",
+          "link": "https://docs.github.com/en/rest/orgs/orgs?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for outside collaborators",
+          "link": "https://docs.github.com/en/rest/orgs/outside-collaborators?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for personal access tokens",
+          "link": "https://docs.github.com/en/rest/orgs/personal-access-tokens?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for rule suites",
+          "link": "https://docs.github.com/en/rest/orgs/rule-suites?apiVersion=2022-11-28"
+        },
+        {
+          "title": "REST API endpoints for rules",
+          "link": "https://docs.github.com/en/rest/orgs/rules?apiVersion=2022-11-28"
+        },
+        {
+          "title": "

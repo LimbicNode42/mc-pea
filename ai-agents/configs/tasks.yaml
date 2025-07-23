@@ -1,13 +1,16 @@
 api_link_discovery:
   description: >
-    Scrape {website_url} and create a comprehensive sitemap of discovered links. Find ALL links in the sidebar/menu that lead to API endpoint usage Documentation. Process the site systematically:
-    1. Extract all navigation links from sidebar/menu structures
-    2. Categorize links by API sections (authentication, endpoints, webhooks, etc.)
-    3. Focus on links from the sidebar or menu and avoid links in the main content section
-    4. Avoid external links but include all internal documentation paths
-    5. Create a hierarchical structure showing parent-child relationships between documentation sections
+    Comprehensively scrape {website_url} and create a COMPLETE sitemap of ALL discovered links. You MUST find EVERY single link in the sidebar/menu that leads to API endpoint documentation. Modern API documentation sites typically contain dozens of major categories with hundreds of individual endpoints. Process the site exhaustively:
+    1. Extract ALL navigation links from sidebar/menu structures - explore every section thoroughly
+    2. Capture ALL major categories and their complete hierarchical structures  
+    3. For each major category, capture ALL sub-endpoints and detailed pages
+    4. Categorize links by API sections with complete hierarchical mapping
+    5. Include authentication, guides, and all supporting documentation
+    6. Generate comprehensive output covering the ENTIRE API surface area
+    7. Aim for maximum discovered links to ensure complete coverage (typically 200-1000+ depending on API size)
+    8. Do not stop until you have exhausted all navigation elements
   expected_output: >
-    A comprehensive structured list of links with categories, priorities, and hierarchical relationships. Include page titles, URLs, estimated content type, and processing priority (1-5 scale).
+    An exhaustive structured list with ALL API documentation links, complete categories, hierarchical relationships, priorities, and comprehensive metadata. Output should include maximum possible links covering the entire API surface. Include page titles, URLs, estimated content complexity, processing priority (1-5 scale), relationship mapping, and detailed categorization. Generate verbose, comprehensive output with extensive detail for each discovered link.
   agent: >
     ApiLinkDiscoveryAgent
   # The following are for test purposes
@@ -16,9 +19,18 @@ api_link_discovery:
 
 api_link_content_extractor:
   description: >
-    Extract API endpoint usage information from the provided list of URLs using a systematic approach. Focus on the most critical information: endpoint paths, HTTP methods, and all parameters.
+    Extract comprehensive API endpoint usage information from the provided list of URLs using a systematic approach. Process EVERY URL in the list and generate extensive documentation for ALL discovered endpoints. Your task is to create the most complete API reference dataset possible covering:
+    1. Complete endpoint paths and HTTP methods for every API call
+    2. Comprehensive parameter documentation (required vs optional, types, validation rules)
+    3. Detailed request/response structures with examples
+    4. Authentication requirements and security considerations
+    5. Rate limiting information and usage guidelines
+    6. Error handling patterns and status codes
+    7. Practical usage examples and implementation patterns
+    8. Cross-references between related endpoints
+    Generate extensive, detailed output that thoroughly documents the complete API surface area.
   expected_output: >
-    A focused dataset of API endpoint information: paths, methods, and key parameters. Keep output concise and structured.
+    A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output should be verbose and exhaustive, covering every aspect of API usage discovered across all provided URLs.
   agent: >
     ApiLinkContentExtractorAgent
   context: >

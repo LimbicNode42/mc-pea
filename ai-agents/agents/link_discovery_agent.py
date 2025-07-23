@@ -29,9 +29,9 @@ class ApiLinkDiscoveryAgent(Agent):
         if "claude" in config_data.get("llm"):
             llm = ChatAnthropic(
                 model=config_data.get("llm"),
-                # max_tokens=config_data.get("max_tokens", 8000),
-                temperature=config_data.get("temperature", 0.3),
-                max_retries=config_data.get("max_retry_limit", 2),
+                # max_tokens=config_data.get("max_tokens"),
+                temperature=config_data.get("temperature"),
+                max_retries=config_data.get("max_retry_limit"),
             )
             print("Using Claude LLM for link discovery")
         elif "gemini" in config_data.get("llm"):
@@ -46,9 +46,9 @@ class ApiLinkDiscoveryAgent(Agent):
             llm = LLM(
                 model=f"gemini/{model_name}",
                 api_key=google_api_key,
-                # max_tokens=config_data.get("max_tokens", 8000),
-                temperature=config_data.get("temperature", 0.3),
-                reasoning_effort=config_data.get("reasoning_effort", "none"),
+                # max_tokens=config_data.get("max_tokens"),
+                temperature=config_data.get("temperature"),
+                reasoning_effort=config_data.get("reasoning_effort"),
             )
             print(f"Using Gemini LLM for link discovery: {model_name}")
         else:
@@ -63,12 +63,12 @@ class ApiLinkDiscoveryAgent(Agent):
             backstory=config_data.get("backstory"),
             llm=llm,
             tools=[scraper_tool],
-            respect_context_window=config_data.get("respect_context_window", True),
-            cache=config_data.get("cache", True),
-            reasoning=config_data.get("reasoning", False),
-            max_iter=config_data.get("max_iterations", 20),
-            max_retry_limit=config_data.get("max_retry_limit", 2),
-            verbose=config_data.get("verbose", False),
+            respect_context_window=config_data.get("respect_context_window"),
+            cache=config_data.get("cache"),
+            reasoning=config_data.get("reasoning"),
+            max_iter=config_data.get("max_iterations"),
+            max_retry_limit=config_data.get("max_retry_limit"),
+            verbose=config_data.get("verbose"),
         )
         
         # Store config data for later use
