@@ -32,7 +32,7 @@ class ApiLinkDiscoveryTask(Task):
         description=description, 
         expected_output=config_data.get("expected_output"),
         output_json=ApiLinkDiscoveryOutput,
-        # guardrail=validate_blog_content,
+        guardrail=validate_blog_content,
         markdown=config_data.get("markdown"),
         output_file=config_data.get("output_file"),
     )
@@ -41,34 +41,86 @@ class ApiLinkDiscoveryTask(Task):
     self._config_data = config_data
 
 def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
-    """Validate the output of the ApiLinkDiscoveryTask to ensure it meets expectations."""
+    """Validate the output of the ApiLinkDiscoveryTask to ensure it meets expectations.
     
-    # Debug: Log what we're actually receiving
+    Updated for output_json strategy - validates JSON structure and content.
+    """
+    
+    # Debug: Log what we're actually receiving with more detail
     print(f"🔍 DEBUG - Result type: {type(result)}")
     print(f"🔍 DEBUG - Result dir: {dir(result)}")
-    print(f"🔍 DEBUG - Result content (first 500 chars): {str(result)[:500]}")
+    print(f"🔍 DEBUG - Result repr: {repr(result)}")
+    print(f"🔍 DEBUG - Result content (first 1000 chars): {str(result)[:1000]}")
     
-    # 1. Check the output is a complete JSON object
-    # First handle if result is a dict/raw JSON and try to access its structure
-    if hasattr(result, 'cs'):  # Updated for new field name
-        categories = result.cs
-        print(f"🔍 DEBUG - Found categories via hasattr (cs)")
-    elif isinstance(result, dict) and 'cs' in result:
-        categories = result['cs']
-        print(f"🔍 DEBUG - Found categories via dict access (cs)")
-    elif hasattr(result, 'categories'):  # Fallback to old field name
-        categories = result.categories
-        print(f"🔍 DEBUG - Found categories via hasattr (categories)")
-    elif isinstance(result, dict) and 'categories' in result:
-        categories = result['categories']
-        print(f"🔍 DEBUG - Found categories via dict access (categories)")
-    elif hasattr(result, 'raw') and hasattr(result.raw, 'cs'):
-        categories = result.raw.cs
-        print(f"🔍 DEBUG - Found categories via result.raw.cs")
-    elif hasattr(result, 'output') and isinstance(result.output, dict) and 'cs' in result.output:
-        categories = result.output['cs']
-        print(f"🔍 DEBUG - Found categories via result.output.cs")
-    else:
+    # Try to access the actual data - CrewAI may wrap the result differently
+    data = None
+    categories = None
+    
+    # Method 1: Direct dictionary access
+    if isinstance(result, dict):
+        print(f"🔍 DEBUG - Result is dict, keys: {list(result.keys())}")
+        if 'cs' in result:
+            categories = result['cs']
+            data = result
+            print(f"🔍 DEBUG - Found categories via dict['cs']")
+        elif 'categories' in result:
+            categories = result['categories']
+            data = result
+            print(f"🔍 DEBUG - Found categories via dict['categories']")
+    
+    # Method 2: TaskOutput attributes
+    if not categories and hasattr(result, '__dict__'):
+        print(f"🔍 DEBUG - Result.__dict__: {result.__dict__}")
+        
+    # Method 3: Common TaskOutput patterns
+    if not categories:
+        for attr_name in ['raw', 'output', 'json_dict', 'data', 'result']:
+            if hasattr(result, attr_name):
+                attr_value = getattr(result, attr_name)
+                print(f"🔍 DEBUG - Found {attr_name}: {type(attr_value)} - {str(attr_value)[:200]}")
+                
+                if isinstance(attr_value, dict):
+                    if 'cs' in attr_value:
+                        categories = attr_value['cs']
+                        data = attr_value
+                        print(f"🔍 DEBUG - Found categories via {attr_name}['cs']")
+                        break
+                    elif 'categories' in attr_value:
+                        categories = attr_value['categories']
+                        data = attr_value
+                        print(f"🔍 DEBUG - Found categories via {attr_name}['categories']")
+                        break
+    
+    # Method 4: Direct attribute access
+    if not categories:
+        if hasattr(result, 'cs'):
+            categories = result.cs
+            data = result
+            print(f"🔍 DEBUG - Found categories via result.cs")
+        elif hasattr(result, 'categories'):
+            categories = result.categories
+            data = result
+            print(f"🔍 DEBUG - Found categories via result.categories")
+    
+    # Method 5: Try to parse if result is a string
+    if not categories and isinstance(result, str):
+        try:
+            import json
+            parsed = json.loads(result)
+            print(f"🔍 DEBUG - Parsed string result: {type(parsed)} - {str(parsed)[:200]}")
+            if isinstance(parsed, dict):
+                if 'cs' in parsed:
+                    categories = parsed['cs']
+                    data = parsed
+                    print(f"🔍 DEBUG - Found categories via parsed string['cs']")
+                elif 'categories' in parsed:
+                    categories = parsed['categories']
+                    data = parsed
+                    print(f"🔍 DEBUG - Found categories via parsed string['categories']")
+        except:
+            print(f"🔍 DEBUG - Failed to parse result as JSON")
+    
+    if not categories:
         print(f"🔍 DEBUG - Could not find categories field anywhere")
         return False, "Output missing 'cs' or 'categories' field - not a complete JSON object"
 
@@ -151,12 +203,42 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
     if not url_found:
         return False, "No valid URL links found in any category"
 
-    # 3. Check if it is an instance of ApiLinkDiscoveryOutput
-    if not isinstance(result, ApiLinkDiscoveryOutput):
-        print(f"🔍 DEBUG - Not an ApiLinkDiscoveryOutput instance, type is: {type(result)}")
-        return False, "Invalid output type: not ApiLinkDiscoveryOutput"
+    # 3. Validate JSON structure compliance (removed Pydantic type check)
+    # With output_json, we focus on structure validation rather than type checking
+    if not isinstance(categories, list):
+        return False, "Categories should be a list structure"
+    
+    # Additional structural validation
+    for i, category in enumerate(categories):
+        if not isinstance(category, dict):
+            return False, f"Category {i} is not a dictionary structure"
+        
+        # Check required fields exist
+        category_name_field = 'n' if 'n' in category else 'category_name'
+        links_field = 'ls' if 'ls' in category else 'links'
+        
+        if category_name_field not in category:
+            return False, f"Category {i} missing name field"
+        
+        if links_field not in category:
+            return False, f"Category {i} missing links field"
+        
+        links = category[links_field]
+        if not isinstance(links, list):
+            return False, f"Category {i} links field is not a list"
+        
+        # Validate link structure
+        for j, link in enumerate(links):
+            if not isinstance(link, dict):
+                return False, f"Link {j} in category {i} is not a dictionary"
+            
+            title_field = 't' if 't' in link else 'title'
+            link_field = 'l' if 'l' in link else 'link'
+            
+            if title_field not in link or link_field not in link:
+                return False, f"Link {j} in category {i} missing required fields"
 
-    return True, "Output is valid: contains complete JSON object, valid URLs, and correct type"
+    return True, f"Output is valid JSON: {len(categories)} categories with {total_links} total links"
 
 class ApiLinkContentExtractorTask(Task):
   def __init__(self):

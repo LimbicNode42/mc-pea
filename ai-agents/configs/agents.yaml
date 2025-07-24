@@ -15,7 +15,7 @@ api_link_discovery:
   reasoning_effort: medium
   max_iterations: 20
   max_retry_limit: 2
-  verbose: True
+  verbose: False
 
 api_link_content_extractor:
   role: >
