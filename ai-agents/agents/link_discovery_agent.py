@@ -29,7 +29,7 @@ class ApiLinkDiscoveryAgent(Agent):
         if "claude" in config_data.get("llm"):
             llm = ChatAnthropic(
                 model=config_data.get("llm"),
-                # max_tokens=config_data.get("max_tokens"),
+                max_tokens=config_data.get("max_tokens"),
                 temperature=config_data.get("temperature"),
                 max_retries=config_data.get("max_retry_limit"),
             )
@@ -46,23 +46,32 @@ class ApiLinkDiscoveryAgent(Agent):
             llm = LLM(
                 model=f"gemini/{model_name}",
                 api_key=google_api_key,
-                # max_tokens=config_data.get("max_tokens"),
+                max_tokens=config_data.get("max_input_tokens"),
+                max_completion_tokens=config_data.get("max_output_tokens"),
                 temperature=config_data.get("temperature"),
                 reasoning_effort=config_data.get("reasoning_effort"),
             )
             print(f"Using Gemini LLM for link discovery: {model_name}")
         else:
             raise ValueError("Unsupported LLM type in configuration")
+        
+        goal_template = config_data.get("goal", "")
+        if not goal_template:
+            raise ValueError("No goal found in task configuration")
 
-        scraper_tool = ScrapeWebsiteTool(website_url=website_url)
+        goal = goal_template.format(
+            website_url=website_url
+        )
+
+        text_scraper_tool = ScrapeWebsiteTool(website_url=website_url)
         
         # Initialize the CrewAI Agent with the loaded configuration
         super().__init__(
             role=config_data.get("role"),
-            goal=config_data.get("goal"),
+            goal=goal,
             backstory=config_data.get("backstory"),
             llm=llm,
-            tools=[scraper_tool],
+            tools=[text_scraper_tool],
             respect_context_window=config_data.get("respect_context_window"),
             cache=config_data.get("cache"),
             reasoning=config_data.get("reasoning"),

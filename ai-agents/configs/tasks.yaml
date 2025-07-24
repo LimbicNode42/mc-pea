@@ -1,16 +1,8 @@
 api_link_discovery:
   description: >
-    Comprehensively scrape {website_url} and create a COMPLETE sitemap of ALL discovered links. You MUST find EVERY single link in the sidebar/menu that leads to API endpoint documentation. Modern API documentation sites typically contain dozens of major categories with hundreds of individual endpoints. Process the site exhaustively:
-    1. Extract ALL navigation links from sidebar/menu structures - explore every section thoroughly
-    2. Capture ALL major categories and their complete hierarchical structures  
-    3. For each major category, capture ALL sub-endpoints and detailed pages
-    4. Categorize links by API sections with complete hierarchical mapping
-    5. Include authentication, guides, and all supporting documentation
-    6. Generate comprehensive output covering the ENTIRE API surface area
-    7. Aim for maximum discovered links to ensure complete coverage (typically 200-1000+ depending on API size)
-    8. Do not stop until you have exhausted all navigation elements
+    Comprehensively scrape text and links from the sidebar/menu of {website_url} including links hidden behind interaction elements like accordions and create a COMPLETE hierarchical sitemap of ALL discoveries. You MUST find EVERY single link in the sidebar/menu and categorize them based on their parent links.
   expected_output: >
-    An exhaustive structured list with ALL API documentation links, complete categories, hierarchical relationships, priorities, and comprehensive metadata. Output should include maximum possible links covering the entire API surface. Include page titles, URLs, estimated content complexity, processing priority (1-5 scale), relationship mapping, and detailed categorization. Generate verbose, comprehensive output with extensive detail for each discovered link.
+    An exhaustive structured list with ALL URL links, complete categories, hierarchical relationships, and comprehensive metadata. Output should include 100% of the links found in the sidebar/menu.
   agent: >
     ApiLinkDiscoveryAgent
   # The following are for test purposes

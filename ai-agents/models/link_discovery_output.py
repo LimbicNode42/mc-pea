@@ -16,8 +16,8 @@ class ApiLinkDiscoveryCategory(BaseModel):
     category_name: str = Field(description="Name of the category this link belongs to")
     links: List[ApiLinkDiscoveryPoint] = Field(
         default_factory=list, 
-        description="List of discovered API links in this category"
+        description="List of discovered links in this category"
     )
     
 class ApiLinkDiscoveryOutput(BaseModel):
-    categories: List[ApiLinkDiscoveryCategory] = Field(description="List of discovered API link categories")
+    categories: List[ApiLinkDiscoveryCategory] = Field(description="List of discovered link categories")
