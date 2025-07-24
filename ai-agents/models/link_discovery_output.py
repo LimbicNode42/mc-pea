@@ -9,15 +9,15 @@ from pydantic import BaseModel, Field
 from typing import List
 
 class ApiLinkDiscoveryPoint(BaseModel):
-    title: str = Field(description="Title of page link that was discovered")
-    link: str = Field(description="Link to a page discovered in the format of a HTTP URL")
+    t: str = Field(description="Short title")
+    l: str = Field(description="Path or relative URL (e.g. /rest/actions/artifacts)")
 
 class ApiLinkDiscoveryCategory(BaseModel):
-    category_name: str = Field(description="Name of the category this link belongs to")
-    links: List[ApiLinkDiscoveryPoint] = Field(
+    n: str = Field(description="Category name (max 15 chars)")
+    ls: List[ApiLinkDiscoveryPoint] = Field(
         default_factory=list, 
-        description="List of discovered links in this category"
+        description="Links in this category"
     )
     
 class ApiLinkDiscoveryOutput(BaseModel):
-    categories: List[ApiLinkDiscoveryCategory] = Field(description="List of discovered link categories")
+    cs: List[ApiLinkDiscoveryCategory] = Field(description="Categories")

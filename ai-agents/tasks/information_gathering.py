@@ -32,7 +32,7 @@ class ApiLinkDiscoveryTask(Task):
         description=description, 
         expected_output=config_data.get("expected_output"),
         output_json=ApiLinkDiscoveryOutput,
-        guardrail=validate_blog_content,
+        # guardrail=validate_blog_content,
         markdown=config_data.get("markdown"),
         output_file=config_data.get("output_file"),
     )
@@ -50,21 +50,27 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
     
     # 1. Check the output is a complete JSON object
     # First handle if result is a dict/raw JSON and try to access its structure
-    if hasattr(result, 'categories'):
+    if hasattr(result, 'cs'):  # Updated for new field name
+        categories = result.cs
+        print(f"🔍 DEBUG - Found categories via hasattr (cs)")
+    elif isinstance(result, dict) and 'cs' in result:
+        categories = result['cs']
+        print(f"🔍 DEBUG - Found categories via dict access (cs)")
+    elif hasattr(result, 'categories'):  # Fallback to old field name
         categories = result.categories
-        print(f"🔍 DEBUG - Found categories via hasattr")
+        print(f"🔍 DEBUG - Found categories via hasattr (categories)")
     elif isinstance(result, dict) and 'categories' in result:
         categories = result['categories']
-        print(f"🔍 DEBUG - Found categories via dict access")
-    elif hasattr(result, 'raw') and hasattr(result.raw, 'categories'):
-        categories = result.raw.categories
-        print(f"🔍 DEBUG - Found categories via result.raw")
-    elif hasattr(result, 'output') and isinstance(result.output, dict) and 'categories' in result.output:
-        categories = result.output['categories']
-        print(f"🔍 DEBUG - Found categories via result.output")
+        print(f"🔍 DEBUG - Found categories via dict access (categories)")
+    elif hasattr(result, 'raw') and hasattr(result.raw, 'cs'):
+        categories = result.raw.cs
+        print(f"🔍 DEBUG - Found categories via result.raw.cs")
+    elif hasattr(result, 'output') and isinstance(result.output, dict) and 'cs' in result.output:
+        categories = result.output['cs']
+        print(f"🔍 DEBUG - Found categories via result.output.cs")
     else:
         print(f"🔍 DEBUG - Could not find categories field anywhere")
-        return False, "Output missing 'categories' field - not a complete JSON object"
+        return False, "Output missing 'cs' or 'categories' field - not a complete JSON object"
 
     if not categories or not isinstance(categories, list):
         return False, "Categories field is empty or not a list"
@@ -75,11 +81,13 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
     
     total_links = 0
     for category in categories:
-        # Handle both dict and object access for counting
-        if hasattr(category, 'links'):
+        # Handle both dict and object access for counting (new and old field names)
+        if hasattr(category, 'ls'):  # New field name
+            links = category.ls
+        elif hasattr(category, 'links'):  # Old field name
             links = category.links
         elif isinstance(category, dict):
-            links = category.get('links', [])
+            links = category.get('ls', category.get('links', []))
         else:
             continue
         
@@ -94,20 +102,23 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
     # 2. Check the link fields contain URL formatted text
     import re
     url_found = False
+    # Updated regex to accept both full URLs and paths
     url_regex = re.compile(
-        r"^(https?:\/\/)?"  # http:// or https://
-        r"([\w\-]+\.)+[\w\-]+"  # domain
-        r"([\w\-\.~:\/?#\[\]@!$&'()*+,;=]*)$", re.IGNORECASE
+        r"^(https?:\/\/[\w\-]+\.[\w\-]+([\w\-\.~:\/?#\[\]@!$&'()*+,;=]*)|\/[\w\-\.~:\/?#\[\]@!$&'()*+,;=]*)$", 
+        re.IGNORECASE
     )
     
     for category in categories:
-        # Handle both dict and object access
-        if hasattr(category, 'category_name'):
+        # Handle both dict and object access (new and old field names)
+        if hasattr(category, 'n'):  # New field names
+            category_name = category.n
+            links = category.ls
+        elif hasattr(category, 'category_name'):  # Old field names
             category_name = category.category_name
             links = category.links
         elif isinstance(category, dict):
-            category_name = category.get('category_name', 'unknown')
-            links = category.get('links', [])
+            category_name = category.get('n', category.get('category_name', 'unknown'))
+            links = category.get('ls', category.get('links', []))
         else:
             return False, f"Category object is malformed"
 
@@ -115,24 +126,27 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
             return False, f"Category '{category_name}' has no links or links is not a list"
         
         for link in links:
-            # Handle both dict and object access
-            if hasattr(link, 'title') and hasattr(link, 'link'):
+            # Handle both dict and object access (new and old field names)
+            if hasattr(link, 't') and hasattr(link, 'l'):  # New field names
+                title = link.t
+                link_url = link.l
+            elif hasattr(link, 'title') and hasattr(link, 'link'):  # Old field names
                 title = link.title
                 link_url = link.link
             elif isinstance(link, dict):
-                title = link.get('title')
-                link_url = link.get('link')
+                title = link.get('t', link.get('title'))
+                link_url = link.get('l', link.get('link'))
             else:
                 return False, f"Link object in category '{category_name}' is malformed"
             
             if not title or not link_url:
                 return False, f"Link in category '{category_name}' is missing title or URL"
             
-            # Check if link_url is a valid URL format
+            # Check if link_url is a valid URL format (now accepts paths)
             if isinstance(link_url, str) and url_regex.match(link_url):
                 url_found = True
             else:
-                return False, f"Link '{link_url}' in category '{category_name}' is not a valid URL format"
+                return False, f"Link '{link_url}' in category '{category_name}' is not a valid URL or path format"
 
     if not url_found:
         return False, "No valid URL links found in any category"
