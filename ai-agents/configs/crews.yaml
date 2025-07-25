@@ -1,3 +1,18 @@
+orchestrated_data_entry:
+  tasks:
+    - api_link_discovery
+    - orchestrated_api_link_content_extractor
+  agents:
+    - api_link_discovery
+    - api_content_orchestrator
+    - api_endpoint_content_extractor
+  process: sequential
+  memory: False
+  cache: False
+  # The following are for test purposes
+  verbose: True
+  output_log_file: orchestrated_data_entry.json
+
 data_entry:
   tasks:
     - api_link_discovery

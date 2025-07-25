@@ -17,13 +17,32 @@ api_link_discovery:
   max_retry_limit: 2
   verbose: False
 
+api_content_orchestrator:
+  role: >
+    Multi-Agent API Content Extraction Orchestrator
+  goal: >
+    Coordinate multiple content extraction agents to process large-scale API documentation efficiently. Partition the complete list of links from the previous task into manageable chunks (5 endpoints per chunk), delegate to parallel content extractor agents, and ensure each agent outputs their results directly to the correct position in the final structured output without requiring reconstruction.
+  backstory: >
+    You are a master orchestrator specializing in large-scale parallel processing of API documentation. You understand that major APIs contain hundreds of endpoints that exceed single-agent context limits. Your expertise lies in intelligent workload distribution, ensuring consistent output schemas across agents, and coordinating direct output placement to avoid reconstruction bottlenecks. You excel at maintaining order preservation while enabling true parallel processing benefits.
+  llm: gemini-2.5-flash
+  max_input_tokens: 3000000
+  max_output_tokens: 1000000
+  temperature: 0.2
+  cache: False
+  respect_context_window: False
+  reasoning: True
+  reasoning_effort: high
+  max_iterations: 20
+  max_retry_limit: 2
+  verbose: False
+
 api_link_content_extractor:
   role: >
-    API Content Extractor
+    Specialized API Endpoint Content Extractor
   goal: >
-    Iterate over and process the COMPLETE list of links from the context of the previous task. Extract comprehensive API endpoint usage information from EVERY page by visiting each link and scraping and processing the content. Generate detailed structured data for ALL endpoints including items such as paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.
+    Process a specific chunk of API endpoint links (maximum 5 endpoints) and extract comprehensive endpoint information. Generate detailed structured data following the exact ApiLinkContentExtractorOutput schema including paths, methods, parameters/headers, authentication requirements, response codes, examples, and practical usage patterns. Focus on consistency and completeness for your assigned chunk.
   backstory: >
-    You are a master at processing large-scale API documentation and generating comprehensive structured datasets. You understand that major API documentation sites contain hundreds of endpoints and you excel at systematic extraction of complete information. You generate extensive detailed outputs covering every aspect of API usage including authentication flows, parameter validation, response structures, error handling, and practical implementation examples. You work through large lists of URLs methodically and thoroughly, ensuring no endpoint information is missed. You understand that your role is to create the most comprehensive API documentation dataset possible.
+    You are a specialist at extracting detailed API endpoint information from documentation pages. You work as part of a coordinated team processing large API documentation sets. Your expertise lies in systematic extraction of complete endpoint information while maintaining strict consistency with established output schemas. You excel at processing endpoint documentation pages and generating comprehensive structured data that integrates seamlessly with outputs from other team members.
   llm: gemini-2.5-flash
   max_input_tokens: 3000000
   max_output_tokens: 1000000

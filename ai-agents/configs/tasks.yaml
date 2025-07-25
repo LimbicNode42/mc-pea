@@ -10,6 +10,21 @@ api_link_discovery:
   markdown: False
   output_file: api_link_discovery_output.json
 
+orchestrated_api_link_content_extractor:
+  description: >
+    Coordinate multiple specialized agents to comprehensively process the complete link discovery output by partitioning work into manageable chunks (5 endpoints per chunk) and orchestrating parallel content extraction. Each specialized agent will combine the `l` fields with {hostname} to form full URLs and extract comprehensive API endpoint information. Generate detailed structured data for ALL endpoints including paths, methods, parameters/headers, authentication requirements, rate limits, examples, and practical usage patterns through coordinated multi-agent processing.
+
+    {context_output}
+  expected_output: >
+    A comprehensive, detailed dataset of ALL API endpoint information assembled from coordinated multi-agent extraction. Output covers complete paths, methods, parameters, authentication, responses, examples, and usage patterns. The final structured output maintains original discovery ordering while providing extensive detail for each endpoint through parallel processing. Must conform exactly to ApiLinkContentExtractorOutput schema with categories (ocs) containing complete endpoint details (ces).
+  agent: >
+    ApiContentOrchestratorAgent
+  async_execution: False
+  context: >
+    api_link_discovery
+  # The following are for test purposes
+  output_file: orchestrated_api_link_content_extractor_output.json
+
 api_link_content_extractor:
   description: >
     Comprehensively process the below json by combining the `l` fields with {hostname} to form a full URL and extract comprehensive API endpoint usage information from EVERY page. Generate detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.

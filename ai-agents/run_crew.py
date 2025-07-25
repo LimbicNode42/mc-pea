@@ -28,6 +28,7 @@ sys.path.insert(0, str(current_dir))
 
 from core.crew_config_loader import CrewConfigLoader
 from crews.data_entry import DataEntry
+from crews.orchestrated_data_entry import OrchestratedDataEntryCrew
 from crewai import Crew
 
 # Configure logging
@@ -71,8 +72,8 @@ Examples:
     parser.add_argument(
         '-c', '--crew',
         type=str,
-        default='data_entry',
-        help='Name of the crew to run (default: data_entry)'
+        default='orchestrated_data_entry',
+        help='Name of the crew to run (default: orchestrated_data_entry)'
     )
     
     parser.add_argument(
@@ -157,6 +158,26 @@ def create_data_entry_crew(url: str, depth: int) -> DataEntry:
         logger.error(f"Error creating data_entry crew: {e}")
         raise
 
+def create_orchestrated_data_entry_crew(url: str, depth: int) -> OrchestratedDataEntryCrew:
+    """Create and configure the orchestrated_data_entry crew with provided parameters."""
+    try:
+        # Extract hostname from URL for the orchestrated approach
+        from urllib.parse import urlparse
+        parsed_url = urlparse(url)
+        hostname = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        
+        logger.info(f"Creating OrchestratedDataEntry crew for URL: {url} (hostname: {hostname}) with depth: {depth}")
+        
+        # Use the OrchestratedDataEntryCrew class
+        crew = OrchestratedDataEntryCrew(website_url=url, hostname=hostname, depth=depth)
+        
+        logger.info(f"Created orchestrated_data_entry crew with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
+        return crew
+        
+    except Exception as e:
+        logger.error(f"Error creating orchestrated_data_entry crew: {e}")
+        raise
+
 def init_observability() -> None:
     """Initialize observability tools like logging and monitoring."""
     # This is a placeholder for any observability setup you might want to do
@@ -181,12 +202,13 @@ def run_crew(crew_name: str, url: str, depth: int, dry_run: bool = False) -> Opt
         logger.info(f"Starting crew execution: {crew_name}")
         logger.info(f"Parameters - URL: {url}, Depth: {depth}")
         
-        # Currently only supporting data_entry crew
-        if crew_name != "data_entry":
-            raise ValueError(f"Crew '{crew_name}' is not yet implemented. Only 'data_entry' is available.")
-        
-        # Create the crew
-        crew = create_data_entry_crew(url, depth)
+        # Support multiple crew types
+        if crew_name == "data_entry":
+            crew = create_data_entry_crew(url, depth)
+        elif crew_name == "orchestrated_data_entry":
+            crew = create_orchestrated_data_entry_crew(url, depth)
+        else:
+            raise ValueError(f"Crew '{crew_name}' is not implemented. Available crews: 'data_entry', 'orchestrated_data_entry'")
         
         if dry_run:
             print("\n🔍 Dry Run - Crew Configuration:")
