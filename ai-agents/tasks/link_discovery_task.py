@@ -9,7 +9,6 @@ from crewai import Task, TaskOutput
 from typing import Tuple, Any
 from core.task_config_loader import TaskConfigLoader
 from models.link_discovery_output import ApiLinkDiscoveryOutput
-from models.link_content_extractor_output import ApiLinkContentExtractorOutput
 
 class ApiLinkDiscoveryTask(Task):
   def __init__(self, website_url: str, depth: int = 3):
@@ -239,29 +238,3 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
                 return False, f"Link {j} in category {i} missing required fields"
 
     return True, f"Output is valid JSON: {len(categories)} categories with {total_links} total links"
-
-class ApiLinkContentExtractorTask(Task):
-  def __init__(self):
-    # Load configuration from centralized config file
-    task_loader = TaskConfigLoader()
-    config_data = task_loader.get_task_config("api_link_content_extractor")
-
-    # Initialize the CrewAI Task with the loaded configuration
-    description_template = config_data.get("description")
-    if not description_template:
-        raise ValueError("No description found in task configuration")
-    
-    # For the content extractor, the description doesn't need formatting
-    # since it will receive context from the previous task
-    description = description_template.replace("{website_urls}", "the discovered links from the previous task")
-    
-    super().__init__(
-        description=description,
-        expected_output=config_data.get("expected_output"),
-        output_json=ApiLinkContentExtractorOutput,
-        markdown=config_data.get("markdown"),
-        output_file=config_data.get("output_file"),
-    )
-    
-    # Store config data for later use
-    self._config_data = config_data

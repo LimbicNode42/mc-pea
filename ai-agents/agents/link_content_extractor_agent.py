@@ -8,7 +8,7 @@ from core.agent_config_loader import AgentConfigLoader
 class ApiLinkContentExtractorAgent(Agent):
     """Agent responsible for discovering and cataloging API-related web links."""
 
-    def __init__(self, website_url: str):
+    def __init__(self):
         load_dotenv()
 
         # Load configuration from centralized config file
@@ -35,15 +35,16 @@ class ApiLinkContentExtractorAgent(Agent):
             llm = LLM(
                 model=f"gemini/{model_name}",
                 api_key=google_api_key,
-                # max_tokens=config_data.get("max_tokens", 8000),
+                max_tokens=config_data.get("max_input_tokens"),
+                max_completion_tokens=config_data.get("max_output_tokens"),
                 temperature=config_data.get("temperature"),
-                reasoning_effort=config_data.get("reasoning_effort", "none"),
+                reasoning_effort=config_data.get("reasoning_effort"),
             )
             print(f"Using Gemini LLM for link content extraction: {model_name}")
         else:
             raise ValueError("Unsupported LLM type in configuration")
 
-        scraper_tool = ScrapeWebsiteTool(website_url=website_url)
+        scraper_tool = ScrapeWebsiteTool()
         
         # Initialize the CrewAI Agent with the loaded configuration
         super().__init__(

@@ -2,7 +2,8 @@ from crewai import Crew
 from core.crew_config_loader import CrewConfigLoader
 from agents.link_discovery_agent import ApiLinkDiscoveryAgent
 from agents.link_content_extractor_agent import ApiLinkContentExtractorAgent
-from tasks.information_gathering import ApiLinkDiscoveryTask, ApiLinkContentExtractorTask
+from tasks.link_discovery_task import ApiLinkDiscoveryTask
+from tasks.link_content_extractor_task import ApiLinkContentExtractorTask
 
 class DataEntry(Crew):
   def __init__(self, website_url: str, depth: int = 3):
@@ -16,7 +17,7 @@ class DataEntry(Crew):
     
     # Create tasks based on configuration
     discovery_task = ApiLinkDiscoveryTask(website_url=website_url, depth=depth)
-    extractor_task = ApiLinkContentExtractorTask()
+    extractor_task = ApiLinkContentExtractorTask(context=[discovery_task])
     
     # Assign agents to tasks
     discovery_task.agent = discovery_agent
