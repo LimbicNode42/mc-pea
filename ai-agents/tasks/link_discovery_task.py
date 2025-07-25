@@ -30,8 +30,9 @@ class ApiLinkDiscoveryTask(Task):
     super().__init__(
         description=description, 
         expected_output=config_data.get("expected_output"),
-        output_json=ApiLinkDiscoveryOutput,
         guardrail=validate_blog_content,
+        async_execution=config_data.get("async_execution"),
+        output_json=ApiLinkDiscoveryOutput,
         markdown=config_data.get("markdown"),
         output_file=config_data.get("output_file"),
     )

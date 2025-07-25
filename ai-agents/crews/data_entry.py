@@ -1,4 +1,5 @@
 from crewai import Crew
+from urllib.parse import urlparse
 from core.crew_config_loader import CrewConfigLoader
 from agents.link_discovery_agent import ApiLinkDiscoveryAgent
 from agents.link_content_extractor_agent import ApiLinkContentExtractorAgent
@@ -11,13 +12,17 @@ class DataEntry(Crew):
     crew_loader = CrewConfigLoader()
     config_data = crew_loader.get_crew_config("data_entry")
     
+    # Extract hostname from website_url for content extractor
+    parsed_url = urlparse(website_url)
+    hostname = f"{parsed_url.scheme}://{parsed_url.netloc}"
+    
     # Create agents based on configuration
     discovery_agent = ApiLinkDiscoveryAgent(website_url=website_url)
-    extractor_agent = ApiLinkContentExtractorAgent(website_url=website_url)
+    extractor_agent = ApiLinkContentExtractorAgent()
     
     # Create tasks based on configuration
     discovery_task = ApiLinkDiscoveryTask(website_url=website_url, depth=depth)
-    extractor_task = ApiLinkContentExtractorTask(context=[discovery_task])
+    extractor_task = ApiLinkContentExtractorTask(hostname=hostname, context=[discovery_task])
     
     # Assign agents to tasks
     discovery_task.agent = discovery_agent
@@ -28,10 +33,10 @@ class DataEntry(Crew):
     
     # Initialize the CrewAI Crew with actual instances
     super().__init__(
-        # agents=[discovery_agent, extractor_agent],
-        # tasks=[discovery_task, extractor_task],
-        agents=[discovery_agent],
-        tasks=[discovery_task],
+        # agents=[discovery_agent],
+        # tasks=[discovery_task],
+        agents=[discovery_agent, extractor_agent],
+        tasks=[discovery_task, extractor_task],
         process=config_data.get("process"),
         memory=config_data.get("memory"),
         cache=config_data.get("cache"),

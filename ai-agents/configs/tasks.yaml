@@ -5,26 +5,21 @@ api_link_discovery:
     An exhaustive structured list with ALL PATH-ONLY links (not full URLs), complete categories, hierarchical relationships, and comprehensive metadata. Output should include 100% of the links found in the sidebar/menu in path-only format (starting with "/" and excluding the domain). Links must be in format "/path/to/resource" not "https://domain.com/path/to/resource" for token efficiency.
   agent: >
     ApiLinkDiscoveryAgent
+  async_execution: True
   # The following are for test purposes
   markdown: False
   output_file: api_link_discovery_output.json
 
 api_link_content_extractor:
   description: >
-    Extract comprehensive API endpoint usage information from the provided list of URLs using a systematic approach. Process EVERY URL in the list and generate extensive documentation for ALL discovered endpoints. Your task is to create the most complete API reference dataset possible covering:
-    1. Complete endpoint paths and HTTP methods for every API call
-    2. Comprehensive parameter documentation (required vs optional, types, validation rules)
-    3. Detailed request/response structures with examples
-    4. Authentication requirements and security considerations
-    5. Rate limiting information and usage guidelines
-    6. Error handling patterns and status codes
-    7. Practical usage examples and implementation patterns
-    8. Cross-references between related endpoints
-    Generate extensive, detailed output that thoroughly documents the complete API surface area.
+    Comprehensively process the below json by combining the `l` fields with {hostname} to form a full URL and extract comprehensive API endpoint usage information from EVERY page. Generate detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.
+
+    {context_output}
   expected_output: >
     A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output should be verbose and exhaustive, covering every aspect of API usage discovered across all provided URLs.
   agent: >
     ApiLinkContentExtractorAgent
+  async_execution: False
   context: >
     api_link_discovery
   # The following are for test purposes
