@@ -17,7 +17,7 @@ api_link_discovery:
   max_retry_limit: 2
   verbose: False
 
-api_content_orchestrator:
+api_orchestrator:
   role: >
     Multi-Agent API Content Extraction Orchestrator
   goal: >

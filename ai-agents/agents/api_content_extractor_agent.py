@@ -8,7 +8,7 @@ from core.agent_config_loader import AgentConfigLoader
 from typing import Dict, Any, List
 import json
 
-# Content extraction tools
+# Content extraction tool for CrewAI framework
 @tool("process_chunk")
 def process_chunk_tool(chunk_dict: Dict[str, Any], hostname: str) -> str:
     """
@@ -22,18 +22,15 @@ def process_chunk_tool(chunk_dict: Dict[str, Any], hostname: str) -> str:
         JSON string with structured data following ApiLinkContentExtractorOutput schema
     """
     try:
-        # Create the extraction prompt with strict schema requirements
-        extraction_prompt = _create_extraction_prompt(chunk_dict, hostname)
-        
-        # For now, return a placeholder result
-        # In actual implementation, this would use the agent's LLM to process
+        # For actual implementation, this would delegate to the agent's process_chunk method
+        # For now, return a placeholder result with proper structure
         result = {
             'cn': chunk_dict['category_name'],
             'cd': chunk_dict['category_description'],
             'ces': []  # Would contain processed endpoints
         }
         
-        print(f"🔍 Processed chunk {chunk_dict['chunk_id']} with {len(chunk_dict['endpoints'])} endpoints")
+        print(f"🔍 Tool processed chunk {chunk_dict['chunk_id']} with {len(chunk_dict['endpoints'])} endpoints")
         return json.dumps(result)
         
     except Exception as e:
@@ -45,77 +42,6 @@ def process_chunk_tool(chunk_dict: Dict[str, Any], hostname: str) -> str:
             'ces': []
         })
 
-def _create_extraction_prompt(chunk_dict: Dict[str, Any], hostname: str) -> str:
-    """Create a detailed extraction prompt with schema requirements and examples."""
-    
-    # Get the golden example
-    golden_example = _get_golden_example()
-    
-    endpoints_list = "\n".join([
-        f"- {endpoint.get('t', endpoint.get('title', 'Unknown'))}: {endpoint.get('l', endpoint.get('link', 'Unknown'))}"
-        for endpoint in chunk_dict['endpoints']
-    ])
-    
-    return f"""
-CRITICAL: Extract API endpoint information for the following {len(chunk_dict['endpoints'])} endpoints from {hostname}.
-
-CHUNK INFORMATION:
-- Chunk ID: {chunk_dict['chunk_id']}/{chunk_dict['total_chunks']}
-- Category: {chunk_dict['category_name']}
-- Description: {chunk_dict['category_description']}
-
-ENDPOINTS TO PROCESS:
-{endpoints_list}
-
-REQUIRED OUTPUT SCHEMA (EXACT):
-You MUST output JSON following this EXACT structure:
-
-{golden_example}
-
-Begin extraction for all {len(chunk_dict['endpoints'])} endpoints now.
-"""
-
-def _get_golden_example() -> str:
-    """Return a golden example endpoint for consistency."""
-    return '''
-{
-  "en": "List artifacts for a repository",
-  "ed": "Lists all artifacts for a repository.",
-  "em": "GET",
-  "ep": "/repos/{owner}/{repo}/actions/artifacts",
-  "ecp": [
-    "Requires authentication (e.g., repo scope for PAT, or GitHub App installation token).",
-    "Standard API rate limits apply."
-  ],
-  "esu": "curl -L \\\\\\n  -H \\"Accept: application/vnd.github.v3+json\\" \\\\\\n  -H \\"Authorization: Bearer <YOUR-TOKEN>\\" \\\\\\n  https://api.github.com/repos/octocat/hello-world/actions/artifacts",
-  "eh": [
-    {
-      "pn": "Accept",
-      "pd": "Media type for the API version.",
-      "pr": true,
-      "pt": "string",
-      "pv": "application/vnd.github.v3+json"
-    }
-  ],
-  "epp": [
-    {
-      "pn": "owner",
-      "pd": "The account owner of the repository. The name is not case sensitive.",
-      "pr": true,
-      "pt": "string",
-      "pv": null
-    }
-  ],
-  "eqp": [],
-  "ebp": [],
-  "erc": {
-    "200 OK": "application/json"
-  },
-  "ere": {
-    "200 OK": "{\\"total_count\\": 1, \\"artifacts\\": [{\\"id\\": 1, \\"name\\": \\"artifact-name\\"}]}"
-  }
-}'''
-
 class ApiLinkContentExtractorAgent(Agent):
     """Agent responsible for discovering and cataloging API-related web links."""
 
@@ -124,7 +50,7 @@ class ApiLinkContentExtractorAgent(Agent):
 
         # Load configuration from centralized config file
         agent_loader = AgentConfigLoader()
-        config_data = agent_loader.get_agent_config("api_link_content_extractor")
+        config_data = agent_loader.get_agent_config("api_content_extractor")
 
         if "claude" in config_data.get("llm"):
             llm = ChatAnthropic(
@@ -383,14 +309,3 @@ Begin extraction for all {len(chunk.endpoints)} endpoints now.
                 'cd': chunk.category_description,
                 'ces': []
             }
-    
-    def extract_endpoint_details(self, endpoint_url: str, hostname: str) -> Dict[str, Any]:
-        """Extract details for a single endpoint."""
-        # This would contain the logic for scraping individual endpoint pages
-        # and extracting all the required information
-        pass
-    
-    def format_endpoint_output(self, endpoint_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Format endpoint data according to the required schema."""
-        # This would ensure the output follows the exact ApiLinkContentExtractorPoint schema
-        pass

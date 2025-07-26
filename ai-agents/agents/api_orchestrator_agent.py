@@ -12,7 +12,6 @@ from core.agent_config_loader import AgentConfigLoader
 from dotenv import load_dotenv
 import os
 import json
-import asyncio
 from dataclasses import dataclass
 
 @dataclass
@@ -98,7 +97,7 @@ def coordinate_extraction_tool(chunks_json: str, hostname: str) -> str:
         print(f"🎯 Coordinating extraction for {len(chunks)} chunks on {hostname}")
         
         # Import here to avoid circular imports
-        from agents.link_content_extractor_agent import ApiLinkContentExtractorAgent
+        from agents.api_content_extractor_agent import ApiLinkContentExtractorAgent
         
         chunk_results = []
         
@@ -192,7 +191,7 @@ class ApiContentOrchestratorAgent(Agent):
         
         # Load agent configuration
         agent_loader = AgentConfigLoader()
-        config_data = agent_loader.get_agent_config("api_content_orchestrator")
+        config_data = agent_loader.get_agent_config("api_orchestrator")
         
         # Setup LLM similar to existing agents
         if "claude" in config_data.get("llm"):
@@ -244,137 +243,3 @@ class ApiContentOrchestratorAgent(Agent):
         )
         
         self._config_data = config_data
-    
-    def partition_endpoints(self, discovery_output: str, chunk_size: int = 5) -> List[EndpointChunk]:
-        """
-        Partition the link discovery output into manageable chunks for parallel processing.
-        
-        Args:
-            discovery_output: JSON string from ApiLinkDiscoveryTask
-            chunk_size: Number of endpoints per chunk (default: 5)
-            
-        Returns:
-            List of EndpointChunk objects ready for agent processing
-        """
-        try:
-            # Parse the discovery output
-            discovery_data = json.loads(discovery_output)
-            
-            chunks = []
-            chunk_id = 0
-            
-            # Process each category from the discovery output
-            for cat_idx, category in enumerate(discovery_data.get('cs', [])):
-                category_name = category.get('n', category.get('category_name', f'Category_{cat_idx}'))
-                category_description = category.get('cd', category.get('description', ''))
-                links = category.get('ls', category.get('links', []))
-                
-                # Split category links into chunks
-                for i in range(0, len(links), chunk_size):
-                    chunk_endpoints = links[i:i + chunk_size]
-                    
-                    chunk = EndpointChunk(
-                        chunk_id=chunk_id,
-                        category_name=category_name,
-                        category_description=category_description,
-                        category_index=cat_idx,
-                        endpoints=chunk_endpoints,
-                        total_chunks=0  # Will be set after all chunks are created
-                    )
-                    
-                    chunks.append(chunk)
-                    chunk_id += 1
-            
-            # Set total_chunks for all chunks
-            for chunk in chunks:
-                chunk.total_chunks = len(chunks)
-            
-            return chunks
-            
-        except Exception as e:
-            print(f"Error partitioning endpoints: {e}")
-            return []
-    
-    def coordinate_extraction(self, chunks: List[EndpointChunk], hostname: str) -> List[Dict[str, Any]]:
-        """
-        Coordinate parallel extraction across multiple content extractor agents.
-        
-        Args:
-            chunks: List of endpoint chunks to process
-            hostname: The hostname for the API documentation
-            
-        Returns:
-            List of chunk results from parallel agent execution
-        """
-        # Import here to avoid circular imports
-        from agents.link_content_extractor_agent import ApiLinkContentExtractorAgent
-        
-        chunk_results = []
-        
-        # For now, process sequentially to ensure stability
-        # TODO: Implement true async parallel processing once CrewAI supports it
-        for chunk in chunks:
-            try:
-                # Create a specialized agent for this chunk
-                extractor_agent = ApiLinkContentExtractorAgent()
-                
-                # Process the chunk
-                result = extractor_agent.process_chunk(chunk, hostname)
-                
-                chunk_results.append({
-                    'chunk_id': chunk.chunk_id,
-                    'category_index': chunk.category_index,
-                    'category_name': chunk.category_name,
-                    'result': result
-                })
-                
-            except Exception as e:
-                print(f"Error processing chunk {chunk.chunk_id}: {e}")
-                # Create empty result to maintain structure
-                chunk_results.append({
-                    'chunk_id': chunk.chunk_id,
-                    'category_index': chunk.category_index,
-                    'category_name': chunk.category_name,
-                    'result': {'ces': []}  # Empty endpoints list
-                })
-        
-        return chunk_results
-    
-    def merge_chunk_outputs(self, chunk_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Merge chunk results into final ApiLinkContentExtractorOutput structure.
-        
-        Args:
-            chunk_results: List of results from content extractor agents
-            
-        Returns:
-            Final merged output in ApiLinkContentExtractorOutput format
-        """
-        # Group chunks by category
-        categories_map = {}
-        
-        for chunk_result in chunk_results:
-            cat_idx = chunk_result['category_index']
-            cat_name = chunk_result['category_name']
-            endpoints = chunk_result['result'].get('ces', [])
-            
-            if cat_idx not in categories_map:
-                categories_map[cat_idx] = {
-                    'cn': cat_name,
-                    'cd': '',  # Will be set from first chunk of category
-                    'ces': []
-                }
-            
-            # Add endpoints from this chunk to the category
-            categories_map[cat_idx]['ces'].extend(endpoints)
-            
-            # Set category description if available
-            if 'cd' in chunk_result['result'] and chunk_result['result']['cd']:
-                categories_map[cat_idx]['cd'] = chunk_result['result']['cd']
-        
-        # Convert to list format maintaining category order
-        sorted_categories = [categories_map[i] for i in sorted(categories_map.keys())]
-        
-        return {
-            'ocs': sorted_categories
-        }

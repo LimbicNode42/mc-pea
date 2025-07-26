@@ -9,10 +9,12 @@ from crewai import Crew
 from typing import Dict, Any
 
 from core.crew_config_loader import CrewConfigLoader
-from agents.link_discovery_agent import ApiLinkDiscoveryAgent
-from agents.content_orchestrator_agent import ApiContentOrchestratorAgent
+from agents.api_discovery_agent import ApiLinkDiscoveryAgent
+from agents.api_orchestrator_agent import ApiContentOrchestratorAgent
+from agents.api_content_extractor_agent import ApiLinkContentExtractorAgent
 from tasks.link_discovery_task import ApiLinkDiscoveryTask
 from tasks.orchestrated_link_content_extractor_task import OrchestratedApiLinkContentExtractorTask
+from tasks.link_content_extractor_task import ApiLinkContentExtractorTask
 
 class OrchestratedDataEntryCrew(Crew):
     def __init__(self, website_url: str, hostname: str, depth: int = 3):
@@ -22,7 +24,8 @@ class OrchestratedDataEntryCrew(Crew):
 
         # Create agents
         link_discovery_agent = ApiLinkDiscoveryAgent(website_url=website_url)
-        content_orchestrator_agent = ApiContentOrchestratorAgent()
+        orchestrator_agent = ApiContentOrchestratorAgent()
+        # content_extractor_agent = ApiLinkContentExtractorAgent()
 
         # Create tasks with proper agent assignments
         link_discovery_task = ApiLinkDiscoveryTask(website_url, depth)
@@ -32,17 +35,25 @@ class OrchestratedDataEntryCrew(Crew):
             hostname, 
             context=[link_discovery_task]
         )
-        orchestrated_content_extractor_task.agent = content_orchestrator_agent
+        orchestrated_content_extractor_task.agent = orchestrator_agent
+
+        # api_content_extractor_task = ApiLinkContentExtractorTask(
+        #     hostname=hostname, 
+        #     context=[orchestrated_content_extractor_task]
+        # )
+        # api_content_extractor_task.agent = content_extractor_agent
 
         # Initialize the crew
         super().__init__(
             tasks=[
                 link_discovery_task,
-                orchestrated_content_extractor_task
+                orchestrated_content_extractor_task,
+                # api_content_extractor_task
             ],
             agents=[
                 link_discovery_agent,
-                content_orchestrator_agent
+                orchestrator_agent,
+                # content_extractor_agent
             ],
             process=config_data.get("process", "sequential"),
             memory=config_data.get("memory", False),

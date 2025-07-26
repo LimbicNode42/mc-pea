@@ -27,7 +27,6 @@ current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
 from core.crew_config_loader import CrewConfigLoader
-from crews.data_entry import DataEntry
 from crews.orchestrated_data_entry import OrchestratedDataEntryCrew
 from crewai import Crew
 
@@ -63,8 +62,8 @@ def setup_argument_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --crew data_entry --url https://docs.example.com --depth 2
-  %(prog)s -c data_entry -u https://api.stripe.com/docs -d 3 --verbose
+  %(prog)s --crew orchestrated_data_entry --url https://docs.example.com --depth 2
+  %(prog)s -c orchestrated_data_entry -u https://api.stripe.com/docs -d 3 --verbose
   %(prog)s --list-crews  # List available crews
         """
     )
@@ -142,22 +141,6 @@ def list_available_crews() -> None:
         logger.error(f"Error listing crews: {e}")
         sys.exit(1)
 
-
-def create_data_entry_crew(url: str, depth: int) -> DataEntry:
-    """Create and configure the data_entry crew with provided parameters."""
-    try:
-        logger.info(f"Creating DataEntry crew for URL: {url} with depth: {depth}")
-        
-        # Use the DataEntry class which handles all configuration
-        crew = DataEntry(website_url=url, depth=depth)
-        
-        logger.info(f"Created data_entry crew with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
-        return crew
-        
-    except Exception as e:
-        logger.error(f"Error creating data_entry crew: {e}")
-        raise
-
 def create_orchestrated_data_entry_crew(url: str, depth: int) -> OrchestratedDataEntryCrew:
     """Create and configure the orchestrated_data_entry crew with provided parameters."""
     try:
@@ -203,12 +186,10 @@ def run_crew(crew_name: str, url: str, depth: int, dry_run: bool = False) -> Opt
         logger.info(f"Parameters - URL: {url}, Depth: {depth}")
         
         # Support multiple crew types
-        if crew_name == "data_entry":
-            crew = create_data_entry_crew(url, depth)
-        elif crew_name == "orchestrated_data_entry":
+        if crew_name == "orchestrated_data_entry":
             crew = create_orchestrated_data_entry_crew(url, depth)
         else:
-            raise ValueError(f"Crew '{crew_name}' is not implemented. Available crews: 'data_entry', 'orchestrated_data_entry'")
+            raise ValueError(f"Crew '{crew_name}' is not implemented. Available crews: 'orchestrated_data_entry'")
         
         if dry_run:
             print("\n🔍 Dry Run - Crew Configuration:")
