@@ -17,25 +17,6 @@ api_link_discovery:
   max_retry_limit: 2
   verbose: False
 
-api_orchestrator:
-  role: >
-    Multi-Agent API Content Extraction Orchestrator
-  goal: >
-    Coordinate multiple content extraction agents to process large-scale API documentation efficiently. Partition the complete list of links from the previous task into manageable chunks (5 endpoints per chunk), delegate to parallel content extractor agents, and ensure each agent outputs their results directly to the correct position in the final structured output without requiring reconstruction.
-  backstory: >
-    You are a master orchestrator specializing in large-scale parallel processing of API documentation. You understand that major APIs contain hundreds of endpoints that exceed single-agent context limits. Your expertise lies in intelligent workload distribution, ensuring consistent output schemas across agents, and coordinating direct output placement to avoid reconstruction bottlenecks. You excel at maintaining order preservation while enabling true parallel processing benefits.
-  llm: gemini-2.5-flash
-  max_input_tokens: 3000000
-  max_output_tokens: 1000000
-  temperature: 0.2
-  cache: False
-  respect_context_window: False
-  reasoning: True
-  reasoning_effort: high
-  max_iterations: 20
-  max_retry_limit: 2
-  verbose: False
-
 api_link_content_extractor:
   role: >
     Specialized API Endpoint Content Extractor

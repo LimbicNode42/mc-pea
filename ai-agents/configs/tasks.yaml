@@ -10,71 +10,30 @@ api_link_discovery:
   markdown: False
   output_file: api_link_discovery_output.json
 
-api_link_content_extractor:
+api_content_extraction:
   description: >
-    Comprehensively process the below json by combining the `l` fields with {hostname} to form a full URL and extract comprehensive API endpoint usage information from EVERY page. Generate detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.
+    Process the chunked endpoint data prepared by the orchestrator and extract comprehensive API endpoint information from ALL chunks. The orchestrator has partitioned the work into manageable chunks - process EVERY chunk systematically and extract detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns.
 
+    ORCHESTRATOR OUTPUT TO PROCESS:
     {context_output}
+
+    PROCESSING REQUIREMENTS:
+    1. Extract hostname and chunks from the orchestrator output
+    2. Process each chunk by visiting the endpoint URLs (combine hostname + endpoint path)
+    3. Extract comprehensive endpoint information following the exact schema
+    4. Merge all chunk results back into the final category structure
+    5. Maintain original ordering and completeness from discovery task
+
+    Use your process_chunk tool to handle each individual chunk systematically.
   expected_output: >
-    A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output should be verbose and exhaustive, covering every aspect of API usage discovered across all provided URLs.
+    A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns assembled from processing all orchestrator chunks. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output must conform exactly to ApiLinkContentExtractorOutput schema with categories (ocs) containing complete endpoint details (ces).
   agent: >
     ApiLinkContentExtractorAgent
   async_execution: False
   context: >
-    api_link_discovery
+    api_orchestrator
   # The following are for test purposes
   # markdown: True
   output_file: api_link_content_extractor_output.json
 
-api_orchestrator:
-  description: >
-    You are the master orchestrator coordinating multiple specialized content extraction agents to process the complete API documentation from {hostname}.
-
-    CONTEXT FROM PREVIOUS TASK:
-    {context_output}
-
-    YOUR COORDINATION RESPONSIBILITIES:
-
-    1. PARTITION WORK:
-      - Parse the link discovery output from the context
-      - Partition endpoints into chunks of 5 endpoints each
-      - Maintain category organization and ordering information
-      - Create metadata for chunk tracking and result assembly
-
-    2. COORDINATE AGENTS:
-      - Delegate each chunk to a specialized ApiEndpointContentExtractorAgent
-      - Ensure each agent receives:
-        * Clear chunk boundaries (5 endpoints max)
-        * Category context and metadata
-        * Strict schema requirements and golden examples
-        * Hostname and URL construction instructions
-
-    3. MANAGE OUTPUT ASSEMBLY:
-      - Collect results from all specialized agents
-      - Merge chunk results back into category structure
-      - Maintain original discovery task ordering
-      - Ensure final output follows ApiLinkContentExtractorOutput schema exactly
-
-    4. ENSURE CONSISTENCY:
-      - Provide identical templates and examples to all agents
-      - Validate that all agents follow the same output schema
-      - Handle any agent failures gracefully with empty but valid structures
-
-    CRITICAL REQUIREMENTS:
-    - Process ALL endpoints from the link discovery context
-    - Maintain exact category and endpoint ordering from discovery task
-    - Output must conform exactly to ApiLinkContentExtractorOutput schema
-    - Each endpoint must include: en, ed, em, ep, ecp, esu, eh, epp, eqp, ebp, erc, ere
-    - Never lose or skip endpoints due to chunking
-    - Coordinate efficiently to maximize parallel processing benefits
-
-    Begin orchestration now by partitioning the discovery output and coordinating your specialized agents.
-  expected_output: >
-    A comprehensive, detailed dataset of ALL API endpoint information assembled from coordinated multi-agent extraction. Output covers complete paths, methods, parameters, authentication, responses, examples, and usage patterns. The final structured output maintains original discovery ordering while providing extensive detail for each endpoint through parallel processing. Must conform exactly to ApiLinkContentExtractorOutput schema with categories (ocs) containing complete endpoint details (ces).
-  agent: >
-    ApiContentOrchestratorAgent
-  async_execution: False
-  context: >
-    api_link_discovery
-  # The following are for test purposes
-  output_file: orchestrated_api_link_content_extractor_output.json
+  api_content_collection:

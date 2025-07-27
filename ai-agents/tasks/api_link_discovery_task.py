@@ -8,7 +8,7 @@ from configs/tasks.yaml, similar to how agents load their configuration.
 from crewai import Task, TaskOutput
 from typing import Tuple, Any
 from core.task_config_loader import TaskConfigLoader
-from models.link_discovery_output import ApiLinkDiscoveryOutput
+from models.api_discovery_output import ApiLinkDiscoveryOutput
 
 class ApiLinkDiscoveryTask(Task):
   def __init__(self, website_url: str, depth: int = 3):
