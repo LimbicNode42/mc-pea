@@ -43,6 +43,7 @@ class HierarchicalApiExtractionCrew:
         
         # Initialize tasks
         self.discovery_task = ApiLinkDiscoveryTask(website_url=self.website_url)
+        self.content_extractor_task = ApiLinkContentExtractorTask()
 
         # Note: In hierarchical process, we define the types of tasks available
         # but the manager will create and assign specific instances as needed
@@ -60,7 +61,7 @@ class HierarchicalApiExtractionCrew:
     def execute(self):
         """Execute the hierarchical extraction workflow."""
         try:
-            print(f"🚀 Starting hierarchical API extraction for {self.hostname}")
+            print(f"🚀 Starting hierarchical API extraction for {self.website_url}")
             print(f"👥 Manager: {self.manager_agent.role}")
             print(f"🔍 Discovery Agent: {self.discovery_agent.role}")
             print(f"⚙️ Content Extractors: {len(self.extractor_agents)} agents")
@@ -82,19 +83,5 @@ class HierarchicalApiExtractionCrew:
             "manager": self.manager_agent.role,
             "agents": [agent.role for agent in self.agents],
             "num_extractors": self.num_extractors,
-            "hostname": self.hostname
+            "website_url": self.website_url
         }
-
-# Factory function for easy crew creation
-def create_hierarchical_extraction_crew(hostname: str, num_extractors: int = 3) -> HierarchicalApiExtractionCrew:
-    """
-    Create a hierarchical API extraction crew.
-    
-    Args:
-        hostname: The API hostname to extract documentation from
-        num_extractors: Number of parallel content extractor agents
-        
-    Returns:
-        Configured hierarchical crew ready for execution
-    """
-    return HierarchicalApiExtractionCrew(hostname, num_extractors)

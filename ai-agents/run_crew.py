@@ -6,8 +6,8 @@ Main entry point for running CrewAI crews with command line arguments.
 This script loads crew configurations and executes them with provided parameters.
 
 Usage:
-    python run_crew.py --crew data_entry --url https://example.com --depth 2
-    python run_crew.py -c data_entry -u https://api.docs.com -d 3
+    python run_crew.py --crew data_entry --url https://example.com
+    python run_crew.py -c data_entry -u https://api.docs.com
 """
 
 import argparse
@@ -19,6 +19,9 @@ from dotenv import load_dotenv
 import os
 import agentops
 
+from crewai import Crew
+from crews.api_extraction import HierarchicalApiExtractionCrew
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -26,8 +29,6 @@ load_dotenv()
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
-from core.crew_config_loader import CrewConfigLoader
-from crews.orchestrated_data_entry import OrchestratedDataEntryCrew
 from crewai import Crew
 
 # Configure logging
@@ -62,8 +63,8 @@ def setup_argument_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --crew orchestrated_data_entry --url https://docs.example.com --depth 2
-  %(prog)s -c orchestrated_data_entry -u https://api.stripe.com/docs -d 3 --verbose
+  %(prog)s --crew api_extraction --url https://docs.example.com
+  %(prog)s -c api_extraction -u https://api.stripe.com/docs --verbose
   %(prog)s --list-crews  # List available crews
         """
     )
@@ -71,21 +72,14 @@ Examples:
     parser.add_argument(
         '-c', '--crew',
         type=str,
-        default='orchestrated_data_entry',
-        help='Name of the crew to run (default: orchestrated_data_entry)'
+        default='api_extraction',
+        help='Name of the crew to run (default: api_extraction)'
     )
     
     parser.add_argument(
         '-u', '--url',
         type=str,
         help='Target website URL to crawl (required unless using --list-crews)'
-    )
-    
-    parser.add_argument(
-        '-d', '--depth',
-        type=int,
-        default=2,
-        help='Crawling depth limit (default: 2)'
     )
     
     parser.add_argument(
@@ -101,65 +95,12 @@ Examples:
     )
     
     parser.add_argument(
-        '--list-crews',
-        action='store_true',
-        help='List available crews and exit'
-    )
-    
-    parser.add_argument(
         '--dry-run',
         action='store_true',
         help='Show configuration and crew setup without executing'
     )
     
     return parser
-
-
-def list_available_crews() -> None:
-    """List all available crews from configuration."""
-    try:
-        crew_loader = CrewConfigLoader()
-        crew_names = crew_loader.get_all_crew_names()
-        
-        print("\n🤖 Available Crews:")
-        print("=" * 50)
-        
-        if not crew_names:
-            print("No crews found in configuration.")
-            return
-        
-        for crew_name in crew_names:
-            crew_config = crew_loader.get_crew_config(crew_name)
-            print(f"\n📋 {crew_name}")
-            print(f"   Tasks: {crew_loader.get_crew_tasks(crew_name)}")
-            print(f"   Agents: {crew_loader.get_crew_agents(crew_name)}")
-            print(f"   Process: {crew_loader.get_crew_process(crew_name)}")
-            print(f"   Verbose: {crew_loader.is_crew_verbose(crew_name)}")
-            print(f"   Memory: {crew_loader.is_crew_memory_enabled(crew_name)}")
-            
-    except Exception as e:
-        logger.error(f"Error listing crews: {e}")
-        sys.exit(1)
-
-def create_orchestrated_data_entry_crew(url: str, depth: int) -> OrchestratedDataEntryCrew:
-    """Create and configure the orchestrated_data_entry crew with provided parameters."""
-    try:
-        # Extract hostname from URL for the orchestrated approach
-        from urllib.parse import urlparse
-        parsed_url = urlparse(url)
-        hostname = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        
-        logger.info(f"Creating OrchestratedDataEntry crew for URL: {url} (hostname: {hostname}) with depth: {depth}")
-        
-        # Use the OrchestratedDataEntryCrew class
-        crew = OrchestratedDataEntryCrew(website_url=url, hostname=hostname, depth=depth)
-        
-        logger.info(f"Created orchestrated_data_entry crew with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
-        return crew
-        
-    except Exception as e:
-        logger.error(f"Error creating orchestrated_data_entry crew: {e}")
-        raise
 
 def init_observability() -> None:
     """Initialize observability tools like logging and monitoring."""
@@ -179,36 +120,53 @@ def init_observability() -> None:
         agentops.init()  # Initialize AgentOps if needed
         logger.info("Observability initialized successfully.")
 
-def run_crew(crew_name: str, url: str, depth: int, dry_run: bool = False) -> Optional[str]:
+def create_api_extraction_crew(url: str) -> HierarchicalApiExtractionCrew:
+    """Create and configure the api_extraction crew with provided parameters."""
+    try:
+        logger.info(f"Creating ApiExtraction crew for URL: {url}")
+
+        # Use the HierarchicalApiExtractionCrew class
+        crew_wrapper = HierarchicalApiExtractionCrew(website_url=url)
+        
+        # Get the actual CrewAI Crew object for logging
+        crew = crew_wrapper.crew
+
+        logger.info(f"Created api_extraction crew with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
+        return crew_wrapper  # Return the wrapper so we can access execute() method
+        
+    except Exception as e:
+        logger.error(f"Error creating api_extraction crew: {e}")
+        raise
+
+def run_crew(crew_name: str, url: str, dry_run: bool = False) -> Optional[str]:
     """Run the specified crew with given parameters."""
     try:
         logger.info(f"Starting crew execution: {crew_name}")
-        logger.info(f"Parameters - URL: {url}, Depth: {depth}")
-        
+        logger.info(f"Parameters - URL: {url}")
+
         # Support multiple crew types
-        if crew_name == "orchestrated_data_entry":
-            crew = create_orchestrated_data_entry_crew(url, depth)
+        if crew_name == "api_extraction":
+            crew_wrapper = create_api_extraction_crew(url)
         else:
-            raise ValueError(f"Crew '{crew_name}' is not implemented. Available crews: 'orchestrated_data_entry'")
-        
+            raise ValueError(f"Crew '{crew_name}' is not implemented. Available crews: 'api_extraction'")
+
         if dry_run:
             print("\n🔍 Dry Run - Crew Configuration:")
             print("=" * 50)
             print(f"Crew: {crew_name}")
             print(f"URL: {url}")
-            print(f"Depth: {depth}")
-            print(f"Agents: {len(crew.agents)}")
-            print(f"Tasks: {len(crew.tasks)}")
-            print(f"Process: {crew.process}")
-            print(f"Verbose: {crew.verbose}")
-            print(f"Memory: {crew.memory}")
+            print(f"Agents: {len(crew_wrapper.crew.agents)}")
+            print(f"Tasks: {len(crew_wrapper.crew.tasks)}")
+            print(f"Process: {crew_wrapper.crew.process}")
+            print(f"Verbose: {crew_wrapper.crew.verbose}")
+            print(f"Memory: {crew_wrapper.crew.memory}")
             print("\n✅ Configuration valid - ready to run")
             return None
         
         # Execute the crew
         logger.info("🚀 Starting crew execution...")
         try:
-            result = crew.kickoff()
+            result = crew_wrapper.execute()
             logger.info("✅ Crew execution completed successfully")
             return result
         except Exception as execution_error:
@@ -229,11 +187,6 @@ def main():
     args = parser.parse_args()
     
     try:
-        # Handle list crews request
-        if args.list_crews:
-            list_available_crews()
-            return
-        
         # Validate required arguments
         if not args.url:
             parser.error("--url is required unless using --list-crews")
@@ -248,7 +201,6 @@ def main():
         result = run_crew(
             crew_name=args.crew,
             url=args.url,
-            depth=args.depth,
             dry_run=args.dry_run
         )
         
