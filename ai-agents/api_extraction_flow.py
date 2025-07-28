@@ -26,7 +26,6 @@ class DiscoveryResult(BaseModel):
 class ChunkData(BaseModel):
     """Data structure for endpoint chunks."""
     chunk_id: int = 0
-    hostname: str = ""
     endpoints: List[Dict[str, Any]] = []
     total_chunks: int = 0
 
@@ -42,36 +41,26 @@ class ApiExtractionFlow(Flow):
     Flow-based API extraction with explicit data passing and chunk coordination.
     """
     
-    def __init__(self, website_url: str, num_extractors: int = 3):
+    def __init__(self, website_url: str):
         super().__init__()
         self.website_url = website_url
-        self.num_extractors = num_extractors
-        
-        # Initialize agents
-        self.discovery_agent = ApiLinkDiscoveryAgent(website_url=website_url)
-        self.extractor_agents = [
-            ApiLinkContentExtractorAgent() 
-            for _ in range(num_extractors)
-        ]
-        
-        # Load task configuration
-        self.task_loader = TaskConfigLoader()
-        self.extractor_task_config = self.task_loader.get_task_config("api_content_extraction")
     
     @start()
     def discovery_phase(self) -> DiscoveryResult:
         """Phase 1: Discover all API endpoints."""
         print(f"🔍 Starting API discovery for {self.website_url}")
+
+        discovery_agent = ApiLinkDiscoveryAgent(website_url=self.website_url)
         
         # Create discovery task
         discovery_task = ApiLinkDiscoveryTask(website_url=self.website_url)
         
         # Assign the discovery agent to the task
-        discovery_task.agent = self.discovery_agent
+        discovery_task.agent = discovery_agent
         
         # Create crew for discovery
         discovery_crew = Crew(
-            agents=[self.discovery_agent],
+            agents=[discovery_agent],
             tasks=[discovery_task],
             process=Process.sequential,
             verbose=True
@@ -143,9 +132,6 @@ class ApiExtractionFlow(Flow):
         if discovery_data and 'cs' in discovery_data:
             # New format from current discovery agent
             total_endpoints = sum(len(cat.get('ls', [])) for cat in discovery_data['cs'])
-        elif discovery_data and 'ocs' in discovery_data:
-            # Old format expected by extractor
-            total_endpoints = sum(len(cat.get('ces', [])) for cat in discovery_data['ocs'])
         
         print(f"✅ Discovery completed. Found {total_endpoints} endpoints")
         
@@ -158,31 +144,30 @@ class ApiExtractionFlow(Flow):
     @listen(discovery_phase)
     def chunk_endpoints(self, discovery_result: DiscoveryResult) -> List[ChunkData]:
         """Phase 2: Split endpoints into manageable chunks."""
-        print(f"📦 Chunking {discovery_result.total_endpoints} endpoints into {self.num_extractors} chunks")
         
         discovery_data = discovery_result.discovery_data
         
-        # Handle both 'cs' and 'ocs' data formats
-        categories = None
-        hostname = discovery_data.get('hostname', 'docs.github.com')
+        # Extract hostname from website_url
+        from urllib.parse import urlparse
+        parsed_url = urlparse(self.website_url)
+        hostname = parsed_url.netloc
         
+        categories = None
+
         if 'cs' in discovery_data:
             # New format from current discovery agent
             categories = discovery_data['cs']
             category_key = 'ls'  # links
             endpoint_key = 'l'   # link
-        elif 'ocs' in discovery_data:
-            # Old format expected by extractor
-            categories = discovery_data['ocs']
-            category_key = 'ces'  # category endpoints
-            endpoint_key = 'endpoint'
         else:
             print("⚠️ No valid discovery data to chunk")
             return []
         
-        # Calculate endpoints per chunk
-        endpoints_per_chunk = max(1, discovery_result.total_endpoints // self.num_extractors)
-        
+        # Fixed chunk size - number of chunks will be determined dynamically
+        endpoints_per_chunk = 5
+        estimated_chunks = (discovery_result.total_endpoints + endpoints_per_chunk - 1) // endpoints_per_chunk
+        print(f"📦 Chunking {discovery_result.total_endpoints} endpoints into chunks of {endpoints_per_chunk} (estimated {estimated_chunks} chunks)")
+
         chunks = []
         current_chunk_endpoints = []
         current_size = 0
@@ -191,167 +176,166 @@ class ApiExtractionFlow(Flow):
             category_name = category.get('n', category.get('name', 'Unknown'))
             
             for endpoint in category.get(category_key, []):
-                if current_size >= endpoints_per_chunk and len(chunks) < self.num_extractors - 1:
-                    # Create chunk
-                    chunks.append(ChunkData(
-                        chunk_id=len(chunks) + 1,
-                        hostname=hostname,
-                        endpoints=current_chunk_endpoints.copy(),
-                        total_chunks=self.num_extractors
-                    ))
-                    current_chunk_endpoints = []
-                    current_size = 0
-                
                 # Normalize endpoint format
-                if isinstance(endpoint, dict) and endpoint_key in endpoint:
-                    # New format: {'t': 'title', 'l': '/path'}
-                    endpoint_data = {
-                        'category': category_name,
-                        'endpoint': {
-                            'title': endpoint.get('t', ''),
-                            'path': endpoint.get(endpoint_key, ''),
-                            'url': f"https://{hostname}{endpoint.get(endpoint_key, '')}"
-                        }
+                endpoint_data = {
+                    'category': category_name,
+                    'endpoint': {
+                        'title': endpoint.get('t', ''),
+                        'path': endpoint.get('l', ''),
+                        'url': f"https://{hostname}{endpoint.get('l', '')}"
                     }
-                else:
-                    # Old format or string
-                    endpoint_data = {
-                        'category': category_name,
-                        'endpoint': endpoint
-                    }
+                }
                 
                 current_chunk_endpoints.append(endpoint_data)
                 current_size += 1
+                
+                # Create chunk when we reach the target size
+                if current_size >= endpoints_per_chunk:
+                    chunks.append(ChunkData(
+                        chunk_id=len(chunks) + 1,
+                        endpoints=current_chunk_endpoints.copy(),
+                        total_chunks=0  # Will be updated after all chunks are created
+                    ))
+                    current_chunk_endpoints = []
+                    current_size = 0
         
-        # Add final chunk
+        # Add final chunk if there are remaining endpoints
         if current_chunk_endpoints:
             chunks.append(ChunkData(
                 chunk_id=len(chunks) + 1,
-                hostname=hostname,
                 endpoints=current_chunk_endpoints,
-                total_chunks=len(chunks) + 1
+                total_chunks=0  # Will be updated below
             ))
         
-        # Update total_chunks for all chunks
+        # Update total_chunks for all chunks now that we know the final count
         for chunk in chunks:
             chunk.total_chunks = len(chunks)
         
-        print(f"📦 Created {len(chunks)} chunks")
+        # Save each chunk to a file for debugging/inspection
+        for chunk in chunks:
+            chunk_filename = f"chunk_{chunk.chunk_id:02d}_endpoints.json"
+            try:
+                with open(chunk_filename, 'w', encoding='utf-8') as f:
+                    json.dump(chunk.dict(), f, indent=2, ensure_ascii=False)
+                print(f"💾 Saved chunk {chunk.chunk_id} to {chunk_filename}")
+            except Exception as e:
+                print(f"⚠️ Failed to save chunk {chunk.chunk_id}: {e}")
+        
+        print(f"📦 Created {len(chunks)} chunks with {endpoints_per_chunk} endpoints each (last chunk: {len(chunks[-1].endpoints) if chunks else 0} endpoints)")
         return chunks
     
-    @listen(chunk_endpoints)
-    def extract_chunks_parallel(self, chunks: List[ChunkData]) -> List[Dict[str, Any]]:
-        """Phase 3: Process chunks in parallel using multiple extractors."""
-        print(f"⚙️ Processing {len(chunks)} chunks in parallel")
+    # @listen(chunk_endpoints)
+    # def extract_chunks_parallel(self, chunks: List[ChunkData]) -> List[Dict[str, Any]]:
+    #     """Phase 3: Process chunks in parallel using multiple extractors."""
+    #     print(f"⚙️ Processing {len(chunks)} chunks in parallel")
         
-        if not chunks:
-            return []
+    #     if not chunks:
+    #         return []
         
-        extraction_results = []
+    #     extraction_results = []
         
-        # Process chunks (parallel in a real implementation)
-        for i, chunk in enumerate(chunks):
-            print(f"🔧 Processing chunk {chunk.chunk_id}/{chunk.total_chunks} ({len(chunk.endpoints)} endpoints)")
+    #     # Process chunks (parallel in a real implementation)
+    #     for i, chunk in enumerate(chunks):
+    #         print(f"🔧 Processing chunk {chunk.chunk_id}/{chunk.total_chunks} ({len(chunk.endpoints)} endpoints)")
             
-            # Create dynamic task for this chunk
-            chunk_description = f"""
-            Process API endpoint chunk {chunk.chunk_id} of {chunk.total_chunks}.
+    #         # Create dynamic task for this chunk
+    #         chunk_description = f"""
+    #         Process API endpoint chunk {chunk.chunk_id} of {chunk.total_chunks}.
             
-            Hostname: {chunk.hostname}
-            Endpoints to process: {len(chunk.endpoints)}
+    #         Hostname: {chunk.hostname}
+    #         Endpoints to process: {len(chunk.endpoints)}
             
-            Extract comprehensive information for these endpoints:
-            {json.dumps(chunk.endpoints, indent=2)}
+    #         Extract comprehensive information for these endpoints:
+    #         {json.dumps(chunk.endpoints, indent=2)}
             
-            For each endpoint, extract:
-            - Complete path and HTTP methods
-            - All parameters (required/optional)
-            - Authentication requirements
-            - Response schemas and examples
-            - Rate limits and usage patterns
-            """
+    #         For each endpoint, extract:
+    #         - Complete path and HTTP methods
+    #         - All parameters (required/optional)
+    #         - Authentication requirements
+    #         - Response schemas and examples
+    #         - Rate limits and usage patterns
+    #         """
             
-            # Use available extractor agent (round-robin)
-            extractor_agent = self.extractor_agents[i % len(self.extractor_agents)]
+    #         # Use available extractor agent (round-robin)
+    #         extractor_agent = self.extractor_agents[i % len(self.extractor_agents)]
             
-            chunk_task = Task(
-                description=chunk_description,
-                expected_output=self.extractor_task_config.get("expected_output"),
-                output_json=ApiLinkContentExtractorOutput,
-                async_execution=False,
-                agent=extractor_agent
-            )
+    #         chunk_task = Task(
+    #             description=chunk_description,
+    #             expected_output=self.extractor_task_config.get("expected_output"),
+    #             output_json=ApiLinkContentExtractorOutput,
+    #             async_execution=False,
+    #             agent=extractor_agent
+    #         )
             
-            # Create crew for this chunk
-            chunk_crew = Crew(
-                agents=[extractor_agent],
-                tasks=[chunk_task],
-                process=Process.sequential,
-                verbose=True
-            )
+    #         # Create crew for this chunk
+    #         chunk_crew = Crew(
+    #             agents=[extractor_agent],
+    #             tasks=[chunk_task],
+    #             process=Process.sequential,
+    #             verbose=True
+    #         )
             
-            # Execute extraction for this chunk
-            try:
-                chunk_result = chunk_crew.kickoff()
+    #         # Execute extraction for this chunk
+    #         try:
+    #             chunk_result = chunk_crew.kickoff()
                 
-                # Parse result
-                if hasattr(chunk_result, 'json_dict'):
-                    chunk_data = chunk_result.json_dict
-                elif isinstance(chunk_result, dict):
-                    chunk_data = chunk_result
-                else:
-                    try:
-                        chunk_data = json.loads(str(chunk_result))
-                    except:
-                        chunk_data = {"error": f"Could not parse chunk {chunk.chunk_id} result"}
+    #             # Parse result
+    #             if hasattr(chunk_result, 'json_dict'):
+    #                 chunk_data = chunk_result.json_dict
+    #             elif isinstance(chunk_result, dict):
+    #                 chunk_data = chunk_result
+    #             else:
+    #                 try:
+    #                     chunk_data = json.loads(str(chunk_result))
+    #                 except:
+    #                     chunk_data = {"error": f"Could not parse chunk {chunk.chunk_id} result"}
                 
-                extraction_results.append({
-                    "chunk_id": chunk.chunk_id,
-                    "endpoints_processed": len(chunk.endpoints),
-                    "data": chunk_data
-                })
+    #             extraction_results.append({
+    #                 "chunk_id": chunk.chunk_id,
+    #                 "endpoints_processed": len(chunk.endpoints),
+    #                 "data": chunk_data
+    #             })
                 
-                print(f"✅ Chunk {chunk.chunk_id} completed")
+    #             print(f"✅ Chunk {chunk.chunk_id} completed")
                 
-            except Exception as e:
-                print(f"❌ Error processing chunk {chunk.chunk_id}: {e}")
-                extraction_results.append({
-                    "chunk_id": chunk.chunk_id,
-                    "endpoints_processed": len(chunk.endpoints),
-                    "error": str(e)
-                })
+    #         except Exception as e:
+    #             print(f"❌ Error processing chunk {chunk.chunk_id}: {e}")
+    #             extraction_results.append({
+    #                 "chunk_id": chunk.chunk_id,
+    #                 "endpoints_processed": len(chunk.endpoints),
+    #                 "error": str(e)
+    #             })
         
-        return extraction_results
+    #     return extraction_results
     
-    @listen(extract_chunks_parallel)
-    def combine_results(self, extraction_results: List[Dict[str, Any]]) -> ExtractionResult:
-        """Phase 4: Combine all chunk results into final output."""
-        print(f"🔄 Combining results from {len(extraction_results)} chunks")
+    # @listen(extract_chunks_parallel)
+    # def combine_results(self, extraction_results: List[Dict[str, Any]]) -> ExtractionResult:
+    #     """Phase 4: Combine all chunk results into final output."""
+    #     print(f"🔄 Combining results from {len(extraction_results)} chunks")
         
-        # Get discovery data from flow state
-        discovery_data = self.state.get('discovery_phase', {}).get('discovery_data', {})
+    #     # Get discovery data from flow state
+    #     discovery_data = self.state.get('discovery_phase', {}).get('discovery_data', {})
         
-        total_processed = sum(
-            chunk.get('endpoints_processed', 0) 
-            for chunk in extraction_results
-        )
+    #     total_processed = sum(
+    #         chunk.get('endpoints_processed', 0) 
+    #         for chunk in extraction_results
+    #     )
         
-        final_result = ExtractionResult(
-            discovery=discovery_data,
-            extracted_chunks=extraction_results,
-            total_endpoints_processed=total_processed,
-            chunks_processed=len(extraction_results)
-        )
+    #     final_result = ExtractionResult(
+    #         discovery=discovery_data,
+    #         extracted_chunks=extraction_results,
+    #         total_endpoints_processed=total_processed,
+    #         chunks_processed=len(extraction_results)
+    #     )
         
-        print(f"✅ Flow completed: {total_processed} endpoints processed in {len(extraction_results)} chunks")
-        return final_result
+    #     print(f"✅ Flow completed: {total_processed} endpoints processed in {len(extraction_results)} chunks")
+    #     return final_result
 
 # Usage example
 if __name__ == "__main__":
     # Example usage
     flow = ApiExtractionFlow(
-        website_url="https://docs.github.com/en/rest",
-        num_extractors=3
+        website_url="https://docs.github.com/en/rest"
     )
     
     result = flow.kickoff()

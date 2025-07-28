@@ -14,7 +14,7 @@
       "ls": [
         {
           "t": "Quickstart",
-          "l": "/en/rest/quickstart"
+          "l": "/en/rest/guides/quickstart"
         }
       ]
     },
@@ -39,7 +39,7 @@
         },
         {
           "t": "OpenAPI description",
-          "l": "/en/rest/overview/openapi-description"
+          "l": "/en/rest/overview/about-the-openapi-description"
         }
       ]
     },
@@ -296,24 +296,15 @@
       ]
     },
     {
-      "n": "Campaigns",
-      "ls": [
-        {
-          "t": "Security campaigns",
-          "l": "/en/rest/security-advisories/security-campaigns"
-        }
-      ]
-    },
-    {
       "n": "Checks",
       "ls": [
         {
           "t": "Check runs",
-          "l": "/en/rest/checks/check-runs"
+          "l": "/en/rest/checks/runs"
         },
         {
           "t": "Check suites",
-          "l": "/en/rest/checks/check-suites"
+          "l": "/en/rest/checks/suites"
         }
       ]
     },
@@ -332,15 +323,10 @@
         {
           "t": "Code scanning",
           "l": "/en/rest/code-scanning/code-scanning"
-        }
-      ]
-    },
-    {
-      "n": "Code security settings",
-      "ls": [
+        },
         {
           "t": "Code security settings",
-          "l": "/en/rest/code-security/code-security-settings"
+          "l": "/en/rest/code-scanning/code-security-settings"
         }
       ]
     },
@@ -349,7 +335,7 @@
       "ls": [
         {
           "t": "Configurations",
-          "l": "/en/rest/codespaces/configurations"
+          "l": "/en/rest/code-security/configurations"
         }
       ]
     },
@@ -426,19 +412,19 @@
       "ls": [
         {
           "t": "Copilot metrics",
-          "l": "/en/rest/copilot/copilot-metrics"
+          "l": "/en/rest/copilot/metrics"
         },
         {
           "t": "Copilot user management",
-          "l": "/en/rest/copilot/copilot-user-management"
+          "l": "/en/rest/copilot/user-management"
         }
       ]
     },
     {
-      "n": "Credentials Revocation",
+      "n": "Credentials",
       "ls": [
         {
-          "t": "Credentials Revocation",
+          "t": "Revocation",
           "l": "/en/rest/credentials/revocation"
         }
       ]
@@ -464,35 +450,16 @@
       "n": "Dependency graph",
       "ls": [
         {
-          "t": "Dependency graph",
-          "l": "/en/rest/dependency-graph/dependency-graph"
-        }
-      ]
-    },
-    {
-      "n": "Dependency review",
-      "ls": [
-        {
           "t": "Dependency review",
-          "l": "/en/rest/dependency-review/dependency-review"
-        }
-      ]
-    },
-    {
-      "n": "Dependency submission",
-      "ls": [
+          "l": "/en/rest/dependency-graph/dependency-review"
+        },
         {
           "t": "Dependency submission",
-          "l": "/en/rest/dependency-submission/dependency-submission"
-        }
-      ]
-    },
-    {
-      "n": "Software bill of materials (SBOM)",
-      "ls": [
+          "l": "/en/rest/dependency-graph/dependency-submission"
+        },
         {
           "t": "Software bill of materials (SBOM)",
-          "l": "/en/rest/sbom/sbom"
+          "l": "/en/rest/dependency-graph/sbom"
         }
       ]
     },
@@ -510,7 +477,7 @@
       "ls": [
         {
           "t": "Deployment branch policies",
-          "l": "/en/rest/deployments/deployment-branch-policies"
+          "l": "/en/rest/deployments/branch-policies"
         },
         {
           "t": "Deployments",
@@ -751,7 +718,7 @@
         },
         {
           "t": "Organization roles",
-          "l": "/en/rest/orgs/organization-roles"
+          "l": "/en/rest/orgs/roles"
         },
         {
           "t": "Organizations",
@@ -952,6 +919,10 @@
         {
           "t": "Repository security advisories",
           "l": "/en/rest/security-advisories/repository-security-advisories"
+        },
+        {
+          "t": "Security campaigns",
+          "l": "/en/rest/security-advisories/security-campaigns"
         }
       ]
     },
