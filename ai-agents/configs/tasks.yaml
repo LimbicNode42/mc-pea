@@ -14,9 +14,6 @@ api_content_extraction:
   description: >
     Process the chunked endpoint data prepared by the orchestrator and extract comprehensive API endpoint information from ALL chunks. The orchestrator has partitioned the work into manageable chunks - process EVERY chunk systematically and extract detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns.
 
-    ORCHESTRATOR OUTPUT TO PROCESS:
-    {context_output}
-
     PROCESSING REQUIREMENTS:
     1. Extract hostname and chunks from the orchestrator output
     2. Process each chunk by visiting the endpoint URLs (combine hostname + endpoint path)

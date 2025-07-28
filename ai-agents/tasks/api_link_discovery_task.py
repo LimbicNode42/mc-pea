@@ -238,4 +238,5 @@ def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
             if title_field not in link or link_field not in link:
                 return False, f"Link {j} in category {i} missing required fields"
 
-    return True, f"Output is valid JSON: {len(categories)} categories with {total_links} total links"
+    # Return the actual parsed data instead of just a message
+    return True, data
