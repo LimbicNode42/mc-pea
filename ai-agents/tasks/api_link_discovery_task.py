@@ -5,11 +5,13 @@ This module contains task definitions that use the centralized task configuratio
 from configs/tasks.yaml, similar to how agents load their configuration.
 """
 
+import agentops
 from crewai import Task, TaskOutput
 from typing import Tuple, Any
 from core.task_config_loader import TaskConfigLoader
 from models.api_discovery_output import ApiLinkDiscoveryOutput
 
+# @agentops.task(name="api_link_discovery_task")
 class ApiLinkDiscoveryTask(Task):
   def __init__(self, website_url: str, depth: int = 3):
     # Load configuration from centralized config file
@@ -40,6 +42,7 @@ class ApiLinkDiscoveryTask(Task):
     # Store config data for later use
     self._config_data = config_data
 
+# @agentops.guardrail(name="api_link_discovery_task")
 def validate_blog_content(result: TaskOutput) -> Tuple[bool, Any]:
     """Validate the output of the ApiLinkDiscoveryTask to ensure it meets expectations.
     

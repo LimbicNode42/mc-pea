@@ -9,6 +9,7 @@ This agent specializes in web crawling and link discovery using MCP servers:
 """
 
 
+import agentops
 from dotenv import load_dotenv
 import os
 from crewai import Agent, LLM
@@ -16,6 +17,7 @@ from crewai_tools import ScrapeWebsiteTool
 from langchain_anthropic import ChatAnthropic
 from core.agent_workers_config_loader import AgentConfigLoader
 
+# @agentops.agent(name="api_link_discovery_agent")
 class ApiLinkDiscoveryAgent(Agent):
     """Agent responsible for discovering and cataloging API-related web links."""
 

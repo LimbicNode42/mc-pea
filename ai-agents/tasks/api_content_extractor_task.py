@@ -1,8 +1,10 @@
+import agentops
 from crewai import Task
 from core.task_config_loader import TaskConfigLoader
 from models.api_content_extractor_output import ApiLinkContentExtractorOutput
 from models.api_flow_models import ChunkData
 
+# @agentops.task(name="api_content_extractor_task")
 class ApiLinkContentExtractorTask(Task):
   def __init__(self, context: ChunkData):
     # Load configuration from centralized config file

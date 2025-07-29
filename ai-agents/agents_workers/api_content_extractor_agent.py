@@ -1,3 +1,4 @@
+import agentops
 from dotenv import load_dotenv
 import os
 from crewai import Agent, LLM
@@ -5,10 +6,11 @@ from crewai_tools import ScrapeWebsiteTool
 from langchain_anthropic import ChatAnthropic
 from core.agent_workers_config_loader import AgentConfigLoader
 
+# @agentops.agent(name="api_link_content_extractor_agent")
 class ApiLinkContentExtractorAgent(Agent):
     """Agent responsible for discovering and cataloging API-related web links."""
 
-    def __init__(self):
+    def __init__(self, agent_id: int = 0):
         load_dotenv()
 
         # Load configuration from centralized config file
@@ -45,10 +47,17 @@ class ApiLinkContentExtractorAgent(Agent):
             raise ValueError("Unsupported LLM type in configuration")
 
         scraper_tool = ScrapeWebsiteTool()
+
+        chunk_id = agent_id
+
+        role_template = config_data.get("role")
+        if not role_template:
+            raise ValueError("No role found in task configuration")
         
+        role = role_template.format(chunk_id=chunk_id)
         # Initialize the CrewAI Agent with the loaded configuration
         super().__init__(
-            role=config_data.get("role"),
+            role=role,
             goal=config_data.get("goal"),
             backstory=config_data.get("backstory"),
             llm=llm,
