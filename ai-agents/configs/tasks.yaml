@@ -12,18 +12,11 @@ api_link_discovery:
 
 api_content_extraction:
   description: >
-    Process the chunked endpoint data prepared by the orchestrator and extract comprehensive API endpoint information from ALL chunks. The orchestrator has partitioned the work into manageable chunks - process EVERY chunk systematically and extract detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns.
+    Comprehensively process the below json fetching the webpages from the "url" fields and extract comprehensive API endpoint usage information from EVERY page. Generate detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.
 
-    PROCESSING REQUIREMENTS:
-    1. Extract hostname and chunks from the orchestrator output
-    2. Process each chunk by visiting the endpoint URLs (combine hostname + endpoint path)
-    3. Extract comprehensive endpoint information following the exact schema
-    4. Merge all chunk results back into the final category structure
-    5. Maintain original ordering and completeness from discovery task
-
-    Use your process_chunk tool to handle each individual chunk systematically.
+    {chunk}
   expected_output: >
-    A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns assembled from processing all orchestrator chunks. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output must conform exactly to ApiLinkContentExtractorOutput schema with categories (ocs) containing complete endpoint details (ces).
+    A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output should be verbose and exhaustive, covering every aspect of API usage discovered across all provided URLs.
   agent: >
     ApiLinkContentExtractorAgent
   async_execution: False

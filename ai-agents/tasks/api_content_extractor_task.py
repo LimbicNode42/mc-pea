@@ -1,17 +1,10 @@
-"""
-Information Gathering Tasks
-
-This module contains task definitions that use the centralized task configuration
-from configs/tasks.yaml, similar to how agents load their configuration.
-"""
-
 from crewai import Task
-from typing import List
 from core.task_config_loader import TaskConfigLoader
 from models.api_content_extractor_output import ApiLinkContentExtractorOutput
+from models.api_flow_models import ChunkData
 
 class ApiLinkContentExtractorTask(Task):
-  def __init__(self):
+  def __init__(self, context: ChunkData):
     # Load configuration from centralized config file
     task_loader = TaskConfigLoader()
     config_data = task_loader.get_task_config("api_content_extraction")
@@ -20,15 +13,19 @@ class ApiLinkContentExtractorTask(Task):
     description_template = config_data.get("description")
     if not description_template:
         raise ValueError("No description found in task configuration")
+
+    # Format the description template with context output
+    formatted_description = description_template.format(
+        chunk=context.endpoints
+    )
     
     super().__init__(
-        description=config_data.get("description"),
+        description=formatted_description,
         expected_output=config_data.get("expected_output"),
         async_execution=config_data.get("async_execution"),
         output_json=ApiLinkContentExtractorOutput,
         markdown=config_data.get("markdown"),
-        output_file=config_data.get("output_file"),
     )
-    
+
     # Store config data for later use
     self._config_data = config_data
