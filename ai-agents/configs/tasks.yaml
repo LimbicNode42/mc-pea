@@ -12,11 +12,16 @@ api_link_discovery:
 
 api_content_extraction:
   description: >
-    Comprehensively process the below json fetching the webpages from the "url" fields and extract comprehensive API endpoint usage information from EVERY page. Generate detailed structured data for ALL endpoints including paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.
-
-    {chunk}
+    Parse each URL in the provided JSON and extract API endpoint details. For each URL, identify:
+    1. HTTP methods (GET, POST, PUT, DELETE, etc.)
+    2. API paths/endpoints
+    3. Parameters (path, query, body, headers)
+    4. Authentication requirements
+    5. Response codes and formats
+    
+    Output structured JSON matching the ApiLinkContentExtractorOutput schema.
   expected_output: >
-    A comprehensive, detailed dataset of ALL API endpoint information covering complete paths, methods, parameters, authentication, responses, examples, and usage patterns. Generate extensive structured output with maximum detail for each endpoint. Include comprehensive metadata, cross-references, implementation guidance, and thorough documentation that serves as a complete API reference. Output should be verbose and exhaustive, covering every aspect of API usage discovered across all provided URLs.
+    Valid JSON with structure: {"ocs": [{"cn": "category_name", "cd": "category_desc", "ces": [{"en": "endpoint_name", "ed": "description", "em": "HTTP_METHOD", "ep": "/api/path", "eh": [], "epp": [], "eqp": [], "ebp": [], "erc": {}, "ere": {}}]}]}. Include all discovered endpoints with complete parameter details.
   agent: >
     ApiLinkContentExtractorAgent
   async_execution: False

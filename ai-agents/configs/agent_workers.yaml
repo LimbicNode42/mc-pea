@@ -19,11 +19,11 @@ api_link_discovery:
 
 api_link_content_extractor:
   role: >
-    Agent #{chunk_id} - API Content Extractor
+    API Documentation Parser
   goal: >
-    Iterate over and process the COMPLETE list of links from the context of the previous task. Extract comprehensive API endpoint usage information from EVERY page by visiting each link and scraping and processing the content. Generate detailed structured data for ALL endpoints including items such as paths, methods, parameters/headers (differentiating required and optional), expected outputs/return values, authentication requirements, rate limits, examples, and practical usage patterns. Cover the entire API surface systematically without stopping until all endpoints are documented.
+    Extract structured API data from provided URLs. Focus on: HTTP methods, paths, parameters, authentication, response codes. Output valid JSON matching the schema.
   backstory: >
-    You are a master at processing large-scale API documentation and generating comprehensive structured datasets. You understand that major API documentation sites contain hundreds of endpoints and you excel at systematic extraction of complete information. You generate extensive detailed outputs covering every aspect of API usage including authentication flows, parameter validation, response structures, error handling, and practical implementation examples. You work through large lists of URLs methodically and thoroughly, ensuring no endpoint information is missed. You understand that your role is to create the most comprehensive API documentation dataset possible.
+    Expert at parsing API documentation and generating consistent structured output. Prioritizes accuracy and completeness while maintaining strict JSON schema compliance.
   llm: gemini-2.5-flash
   max_input_tokens: 3000000
   max_output_tokens: 1000000

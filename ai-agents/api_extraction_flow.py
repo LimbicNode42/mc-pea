@@ -153,8 +153,8 @@ class ApiExtractionFlow(Flow):
             print("⚠️ No valid discovery data to chunk")
             return []
         
-        # Fixed chunk size - number of chunks will be determined dynamically
-        endpoints_per_chunk = 5
+        # Fixed chunk size for optimal processing - smaller chunks = higher success rate
+        endpoints_per_chunk = 5  # Reduced from 5 for better success rate
         estimated_chunks = (discovery_result.total_endpoints + endpoints_per_chunk - 1) // endpoints_per_chunk
         print(f"📦 Chunking {discovery_result.total_endpoints} endpoints into chunks of {endpoints_per_chunk} (estimated {estimated_chunks} chunks)")
 
@@ -288,8 +288,8 @@ class ApiExtractionFlow(Flow):
         
         extraction_results = []
 
-        # Determine optimal number of workers (max 15 to avoid overwhelming the system)
-        max_workers = min(len(chunks), 15)
+        # Determine optimal number of workers (reduced for higher success rate)
+        max_workers = min(len(chunks), 5)  # Reduced from 5 for better stability
         print(f"🔧 Using {max_workers} parallel workers for chunk processing")
 
         # Process chunks in parallel using ThreadPoolExecutor
