@@ -256,10 +256,18 @@ def display_endpoint_selection():
         if total_selected > 0:
             st.success(f"You have selected {total_selected} endpoints across {len([cat for cat, eps in st.session_state.selected_endpoints.items() if eps])} categories.")
             
-            # Show selected endpoints by category
+            # Show selected endpoints by category with remove buttons
             for category, selected_paths in st.session_state.selected_endpoints.items():
                 if selected_paths:
-                    st.markdown(f"**{category}:** {len(selected_paths)} endpoints")
+                    # Category header with remove all button
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.markdown(f"**{category}:** {len(selected_paths)} endpoints")
+                    with col2:
+                        remove_category_key = f"remove_category_{category}"
+                        if st.button("🗑️ All", key=remove_category_key, help=f"Remove all {category} endpoints"):
+                            st.session_state.selected_endpoints[category] = []
+                            st.rerun()
                     
                     # Find the endpoints in chunks to get title and URL
                     for chunk in st.session_state.chunks:
@@ -268,7 +276,22 @@ def display_endpoint_selection():
                                 endpoint['endpoint']['path'] in selected_paths):
                                 title = endpoint['endpoint']['title']
                                 url = endpoint['endpoint']['url']
-                                st.markdown(f"  - **{title}** - {url}")
+                                path = endpoint['endpoint']['path']
+                                
+                                # Create a row with endpoint info and remove button
+                                col1, col2 = st.columns([4, 1])
+                                with col1:
+                                    st.markdown(f"  - **{title}** - {url}")
+                                with col2:
+                                    remove_key = f"remove_{category}_{path}"
+                                    if st.button("🗑️", key=remove_key, help=f"Remove {title}"):
+                                        # Remove this endpoint from selection
+                                        if path in st.session_state.selected_endpoints[category]:
+                                            st.session_state.selected_endpoints[category].remove(path)
+                                        # Clean up empty categories
+                                        if not st.session_state.selected_endpoints[category]:
+                                            st.session_state.selected_endpoints[category] = []
+                                        st.rerun()
             
             # Next steps
             st.header("🚀 Next Steps")
