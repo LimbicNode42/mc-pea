@@ -1,14 +1,12 @@
 import agentops
 from crewai import Task, TaskOutput
-from typing import Tuple, Any
+from typing import Tuple, Any, Dict
 from core.task_config_loader import TaskConfigLoader
 from models.api_content_extractor_output_v2 import ApiContentExtractorOutput
-from models.api_flow_models import ChunkData
-from utils.schema_helpers import get_schema_prompt
 
 # @agentops.task(name="api_content_extractor_task")
 class ApiLinkContentExtractorTask(Task):
-    def __init__(self, context: ChunkData):
+    def __init__(self, context: Dict[str, Any]):
         # Load configuration from centralized config file
         task_loader = TaskConfigLoader()
         config_data = task_loader.get_task_config("api_content_extraction")
@@ -17,16 +15,27 @@ class ApiLinkContentExtractorTask(Task):
         description_template = config_data.get("description")
         if not description_template:
             raise ValueError("No description found in task configuration")
-
-        # Add schema guidance to description
-        schema_guidance = get_schema_prompt()
         
-        # Convert endpoints to string safely for description
+        # Convert context to string safely for description
         import json
-        endpoints_str = json.dumps(context.endpoints, indent=2)
+        try:
+            json_context = json.dumps(context)
+        except TypeError as e:
+            print(f"❌ JSON serialization error: {e}")
+            print(f"❌ Context type: {type(context)}")
+            print(f"❌ Context keys: {context.keys() if isinstance(context, dict) else 'Not a dict'}")
+            # Try to identify which part is not serializable
+            for key, value in context.items():
+                try:
+                    json.dumps(value)
+                except TypeError:
+                    print(f"❌ Non-serializable value for key '{key}': {type(value)}")
+            raise
         
-        # Build description without using .format() to avoid brace conflicts
-        formatted_description = f"{description_template}\n\nInput JSON: {endpoints_str}\n\n{schema_guidance}"
+        # Format the description template with context output
+        formatted_description = description_template.format(
+            chunk=json_context
+        )
         
         super().__init__(
             description=formatted_description,

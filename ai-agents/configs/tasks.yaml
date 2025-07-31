@@ -12,12 +12,14 @@ api_link_discovery:
 
 api_content_extraction:
   description: >
-    Parse each URL in the provided JSON and extract API endpoint details. For each URL, identify:
+    Parse each URL from the below input JSON and extract API endpoint details. For each URL, identify:
     1. HTTP methods (GET, POST, PUT, DELETE, etc.)
     2. API paths/endpoints
     3. Parameters (path, query, body, headers)
     4. Authentication requirements
     5. Response codes and formats
+
+    Input: {chunk}
     
     Output structured JSON matching the ApiLinkContentExtractorOutput schema.
   expected_output: >

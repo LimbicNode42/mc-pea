@@ -336,42 +336,99 @@ def extract_selected_endpoints():
         # Get the flow instance
         flow = ApiExtractionFlow(website_url=st.session_state.url)
         
-        # Process selected endpoints using the new chunking method
-        with st.status("🔄 Processing selected endpoints...", expanded=True) as status:
-            st.write("Creating chunks from your selected endpoints...")
+        # Run the complete extraction workflow
+        with st.status("� Extracting API Usage Examples...", expanded=True) as status:
+            st.write("Phase 1: Creating chunks from your selected endpoints...")
             
-            # Create chunks from selected endpoints only
-            chunks = flow.process_selected_endpoints(
+            # Get total selected count for progress tracking
+            total_selected = sum(len(paths) for paths in st.session_state.selected_endpoints.values())
+            st.write(f"Processing {total_selected} selected endpoints...")
+            
+            status.update(label="🔄 Phase 2: Processing chunks in parallel...", state="running")
+            st.write("Running AI agents to extract API usage examples...")
+            st.write("This may take several minutes depending on the number of endpoints...")
+            
+            # Run the full extraction workflow
+            extraction_results = flow.extract_selected_endpoints_full(
                 st.session_state.discovery_result, 
                 st.session_state.selected_endpoints
             )
             
-            if not chunks:
-                st.error("❌ No chunks could be created from selected endpoints")
+            if not extraction_results:
+                st.error("❌ No results could be extracted")
                 return
             
-            st.write(f"✅ Created {len(chunks)} chunks for processing")
-            status.update(label="✅ Processing Setup Complete", state="complete")
+            st.write(f"✅ Completed processing {len(extraction_results)} chunks!")
+            status.update(label="✅ Extraction Complete!", state="complete")
         
-        # Store the chunks for potential future processing
-        st.session_state.processing_chunks = chunks
+        # Store the results in session state
+        st.session_state.extraction_results = extraction_results
         
-        st.success(f"🎉 Ready to process {len(chunks)} chunks containing your selected endpoints!")
-        st.info("💡 Next phase: API usage extraction will process these chunks to generate usage examples.")
+        # Calculate statistics
+        total_endpoints_processed = sum(r.get('endpoints_processed', 0) for r in extraction_results)
+        successful_chunks = len([r for r in extraction_results if 'error' not in r])
+        failed_chunks = len([r for r in extraction_results if 'error' in r])
         
-        # Show chunk details
-        with st.expander("📋 Chunk Details", expanded=False):
-            for chunk in chunks:
-                categories_in_chunk = set(ep['category'] for ep in chunk.endpoints)
-                st.markdown(f"**Chunk {chunk.chunk_id}:** {len(chunk.endpoints)} endpoints from {len(categories_in_chunk)} categories")
-                st.markdown(f"  - Categories: {', '.join(categories_in_chunk)}")
-                
-                # Show endpoints in this chunk
-                for ep in chunk.endpoints:
-                    st.markdown(f"    • {ep['endpoint']['title']} ({ep['category']})")
+        # Display results summary
+        st.success(f"🎉 Extraction Complete!")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Endpoints Processed", total_endpoints_processed)
+        with col2:
+            st.metric("Successful Chunks", successful_chunks)
+        with col3:
+            st.metric("Failed Chunks", failed_chunks, delta=None if failed_chunks == 0 else f"-{failed_chunks}")
+        
+        # Show detailed results
+        st.header("📊 Extraction Results")
+        
+        # Show successful results
+        if successful_chunks > 0:
+            st.subheader("✅ Successful Extractions")
+            
+            for result in extraction_results:
+                if 'error' not in result:
+                    with st.expander(f"Chunk {result['chunk_id']} - {result['endpoints_processed']} endpoints", expanded=False):
+                        st.write(f"**Thread ID:** {result.get('thread_id', 'Unknown')}")
+                        
+                        # Show a preview of the extracted data structure
+                        if 'data' in result and result['data']:
+                            # Show just the keys/structure, not full data
+                            if isinstance(result['data'], dict):
+                                st.write(f"**Data Keys:** {list(result['data'].keys())}")
+                                
+                                # Show a small sample if it's a reasonable size
+                                data_str = str(result['data'])
+                                if len(data_str) < 500:
+                                    st.json(result['data'])
+                                else:
+                                    st.write("**Data Summary:** Large extraction result (preview truncated)")
+                            else:
+                                st.write(f"**Data Type:** {type(result['data'])}")
+        
+        # Show failures if any
+        if failed_chunks > 0:
+            st.subheader("❌ Failed Extractions")
+            
+            for result in extraction_results:
+                if 'error' in result:
+                    with st.expander(f"Chunk {result['chunk_id']} - ERROR", expanded=False):
+                        st.error(f"Error: {result['error']}")
+                        st.write(f"**Endpoints affected:** {result.get('endpoints_processed', 'Unknown')}")
+        
+        # Show processing summary
+        st.header("� Processing Summary")
+        if successful_chunks > 0:
+            st.success(f"✅ Successfully extracted API usage examples from {successful_chunks} chunks containing {total_endpoints_processed} endpoints")
+        
+        if failed_chunks > 0:
+            st.warning(f"⚠️ {failed_chunks} chunks failed to process. See details above.")
+        
+        st.info("💡 The extraction results contain API usage examples, code samples, and documentation for your selected endpoints.")
         
     except Exception as e:
-        st.error(f"Failed to process selected endpoints: {str(e)}")
+        st.error(f"Failed to extract API usage: {str(e)}")
         st.exception(e)
 
 
