@@ -8,7 +8,7 @@ api_link_discovery:
   async_execution: True
   # The following are for test purposes
   markdown: False
-  output_file: api_link_discovery_output.json
+  # output_file: api_link_discovery_output.json
 
 api_content_extraction:
   description: >
@@ -28,7 +28,7 @@ api_content_extraction:
   context: >
     api_orchestrator
   # The following are for test purposes
-  # markdown: True
-  output_file: api_link_content_extractor_output.json
+  markdown: False
+  # output_file: api_link_content_extractor_output.json
 
   api_content_collection:

@@ -21,8 +21,8 @@ from typing import List, Dict, Any
 from models.api_flow_models import DiscoveryResult, ChunkData, ExtractionResult
 import agentops
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
+# from concurrent.futures import ThreadPoolExecutor, as_completed  # Commented out for now
+# import threading  # Commented out for now
 
 class ApiExtractionFlow(Flow):
     """
@@ -201,136 +201,126 @@ class ApiExtractionFlow(Flow):
         for chunk in chunks:
             chunk.total_chunks = len(chunks)
         
-        # Save each chunk to a file for debugging/inspection
-        for chunk in chunks:
-            chunk_filename = f"chunk_{chunk.chunk_id:02d}_endpoints.json"
-            try:
-                with open(chunk_filename, 'w', encoding='utf-8') as f:
-                    json.dump(chunk.model_dump(), f, indent=2, ensure_ascii=False)
-                print(f"💾 Saved chunk {chunk.chunk_id} to {chunk_filename}")
-            except Exception as e:
-                print(f"⚠️ Failed to save chunk {chunk.chunk_id}: {e}")
-        
         print(f"📦 Created {len(chunks)} chunks with {endpoints_per_chunk} endpoints each (last chunk: {len(chunks[-1].endpoints) if chunks else 0} endpoints)")
         return chunks
     
-    # @agentops.operation
-    def _process_single_chunk(self, chunk: ChunkData) -> Dict[str, Any]:
-        """Process a single chunk in isolation for parallel execution."""
-        thread_id = threading.get_ident()
-        print(f"🔧 [Thread {thread_id}] Processing chunk {chunk.chunk_id}/{chunk.total_chunks} ({len(chunk.endpoints)} endpoints)")
-        
-        try:
-            chunk_agent = ApiLinkContentExtractorAgent(agent_id=chunk.chunk_id)
-            
-            chunk_task = ApiLinkContentExtractorTask(
-                context=chunk
-            )
-            chunk_task.agent = chunk_agent
-            
-            # Create crew for this chunk with session context
-            chunk_crew = Crew(
-                agents=[chunk_agent],
-                tasks=[chunk_task],
-                process=Process.sequential,
-                verbose=False  # Reduced verbosity for parallel processing
-            )
-            
-            # Execute extraction for this chunk
-            chunk_result = chunk_crew.kickoff()
-            
-            # Parse result
-            if hasattr(chunk_result, 'json_dict'):
-                chunk_data = chunk_result.json_dict
-            elif isinstance(chunk_result, dict):
-                chunk_data = chunk_result
-            else:
-                try:
-                    chunk_data = json.loads(str(chunk_result))
-                except:
-                    chunk_data = {"error": f"Could not parse chunk {chunk.chunk_id} result"}
-            
-            # Save chunk result to file
-            chunk_filename = f"chunk_{chunk.chunk_id:02d}_api_usage.json"
-            try:
-                with open(chunk_filename, 'w', encoding='utf-8') as f:
-                    json.dump(chunk_data, f, indent=2, ensure_ascii=False)
-                print(f"💾 [Thread {thread_id}] Saved chunk {chunk.chunk_id} to {chunk_filename}")
-            except Exception as e:
-                print(f"⚠️ [Thread {thread_id}] Failed to save chunk {chunk.chunk_id}: {e}")
-            
-            print(f"✅ [Thread {thread_id}] Chunk {chunk.chunk_id} completed")
-            
-            return {
-                "chunk_id": chunk.chunk_id,
-                "endpoints_processed": len(chunk.endpoints),
-                "data": chunk_data,
-                "thread_id": thread_id
-            }
-            
-        except Exception as e:
-            print(f"❌ [Thread {thread_id}] Error processing chunk {chunk.chunk_id}: {e}")
-            return {
-                "chunk_id": chunk.chunk_id,
-                "endpoints_processed": len(chunk.endpoints),
-                "error": str(e),
-                "thread_id": thread_id
-            }
+    # # @agentops.operation
+    # def _process_single_chunk(self, chunk: ChunkData) -> Dict[str, Any]:
+    #     """Process a single chunk in isolation for parallel execution."""
+    #     thread_id = threading.get_ident()
+    #     print(f"🔧 [Thread {thread_id}] Processing chunk {chunk.chunk_id}/{chunk.total_chunks} ({len(chunk.endpoints)} endpoints)")
+    #     
+    #     try:
+    #         chunk_agent = ApiLinkContentExtractorAgent(agent_id=chunk.chunk_id)
+    #         
+    #         chunk_task = ApiLinkContentExtractorTask(
+    #             context=chunk
+    #         )
+    #         chunk_task.agent = chunk_agent
+    #         
+    #         # Create crew for this chunk with session context
+    #         chunk_crew = Crew(
+    #             agents=[chunk_agent],
+    #             tasks=[chunk_task],
+    #             process=Process.sequential,
+    #             verbose=False  # Reduced verbosity for parallel processing
+    #         )
+    #         
+    #         # Execute extraction for this chunk
+    #         chunk_result = chunk_crew.kickoff()
+    #         
+    #         # Parse result
+    #         if hasattr(chunk_result, 'json_dict'):
+    #             chunk_data = chunk_result.json_dict
+    #         elif isinstance(chunk_result, dict):
+    #             chunk_data = chunk_result
+    #         else:
+    #             try:
+    #                 chunk_data = json.loads(str(chunk_result))
+    #             except:
+    #                 chunk_data = {"error": f"Could not parse chunk {chunk.chunk_id} result"}
+    #         
+    #         # Save chunk result to file
+    #         chunk_filename = f"chunk_{chunk.chunk_id:02d}_api_usage.json"
+    #         try:
+    #             with open(chunk_filename, 'w', encoding='utf-8') as f:
+    #                 json.dump(chunk_data, f, indent=2, ensure_ascii=False)
+    #             print(f"💾 [Thread {thread_id}] Saved chunk {chunk.chunk_id} to {chunk_filename}")
+    #         except Exception as e:
+    #             print(f"⚠️ [Thread {thread_id}] Failed to save chunk {chunk.chunk_id}: {e}")
+    #         
+    #         print(f"✅ [Thread {thread_id}] Chunk {chunk.chunk_id} completed")
+    #         
+    #         return {
+    #             "chunk_id": chunk.chunk_id,
+    #             "endpoints_processed": len(chunk.endpoints),
+    #             "data": chunk_data,
+    #             "thread_id": thread_id
+    #         }
+    #         
+    #     except Exception as e:
+    #         print(f"❌ [Thread {thread_id}] Error processing chunk {chunk.chunk_id}: {e}")
+    #         return {
+    #             "chunk_id": chunk.chunk_id,
+    #             "endpoints_processed": len(chunk.endpoints),
+    #             "error": str(e),
+    #             "thread_id": thread_id
+    #         }
     
-    @listen(chunk_endpoints)
-    # @agentops.operation
-    def extract_chunks_parallel(self, chunks: List[ChunkData]) -> List[Dict[str, Any]]:
-        """Phase 3: Process chunks in TRUE parallel using ThreadPoolExecutor."""
-        print(f"⚙️ Processing {len(chunks)} chunks in TRUE parallel mode")
-        
-        if not chunks:
-            return []
-        
-        extraction_results = []
+    # @listen(chunk_endpoints)
+    # # @agentops.operation
+    # def extract_chunks_parallel(self, chunks: List[ChunkData]) -> List[Dict[str, Any]]:
+    #     """Phase 3: Process chunks in TRUE parallel using ThreadPoolExecutor."""
+    #     print(f"⚙️ Processing {len(chunks)} chunks in TRUE parallel mode")
+    #     
+    #     if not chunks:
+    #         return []
+    #     
+    #     extraction_results = []
 
-        # Determine optimal number of workers (reduced for higher success rate)
-        max_workers = min(len(chunks), 5)  # Reduced from 5 for better stability
-        print(f"🔧 Using {max_workers} parallel workers for chunk processing")
+    #     # Determine optimal number of workers (reduced for higher success rate)
+    #     max_workers = min(len(chunks), 5)  # Reduced from 5 for better stability
+    #     print(f"🔧 Using {max_workers} parallel workers for chunk processing")
 
-        # Process chunks in parallel using ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all chunks for processing
-            future_to_chunk = {
-                executor.submit(self._process_single_chunk, chunk): chunk 
-                for chunk in chunks
-            }
-            
-            print(f"🚀 Submitted {len(future_to_chunk)} chunks for parallel processing")
-            submitted_chunk_ids = [chunk.chunk_id for chunk in chunks]
-            print(f"🔍 Submitted chunk IDs: {sorted(submitted_chunk_ids)}")
-            
-            # Collect results as they complete
-            for future in as_completed(future_to_chunk):
-                chunk = future_to_chunk[future]
-                try:
-                    result = future.result()
-                    extraction_results.append(result)
-                    print(f"📊 Completed chunk {result['chunk_id']} (Total completed: {len(extraction_results)}/{len(chunks)})")
-                except Exception as e:
-                    print(f"❌ Exception in chunk {chunk.chunk_id}: {e}")
-                    extraction_results.append({
-                        "chunk_id": chunk.chunk_id,
-                        "endpoints_processed": len(chunk.endpoints),
-                        "error": f"Future exception: {str(e)}"
-                    })
-        
-        # Sort results by chunk_id to maintain order
-        extraction_results.sort(key=lambda x: x['chunk_id'])
-        
-        # Check for missing chunks
-        processed_chunk_ids = [r['chunk_id'] for r in extraction_results]
-        missing_chunks = set(submitted_chunk_ids) - set(processed_chunk_ids)
-        if missing_chunks:
-            print(f"⚠️ Missing chunks detected: {sorted(missing_chunks)}")
-        
-        print(f"🎉 All {len(extraction_results)} chunks processed in parallel!")
-        print(f"📋 Processed chunk IDs: {sorted(processed_chunk_ids)}")
-        return extraction_results
+    #     # Process chunks in parallel using ThreadPoolExecutor
+    #     with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    #         # Submit all chunks for processing
+    #         future_to_chunk = {
+    #             executor.submit(self._process_single_chunk, chunk): chunk 
+    #             for chunk in chunks
+    #         }
+    #         
+    #         print(f"🚀 Submitted {len(future_to_chunk)} chunks for parallel processing")
+    #         submitted_chunk_ids = [chunk.chunk_id for chunk in chunks]
+    #         print(f"🔍 Submitted chunk IDs: {sorted(submitted_chunk_ids)}")
+    #         
+    #         # Collect results as they complete
+    #         for future in as_completed(future_to_chunk):
+    #             chunk = future_to_chunk[future]
+    #             try:
+    #                 result = future.result()
+    #                 extraction_results.append(result)
+    #                 print(f"📊 Completed chunk {result['chunk_id']} (Total completed: {len(extraction_results)}/{len(chunks)})")
+    #             except Exception as e:
+    #                 print(f"❌ Exception in chunk {chunk.chunk_id}: {e}")
+    #                 extraction_results.append({
+    #                     "chunk_id": chunk.chunk_id,
+    #                     "endpoints_processed": len(chunk.endpoints),
+    #                     "error": f"Future exception: {str(e)}"
+    #                 })
+    #     
+    #     # Sort results by chunk_id to maintain order
+    #     extraction_results.sort(key=lambda x: x['chunk_id'])
+    #     
+    #     # Check for missing chunks
+    #     processed_chunk_ids = [r['chunk_id'] for r in extraction_results]
+    #     missing_chunks = set(submitted_chunk_ids) - set(processed_chunk_ids)
+    #     if missing_chunks:
+    #         print(f"⚠️ Missing chunks detected: {sorted(missing_chunks)}")
+    #     
+    #     print(f"🎉 All {len(extraction_results)} chunks processed in parallel!")
+    #     print(f"📋 Processed chunk IDs: {sorted(processed_chunk_ids)}")
+    #     return extraction_results
     
     # @listen(extract_chunks_parallel)
     # def combine_results(self, extraction_results: List[Dict[str, Any]]) -> ExtractionResult:
