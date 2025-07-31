@@ -130,10 +130,8 @@ class ApiExtractionFlow(Flow):
             total_endpoints=total_endpoints
         )
     
-    @listen(discovery_phase)
-    # @agentops.operation
-    def chunk_endpoints(self, discovery_result: DiscoveryResult) -> List[ChunkData]:
-        """Phase 2: Split endpoints into manageable chunks."""
+    def chunk_selected_endpoints(self, discovery_result: DiscoveryResult, selected_endpoints: Dict[str, List[str]]) -> List[ChunkData]:
+        """Phase 2b: Split only user-selected endpoints into manageable chunks for processing."""
         
         discovery_data = discovery_result.discovery_data
         
@@ -142,52 +140,63 @@ class ApiExtractionFlow(Flow):
         parsed_url = urlparse(self.website_url)
         hostname = parsed_url.netloc
         
-        categories = None
-
-        if 'cs' in discovery_data:
-            # New format from current discovery agent
-            categories = discovery_data['cs']
-            category_key = 'ls'  # links
-            endpoint_key = 'l'   # link
-        else:
+        if 'cs' not in discovery_data:
             print("⚠️ No valid discovery data to chunk")
             return []
         
-        # Fixed chunk size for optimal processing - smaller chunks = higher success rate
-        endpoints_per_chunk = 5  # Reduced from 5 for better success rate
-        estimated_chunks = (discovery_result.total_endpoints + endpoints_per_chunk - 1) // endpoints_per_chunk
-        print(f"📦 Chunking {discovery_result.total_endpoints} endpoints into chunks of {endpoints_per_chunk} (estimated {estimated_chunks} chunks)")
+        categories = discovery_data['cs']
+        category_key = 'ls'  # links
+        
+        # Count total selected endpoints
+        total_selected = sum(len(paths) for paths in selected_endpoints.values())
+        print(f"🎯 Processing user selection: {total_selected} endpoints across {len(selected_endpoints)} categories")
+        
+        # Fixed chunk size for optimal processing
+        endpoints_per_chunk = 5
+        estimated_chunks = (total_selected + endpoints_per_chunk - 1) // endpoints_per_chunk
+        print(f"📦 Chunking {total_selected} selected endpoints into chunks of {endpoints_per_chunk} (estimated {estimated_chunks} chunks)")
 
         chunks = []
         current_chunk_endpoints = []
         current_size = 0
         
+        # Process only selected endpoints
         for category in categories:
             category_name = category.get('n', category.get('name', 'Unknown'))
             
+            # Skip categories that weren't selected
+            if category_name not in selected_endpoints or not selected_endpoints[category_name]:
+                continue
+                
+            selected_paths_for_category = selected_endpoints[category_name]
+            
             for endpoint in category.get(category_key, []):
-                # Normalize endpoint format
-                endpoint_data = {
-                    'category': category_name,
-                    'endpoint': {
-                        'title': endpoint.get('t', ''),
-                        'path': endpoint.get('l', ''),
-                        'url': f"https://{hostname}{endpoint.get('l', '')}"
+                endpoint_path = endpoint.get('l', '')
+                
+                # Only include endpoints that were selected by the user
+                if endpoint_path in selected_paths_for_category:
+                    # Normalize endpoint format
+                    endpoint_data = {
+                        'category': category_name,
+                        'endpoint': {
+                            'title': endpoint.get('t', ''),
+                            'path': endpoint_path,
+                            'url': f"https://{hostname}{endpoint_path}"
+                        }
                     }
-                }
-                
-                current_chunk_endpoints.append(endpoint_data)
-                current_size += 1
-                
-                # Create chunk when we reach the target size
-                if current_size >= endpoints_per_chunk:
-                    chunks.append(ChunkData(
-                        chunk_id=len(chunks) + 1,
-                        endpoints=current_chunk_endpoints.copy(),
-                        total_chunks=0  # Will be updated after all chunks are created
-                    ))
-                    current_chunk_endpoints = []
-                    current_size = 0
+                    
+                    current_chunk_endpoints.append(endpoint_data)
+                    current_size += 1
+                    
+                    # Create chunk when we reach the target size
+                    if current_size >= endpoints_per_chunk:
+                        chunks.append(ChunkData(
+                            chunk_id=len(chunks) + 1,
+                            endpoints=current_chunk_endpoints.copy(),
+                            total_chunks=0  # Will be updated after all chunks are created
+                        ))
+                        current_chunk_endpoints = []
+                        current_size = 0
         
         # Add final chunk if there are remaining endpoints
         if current_chunk_endpoints:
@@ -201,7 +210,35 @@ class ApiExtractionFlow(Flow):
         for chunk in chunks:
             chunk.total_chunks = len(chunks)
         
-        print(f"📦 Created {len(chunks)} chunks with {endpoints_per_chunk} endpoints each (last chunk: {len(chunks[-1].endpoints) if chunks else 0} endpoints)")
+        print(f"📦 Created {len(chunks)} chunks from selected endpoints with {endpoints_per_chunk} endpoints each (last chunk: {len(chunks[-1].endpoints) if chunks else 0} endpoints)")
+        
+        # Log chunk details for verification
+        for chunk in chunks:
+            categories_in_chunk = set(ep['category'] for ep in chunk.endpoints)
+            print(f"   Chunk {chunk.chunk_id}: {len(chunk.endpoints)} endpoints from {len(categories_in_chunk)} categories: {', '.join(categories_in_chunk)}")
+        
+        return chunks
+    
+    def process_selected_endpoints(self, discovery_result: DiscoveryResult, selected_endpoints: Dict[str, List[str]]) -> List[ChunkData]:
+        """
+        Public method to process user-selected endpoints.
+        This is called from the UI after user makes their selections.
+        """
+        print(f"🎯 Starting processing of user-selected endpoints")
+        
+        # Validate inputs
+        if not selected_endpoints:
+            print("⚠️ No endpoints selected by user")
+            return []
+        
+        # Create chunks from selected endpoints only
+        chunks = self.chunk_selected_endpoints(discovery_result, selected_endpoints)
+        
+        if not chunks:
+            print("⚠️ No chunks created from selected endpoints")
+            return []
+        
+        print(f"✅ Ready to process {len(chunks)} chunks with user-selected endpoints")
         return chunks
     
     # # @agentops.operation

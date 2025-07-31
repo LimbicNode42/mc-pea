@@ -126,30 +126,30 @@ def main():
                     st.write(f"✅ Found {discovery_result.total_endpoints} endpoints")
                     status.update(label="✅ Phase 1: Discovery Complete", state="complete")
                 
-                # Phase 2: Chunking
+                # Phase 2: Organization
                 with st.status("📦 Phase 2: Organizing endpoints...", expanded=True) as status:
-                    st.write("Grouping endpoints by category...")
-                    st.write("Creating manageable chunks for processing...")
+                    st.write("Organizing endpoints by category for selection...")
+                    st.write("Preparing endpoint data for user review...")
                     
-                    # Run chunking phase directly
-                    chunks = flow.chunk_endpoints(discovery_result)
-                    
-                    st.write(f"✅ Organized into {len(chunks)} chunks")
+                    # No chunking - just organize the data for display
+                    st.write(f"✅ Organized {discovery_result.total_endpoints} endpoints")
                     status.update(label="✅ Phase 2: Organization Complete", state="complete")
             
             # Store results in session state for user selection
             st.session_state.discovery_result = discovery_result
-            st.session_state.chunks = chunks
             st.session_state.url = url_input
             
-            st.success(f"🎉 Discovery complete! Found {discovery_result.total_endpoints} endpoints in {len(chunks)} categories.")
+            # Count categories from discovery data
+            categories_count = len(discovery_result.discovery_data.get('cs', []))
+            
+            st.success(f"🎉 Discovery complete! Found {discovery_result.total_endpoints} endpoints in {categories_count} categories.")
             
         except Exception as e:
             st.error(f"Discovery failed: {str(e)}")
             st.exception(e)
     
     # Display results if available
-    if hasattr(st.session_state, 'discovery_result') and hasattr(st.session_state, 'chunks'):
+    if hasattr(st.session_state, 'discovery_result'):
         display_endpoint_selection()
 
 
@@ -160,20 +160,32 @@ def display_endpoint_selection():
     st.markdown("Choose which endpoints you want to extract API usage examples for:")
     
     discovery_result = st.session_state.discovery_result
-    chunks = st.session_state.chunks
     
     # Initialize selection state
     if 'selected_endpoints' not in st.session_state:
         st.session_state.selected_endpoints = {}
     
-    # Group endpoints by category for display
+    # Get categories directly from discovery data
+    from urllib.parse import urlparse
+    parsed_url = urlparse(discovery_result.website_url)
+    hostname = parsed_url.netloc
+    
     categories = {}
-    for chunk in chunks:
-        for endpoint in chunk.endpoints:
-            category = endpoint['category']
-            if category not in categories:
-                categories[category] = []
-            categories[category].append(endpoint)
+    if 'cs' in discovery_result.discovery_data:
+        for category in discovery_result.discovery_data['cs']:
+            category_name = category.get('n', category.get('name', 'Unknown'))
+            categories[category_name] = []
+            
+            for endpoint in category.get('ls', []):
+                endpoint_data = {
+                    'category': category_name,
+                    'endpoint': {
+                        'title': endpoint.get('t', ''),
+                        'path': endpoint.get('l', ''),
+                        'url': f"https://{hostname}{endpoint.get('l', '')}"
+                    }
+                }
+                categories[category_name].append(endpoint_data)
     
     # Display statistics
     col1, col2, col3 = st.columns(3)
@@ -269,83 +281,98 @@ def display_endpoint_selection():
                             st.session_state.selected_endpoints[category] = []
                             st.rerun()
                     
-                    # Find the endpoints in chunks to get title and URL
-                    for chunk in st.session_state.chunks:
-                        for endpoint in chunk.endpoints:
-                            if (endpoint['category'] == category and 
-                                endpoint['endpoint']['path'] in selected_paths):
-                                title = endpoint['endpoint']['title']
-                                url = endpoint['endpoint']['url']
-                                path = endpoint['endpoint']['path']
-                                
-                                # Create a row with endpoint info and remove button
-                                col1, col2 = st.columns([4, 1])
-                                with col1:
-                                    st.markdown(f"  - **{title}** - {url}")
-                                with col2:
-                                    remove_key = f"remove_{category}_{path}"
-                                    if st.button("🗑️", key=remove_key, help=f"Remove {title}"):
-                                        # Remove this endpoint from selection
-                                        if path in st.session_state.selected_endpoints[category]:
-                                            st.session_state.selected_endpoints[category].remove(path)
-                                        # Clean up empty categories
-                                        if not st.session_state.selected_endpoints[category]:
-                                            st.session_state.selected_endpoints[category] = []
-                                        st.rerun()
+                    # Find the endpoints in discovery data to get title and URL  
+                    from urllib.parse import urlparse
+                    parsed_url = urlparse(discovery_result.website_url)
+                    hostname = parsed_url.netloc
+                    
+                    for category_data in discovery_result.discovery_data.get('cs', []):
+                        if category_data.get('n', category_data.get('name', 'Unknown')) == category:
+                            for endpoint in category_data.get('ls', []):
+                                endpoint_path = endpoint.get('l', '')
+                                if endpoint_path in selected_paths:
+                                    title = endpoint.get('t', '')
+                                    url = f"https://{hostname}{endpoint_path}"
+                                    
+                                    # Create a row with endpoint info and remove button
+                                    col1, col2 = st.columns([4, 1])
+                                    with col1:
+                                        st.markdown(f"  - **{title}** - {url}")
+                                    with col2:
+                                        remove_key = f"remove_{category}_{endpoint_path}"
+                                        if st.button("🗑️", key=remove_key, help=f"Remove {title}"):
+                                            # Remove this endpoint from selection
+                                            if endpoint_path in st.session_state.selected_endpoints[category]:
+                                                st.session_state.selected_endpoints[category].remove(endpoint_path)
+                                            # Clean up empty categories
+                                            if not st.session_state.selected_endpoints[category]:
+                                                st.session_state.selected_endpoints[category] = []
+                                            st.rerun()
             
             # Next steps
             st.header("🚀 Next Steps")
-            col1, col2 = st.columns(2)
             
-            with col1:
-                if st.button("💾 Save Selection", type="primary"):
-                    save_selection()
-            
-            with col2:
-                if st.button("🔄 Extract API Usage", type="secondary", disabled=True):
-                    st.info("API usage extraction will be implemented in the next phase")
+            # Single button for proceeding to extraction
+            if st.button("Next: 🔄 Extract API Usage", type="primary"):
+                extract_selected_endpoints()
 
 
-def save_selection():
-    """Save the current endpoint selection to a file."""
+def extract_selected_endpoints():
+    """Extract API usage for the selected endpoints."""
     try:
-        # Build detailed selection data with titles and URLs
-        detailed_selection = {}
-        for category, selected_paths in st.session_state.selected_endpoints.items():
-            if selected_paths:
-                detailed_selection[category] = []
+        # Get the current API key
+        current_anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        
+        if not current_anthropic_key:
+            st.error("❌ Cannot proceed without Anthropic API Key")
+            return
+        
+        # Initialize agentops if not already done
+        import agentops
+        if not hasattr(agentops, '_initialized'):
+            agentops.init()
+            agentops._initialized = True
+        
+        # Get the flow instance
+        flow = ApiExtractionFlow(website_url=st.session_state.url)
+        
+        # Process selected endpoints using the new chunking method
+        with st.status("🔄 Processing selected endpoints...", expanded=True) as status:
+            st.write("Creating chunks from your selected endpoints...")
+            
+            # Create chunks from selected endpoints only
+            chunks = flow.process_selected_endpoints(
+                st.session_state.discovery_result, 
+                st.session_state.selected_endpoints
+            )
+            
+            if not chunks:
+                st.error("❌ No chunks could be created from selected endpoints")
+                return
+            
+            st.write(f"✅ Created {len(chunks)} chunks for processing")
+            status.update(label="✅ Processing Setup Complete", state="complete")
+        
+        # Store the chunks for potential future processing
+        st.session_state.processing_chunks = chunks
+        
+        st.success(f"🎉 Ready to process {len(chunks)} chunks containing your selected endpoints!")
+        st.info("💡 Next phase: API usage extraction will process these chunks to generate usage examples.")
+        
+        # Show chunk details
+        with st.expander("📋 Chunk Details", expanded=False):
+            for chunk in chunks:
+                categories_in_chunk = set(ep['category'] for ep in chunk.endpoints)
+                st.markdown(f"**Chunk {chunk.chunk_id}:** {len(chunk.endpoints)} endpoints from {len(categories_in_chunk)} categories")
+                st.markdown(f"  - Categories: {', '.join(categories_in_chunk)}")
                 
-                # Find the endpoints in chunks to get full details
-                for chunk in st.session_state.chunks:
-                    for endpoint in chunk.endpoints:
-                        if (endpoint['category'] == category and 
-                            endpoint['endpoint']['path'] in selected_paths):
-                            detailed_selection[category].append({
-                                'title': endpoint['endpoint']['title'],
-                                'path': endpoint['endpoint']['path'],
-                                'url': endpoint['endpoint']['url']
-                            })
-        
-        selection_data = {
-            "url": st.session_state.url,
-            "discovery_timestamp": st.session_state.discovery_result.__dict__,
-            "selected_endpoints": detailed_selection,
-            "selected_paths_only": st.session_state.selected_endpoints,  # Keep for backward compatibility
-            "total_selected": sum(len(endpoints) for endpoints in st.session_state.selected_endpoints.values())
-        }
-        
-        # Create filename based on URL
-        parsed_url = urlparse(st.session_state.url)
-        hostname = parsed_url.netloc.replace('.', '_')
-        filename = f"endpoint_selection_{hostname}.json"
-        
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(selection_data, f, indent=2, ensure_ascii=False, default=str)
-        
-        st.success(f"✅ Selection saved to {filename}")
+                # Show endpoints in this chunk
+                for ep in chunk.endpoints:
+                    st.markdown(f"    • {ep['endpoint']['title']} ({ep['category']})")
         
     except Exception as e:
-        st.error(f"Failed to save selection: {e}")
+        st.error(f"Failed to process selected endpoints: {str(e)}")
+        st.exception(e)
 
 
 if __name__ == "__main__":
