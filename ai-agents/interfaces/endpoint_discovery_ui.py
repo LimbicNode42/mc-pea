@@ -364,24 +364,44 @@ def extract_selected_endpoints():
         # Store the results in session state
         st.session_state.extraction_results = extraction_results
         
-        # Calculate statistics
-        total_endpoints_processed = sum(r.get('endpoints_processed', 0) for r in extraction_results)
+        # Calculate enhanced statistics
+        total_chunks = len(extraction_results)
         successful_chunks = len([r for r in extraction_results if 'error' not in r])
         failed_chunks = len([r for r in extraction_results if 'error' in r])
+        
+        # Calculate endpoint-level statistics
+        total_endpoints_processed = sum(r.get('endpoints_processed', 0) for r in extraction_results)
+        successful_endpoints = sum(r.get('endpoints_processed', 0) for r in extraction_results if 'error' not in r)
+        failed_endpoints = sum(r.get('endpoints_processed', 0) for r in extraction_results if 'error' in r)
         
         # Display results summary
         st.success(f"🎉 Extraction Complete!")
         
+        # Enhanced statistics display
+        st.subheader("📈 Processing Statistics")
+        
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Endpoints Processed", total_endpoints_processed)
-        with col2:
+            st.metric("Processed Chunks", total_chunks)
             st.metric("Successful Chunks", successful_chunks)
+            st.metric("Failed Chunks", failed_chunks)
+            
+        with col2:
+            st.metric("Processed Endpoints", total_endpoints_processed)
+            st.metric("Successful Endpoints", successful_endpoints)
+            st.metric("Failed Endpoints", failed_endpoints)
+            
         with col3:
-            st.metric("Failed Chunks", failed_chunks, delta=None if failed_chunks == 0 else f"-{failed_chunks}")
+            if total_chunks > 0:
+                chunk_success_rate = (successful_chunks / total_chunks) * 100
+                st.metric("Chunk Success Rate", f"{chunk_success_rate:.1f}%")
+            
+            if total_endpoints_processed > 0:
+                endpoint_success_rate = (successful_endpoints / total_endpoints_processed) * 100
+                st.metric("Endpoint Success Rate", f"{endpoint_success_rate:.1f}%")
         
         # Show detailed results
-        st.header("📊 Extraction Results")
+        st.header("📊 Extraction Details")
         
         # Show successful results
         if successful_chunks > 0:
@@ -389,23 +409,34 @@ def extract_selected_endpoints():
             
             for result in extraction_results:
                 if 'error' not in result:
-                    with st.expander(f"Chunk {result['chunk_id']} - {result['endpoints_processed']} endpoints", expanded=False):
-                        st.write(f"**Thread ID:** {result.get('thread_id', 'Unknown')}")
-                        
-                        # Show a preview of the extracted data structure
-                        if 'data' in result and result['data']:
-                            # Show just the keys/structure, not full data
-                            if isinstance(result['data'], dict):
-                                st.write(f"**Data Keys:** {list(result['data'].keys())}")
-                                
-                                # Show a small sample if it's a reasonable size
-                                data_str = str(result['data'])
-                                if len(data_str) < 500:
-                                    st.json(result['data'])
-                                else:
-                                    st.write("**Data Summary:** Large extraction result (preview truncated)")
-                            else:
-                                st.write(f"**Data Type:** {type(result['data'])}")
+                    # Get the specific endpoints processed in this chunk from the flow
+                    flow = ApiExtractionFlow(website_url=st.session_state.url)
+                    
+                    # Recreate the chunks to get endpoint details
+                    chunks = flow.process_selected_endpoints(
+                        st.session_state.discovery_result, 
+                        st.session_state.selected_endpoints
+                    )
+                    
+                    # Find the matching chunk
+                    matching_chunk = None
+                    for chunk in chunks:
+                        if chunk.chunk_id == result['chunk_id']:
+                            matching_chunk = chunk
+                            break
+                    
+                    chunk_title = f"Chunk {result['chunk_id']} - {result['endpoints_processed']} endpoints"
+                    
+                    with st.expander(chunk_title, expanded=False):
+                        if matching_chunk:
+                            st.write("**Processed Endpoints:**")
+                            for endpoint_data in matching_chunk.endpoints:
+                                endpoint = endpoint_data['endpoint']
+                                category = endpoint_data['category']
+                                st.write(f"  • **{endpoint['title']}** ({category})")
+                                st.write(f"    URL: `{endpoint['url']}`")
+                        else:
+                            st.write(f"**Endpoints:** {result['endpoints_processed']} endpoints processed successfully")
         
         # Show failures if any
         if failed_chunks > 0:
@@ -413,9 +444,34 @@ def extract_selected_endpoints():
             
             for result in extraction_results:
                 if 'error' in result:
-                    with st.expander(f"Chunk {result['chunk_id']} - ERROR", expanded=False):
-                        st.error(f"Error: {result['error']}")
-                        st.write(f"**Endpoints affected:** {result.get('endpoints_processed', 'Unknown')}")
+                    # Get the specific endpoints that failed
+                    flow = ApiExtractionFlow(website_url=st.session_state.url)
+                    chunks = flow.process_selected_endpoints(
+                        st.session_state.discovery_result, 
+                        st.session_state.selected_endpoints
+                    )
+                    
+                    # Find the matching chunk
+                    matching_chunk = None
+                    for chunk in chunks:
+                        if chunk.chunk_id == result['chunk_id']:
+                            matching_chunk = chunk
+                            break
+                    
+                    chunk_title = f"Chunk {result['chunk_id']} - ERROR"
+                    
+                    with st.expander(chunk_title, expanded=False):
+                        st.error(f"**Error:** {result['error']}")
+                        
+                        if matching_chunk:
+                            st.write("**Failed Endpoints:**")
+                            for endpoint_data in matching_chunk.endpoints:
+                                endpoint = endpoint_data['endpoint']
+                                category = endpoint_data['category']
+                                st.write(f"  • **{endpoint['title']}** ({category})")
+                                st.write(f"    URL: `{endpoint['url']}`")
+                        else:
+                            st.write(f"**Affected Endpoints:** {result.get('endpoints_processed', 'Unknown')} endpoints")
         
         # Show processing summary
         st.header("� Processing Summary")
