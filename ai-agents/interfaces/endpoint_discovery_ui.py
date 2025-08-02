@@ -11,6 +11,7 @@ A fresh Streamlit interface that:
 import streamlit as st
 import os
 import sys
+import re
 from urllib.parse import urlparse
 import json
 from typing import Dict, List, Any
@@ -65,11 +66,14 @@ def main():
         else:
             st.markdown("**Status:** API Key required")
     
-    # Template configuration section (moved outside sidebar for global access)
+    # MCP Server Configuration section (merged template and server config)
     st.markdown("---")
-    st.markdown("### 🏗️ MCP Server Template Configuration")
+    st.markdown("### ⚙️ MCP Server Configuration")
+    st.markdown("Configure your MCP server template and naming options before discovery.")
     
-    col1, col2 = st.columns([2, 1])
+    # Template configuration
+    st.markdown("#### 🏗️ Template Source")
+    col1, col2 = st.columns([2, 2])
     
     with col1:
         template_option = st.radio(
@@ -81,40 +85,74 @@ def main():
     
     template_path = None
     if template_option == "Custom Template Path":
-        template_path = st.text_input(
-            "Template directory path:",
-            placeholder="/path/to/your/mcp-server-template",
-            help="Absolute or relative path to your custom MCP server template directory"
-        )
-        
-        if template_path:
-            # Validate template path
-            if os.path.exists(template_path):
-                # Check if it looks like a valid template
-                required_files = ['package.json', 'tsconfig.json']
-                has_required = any(
-                    os.path.exists(os.path.join(template_path, f)) 
-                    for f in required_files
-                )
-                
-                if has_required:
-                    st.success(f"✅ Custom template validated: {template_path}")
+        with col2:
+            template_path = st.text_input(
+                "Template directory path:",
+                placeholder="/path/to/your/mcp-server-template",
+                help="Absolute or relative path to your custom MCP server template directory"
+            )
+            
+            if template_path:
+                # Validate template path
+                if os.path.exists(template_path):
+                    # Check if it looks like a valid template
+                    required_files = ['package.json', 'tsconfig.json']
+                    has_required = any(
+                        os.path.exists(os.path.join(template_path, f)) 
+                        for f in required_files
+                    )
+                    
+                    if has_required:
+                        st.success(f"✅ Custom template validated: {template_path}")
+                    else:
+                        st.warning("⚠️ Template path exists but missing expected files (package.json, tsconfig.json)")
                 else:
-                    st.warning("⚠️ Template path exists but missing expected files (package.json, tsconfig.json)")
-            else:
-                st.error(f"❌ Template path does not exist: {template_path}")
+                    st.error(f"❌ Template path does not exist: {template_path}")
     else:
-        # Check if default template exists for info display
-        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        project_root = os.path.dirname(current_dir)
-        default_template = os.path.join(project_root, 'templates', 'mcp-server-template')
-        if os.path.exists(default_template):
-            st.success("✅ Default MC-PEA template available")
-        else:
-            st.info("ℹ️ Using default template (will be resolved at runtime)")
+        with col2:
+            # Check if default template exists for info display
+            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            project_root = os.path.dirname(current_dir)
+            default_template = os.path.join(project_root, 'templates', 'mcp-server-template')
+            if os.path.exists(default_template):
+                st.success("✅ Default MC-PEA template available")
+            else:
+                st.info("ℹ️ Using default template (will be resolved at runtime)")
     
-    # Store template_path in session state for use in other functions
+    # Server naming configuration
+    st.markdown("#### 🏷️ Server Naming")
+    col1, col2 = st.columns([2, 2])
+    
+    with col1:
+        server_name_option = st.radio(
+            "Server naming:",
+            ["Auto-generate from URL", "Custom server name"],
+            help="Choose whether to automatically generate server name from URL or specify a custom name",
+            horizontal=True
+        )
+    
+    server_name = None
+    if server_name_option == "Custom server name":
+        with col2:
+            server_name = st.text_input(
+                "Server name:",
+                placeholder="my-api-mcp-server",
+                help="Name for the generated MCP server (will be used for directory and package name)"
+            )
+            
+            if server_name:
+                # Validate server name
+                if re.match(r'^[a-z0-9][a-z0-9-]*[a-z0-9]$', server_name) or len(server_name) == 1:
+                    st.success(f"✅ Valid server name: {server_name}")
+                else:
+                    st.error("❌ Server name must be lowercase, contain only letters, numbers, and hyphens, and not start/end with hyphen")
+    else:
+        with col2:
+            st.info("💡 Server name will be auto-generated from the URL after input")
+    
+    # Store configuration in session state for use in other functions
     st.session_state.template_path = template_path
+    st.session_state.server_name = server_name
             
     # Main content
     st.markdown("---")
@@ -131,6 +169,16 @@ def main():
     
     with col2:
         discover_button = st.button("🚀 Discover Endpoints", type="primary")
+    
+    # Show auto-generated server name preview if using auto-generation
+    if server_name_option == "Auto-generate from URL" and url_input:
+        try:
+            parsed = urlparse(url_input)
+            domain = parsed.netloc.replace('www.', '').replace('.', '-')
+            auto_name = f"{domain}-api-mcp-server"
+            st.info(f"💡 **Auto-generated server name:** `{auto_name}`")
+        except:
+            pass
     
     # URL validation
     if url_input:
@@ -158,10 +206,11 @@ def main():
                 agentops.init()
                 agentops._initialized = True
             
-            # Create the flow with template path support
+            # Create the flow with template path and server name support
             flow = ApiExtractionFlow(
                 website_url=url_input,
-                template_path=getattr(st.session_state, 'template_path', None)
+                template_path=getattr(st.session_state, 'template_path', None),
+                server_name=getattr(st.session_state, 'server_name', None)
             )
             
             # Progress tracking
@@ -301,7 +350,6 @@ def display_endpoint_selection():
         st.session_state.selected_endpoints = {}
     
     # Get categories directly from discovery data
-    from urllib.parse import urlparse
     parsed_url = urlparse(discovery_result.website_url)
     hostname = parsed_url.netloc
     
@@ -417,7 +465,6 @@ def display_endpoint_selection():
                             st.rerun()
                     
                     # Find the endpoints in discovery data to get title and URL  
-                    from urllib.parse import urlparse
                     parsed_url = urlparse(discovery_result.website_url)
                     hostname = parsed_url.netloc
                     
@@ -468,10 +515,11 @@ def extract_selected_endpoints():
             agentops.init()
             agentops._initialized = True
         
-        # Get the flow instance with template path support
+        # Get the flow instance with template path and server name support
         flow = ApiExtractionFlow(
             website_url=st.session_state.url,
-            template_path=getattr(st.session_state, 'template_path', None)
+            template_path=getattr(st.session_state, 'template_path', None),
+            server_name=getattr(st.session_state, 'server_name', None)
         )
         
         # Run the complete extraction workflow

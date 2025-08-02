@@ -31,10 +31,11 @@ class ApiExtractionFlow(Flow):
     Flow-based API extraction with explicit data passing and chunk coordination.
     """
     
-    def __init__(self, website_url: str, template_path: str = None):
+    def __init__(self, website_url: str, template_path: str = None, server_name: str = None):
         super().__init__()
         self.website_url = website_url
         self.template_path = template_path  # Optional custom template path
+        self.server_name = server_name  # Optional custom server name
     
     @start()
     # @agentops.operation
@@ -188,17 +189,17 @@ class ApiExtractionFlow(Flow):
         print(f"🏗️ Starting MCP base server generation for {self.website_url}")
         
         try:
-            # Create MCP base generator agent with template path support
+            # Create MCP base generator agent with template path and server name support
             base_generator_agent = MCPBaseGeneratorAgent(
                 website_url=self.website_url,
-                server_name=None,  # Let it auto-generate
+                server_name=self.server_name,  # Use provided server name or let it auto-generate
                 template_path=self.template_path
             )
             
             # Create generation task
             base_generator_task = MCPBaseGeneratorTask(
                 website_url=self.website_url,
-                server_name=None,  # Let it auto-generate
+                server_name=self.server_name,  # Use provided server name or let it auto-generate
                 template_path=self.template_path
             )
             
@@ -592,17 +593,19 @@ class ApiExtractionFlow(Flow):
 
 # @agentops.session
 # @agentops.trace(name="my_workflow")
-def run(website_url: str = "https://docs.github.com/en/rest", template_path: str = None):
+def run(website_url: str = "https://docs.github.com/en/rest", template_path: str = None, server_name: str = None):
     """
     Run the API extraction flow with parallel discovery and MCP base generation.
     
     Args:
         website_url: The website to discover APIs from
         template_path: Optional path to custom MCP server template, uses default if None
+        server_name: Optional custom server name, auto-generates from URL if None
     """
     flow = ApiExtractionFlow(
         website_url=website_url,
-        template_path=template_path
+        template_path=template_path,
+        server_name=server_name
     )
     result = flow.kickoff()
     print(f"Final result: {result}")
