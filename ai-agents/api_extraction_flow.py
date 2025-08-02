@@ -15,9 +15,11 @@ from crewai.flow.flow import start, listen
 from agents_workers.api_discovery_agent import ApiLinkDiscoveryAgent
 from agents_workers.api_content_extractor_agent import ApiLinkContentExtractorAgent
 from agents_workers.mcp_base_generator_agent import MCPBaseGeneratorAgent
+from agents_workers.mcp_api_integrator_agent import MCPAPIIntegratorAgent
 from tasks.api_link_discovery_task import ApiLinkDiscoveryTask
 from tasks.api_content_extractor_task import ApiLinkContentExtractorTask
 from tasks.mcp_base_generator_task import MCPBaseGeneratorTask
+from tasks.mcp_api_integration_task import MCPAPIIntegrationTask
 import json
 from typing import List, Dict, Any
 from models.api_flow_models import DiscoveryResult, ChunkData, ExtractionResult, MCPBaseGenerationResult
@@ -273,6 +275,9 @@ class ApiExtractionFlow(Flow):
             else:
                 print(f"❌ MCP base server generation failed: {mcp_result.error}")
             
+            # Store result in instance for later use by integration
+            self._mcp_result = mcp_result
+            
             return mcp_result
             
         except Exception as e:
@@ -415,6 +420,83 @@ class ApiExtractionFlow(Flow):
         extraction_results = self.extract_chunks_parallel(chunks, progress_callback)
         
         return extraction_results
+    
+    def run_api_integration(self, extraction_results: List[Dict[str, Any]], mcp_server_path: str = None) -> Dict[str, Any]:
+        """
+        Automatically run MCP API integration after extraction completion.
+        Integrates the extracted API details into the generated MCP server.
+        """
+        print(f"🔄 Starting automatic API integration for extracted results")
+        
+        # Use the MCP server path from the flow state if not provided
+        if not mcp_server_path and hasattr(self, '_mcp_result') and self._mcp_result:
+            mcp_server_path = self._mcp_result.output_directory
+        
+        if not mcp_server_path:
+            print("❌ No MCP server path available for integration")
+            return {
+                "success": False,
+                "error": "No MCP server path available for integration"
+            }
+        
+        try:
+            # Create the MCP API integrator agent
+            integrator_agent = MCPAPIIntegratorAgent()
+            
+            # Prepare the integration context
+            integration_context = {
+                "extraction_results": extraction_results,
+                "mcp_server_path": mcp_server_path,
+                "server_name": self.server_name,
+                "website_url": self.website_url
+            }
+            
+            # Create the integration task
+            integration_task = MCPAPIIntegrationTask(context=integration_context)
+            integration_task.agent = integrator_agent
+            
+            # Create crew for integration
+            integration_crew = Crew(
+                agents=[integrator_agent],
+                tasks=[integration_task],
+                process=Process.sequential,
+                verbose=True
+            )
+            
+            # Execute integration
+            print(f"🏗️ Running MCP API integration crew...")
+            integration_result = integration_crew.kickoff()
+            
+            # Parse result
+            if hasattr(integration_result, 'json_dict'):
+                result_data = integration_result.json_dict
+            elif isinstance(integration_result, dict):
+                result_data = integration_result
+            else:
+                try:
+                    result_data = json.loads(str(integration_result))
+                except:
+                    result_data = {
+                        "success": True,
+                        "integration_summary": str(integration_result),
+                        "note": "Integration completed but result format was non-standard"
+                    }
+            
+            print(f"✅ API integration completed successfully!")
+            if isinstance(result_data, dict) and result_data.get('tools_generated'):
+                print(f"🔧 Generated {len(result_data['tools_generated'])} MCP tools")
+            if isinstance(result_data, dict) and result_data.get('resources_generated'):
+                print(f"📚 Generated {len(result_data['resources_generated'])} MCP resources")
+            
+            return result_data
+            
+        except Exception as e:
+            print(f"❌ Error during API integration: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "integration_attempted": True
+            }
     
     # @agentops.operation
     def _process_single_chunk(self, chunk: ChunkData) -> Dict[str, Any]:

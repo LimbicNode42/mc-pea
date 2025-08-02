@@ -93,3 +93,27 @@ mcp_base_generation:
   # The following are for test purposes
   markdown: False
   # output_file: mcp_base_generator_output.json
+
+mcp_api_integration:
+  description: >
+    Integrate extracted API usage details into the generated MCP server by analyzing
+    the API extraction results and updating the server structure with appropriate
+    tools and resources. This task automatically processes API documentation,
+    endpoint analysis, and authentication details to generate functional MCP
+    components that can interact with the target API.
+  expected_output: >
+    Comprehensive MCP server integration results containing:
+    - integration_summary: overview of changes made to the server
+    - tools_generated: list of MCP tools created for API endpoints
+    - resources_generated: list of MCP resources for API data access
+    - server_structure_updates: details of files modified/created
+    - authentication_integration: how API auth was incorporated
+    - validation_results: compliance checks and testing results
+    - usage_examples: sample code demonstrating tool/resource usage
+    - documentation_updates: README and API documentation changes
+  agent: >
+    MCPAPIIntegratorAgent
+  async_execution: False
+  # context: api_orchestrator
+  markdown: False
+  # output_file: mcp_api_integration_output.json
