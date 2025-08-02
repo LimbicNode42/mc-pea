@@ -664,6 +664,32 @@ def extract_selected_endpoints():
         # Store the results in session state
         st.session_state.extraction_results = extraction_results
         
+        # Automatically run API integration after extraction completion
+        if extraction_results and successful_chunks > 0:
+            with st.status("🔄 Phase 4: Integrating API into MCP Server...", expanded=True) as integration_status:
+                st.write("Analyzing extraction results and generating MCP tools/resources...")
+                
+                try:
+                    integration_result = flow.run_api_integration(extraction_results)
+                    
+                    if integration_result.get('success', False):
+                        st.success("✅ API integration completed successfully!")
+                        if integration_result.get('tools_generated'):
+                            st.write(f"🔧 Generated {len(integration_result['tools_generated'])} MCP tools")
+                        if integration_result.get('resources_generated'):
+                            st.write(f"📚 Generated {len(integration_result['resources_generated'])} MCP resources")
+                        
+                        # Store integration results
+                        st.session_state.integration_results = integration_result
+                        integration_status.update(label="✅ API Integration Complete!", state="complete")
+                    else:
+                        st.warning(f"⚠️ API integration had issues: {integration_result.get('error', 'Unknown error')}")
+                        integration_status.update(label="⚠️ API Integration Issues", state="error")
+                        
+                except Exception as e:
+                    st.error(f"❌ API integration failed: {str(e)}")
+                    integration_status.update(label="❌ API Integration Failed", state="error")
+        
         # Calculate enhanced statistics
         total_chunks = len(extraction_results)
         successful_chunks = len([r for r in extraction_results if 'error' not in r])
@@ -778,6 +804,71 @@ def extract_selected_endpoints():
                                 st.write(f"    URL: `{endpoint['url']}`")
                         else:
                             st.write(f"**Affected Endpoints:** {result.get('endpoints_processed', 'Unknown')} endpoints")
+        
+        # Show API integration results if available
+        if hasattr(st.session_state, 'integration_results') and st.session_state.integration_results:
+            st.header("🔗 API Integration Results")
+            
+            integration_result = st.session_state.integration_results
+            
+            if integration_result.get('success', False):
+                st.success("✅ MCP Server successfully enhanced with API functionality!")
+                
+                # Display integration summary
+                if integration_result.get('integration_summary'):
+                    st.write("**Integration Summary:**")
+                    st.write(integration_result['integration_summary'])
+                
+                # Display generated tools
+                if integration_result.get('tools_generated'):
+                    st.subheader("🔧 Generated MCP Tools")
+                    tools = integration_result['tools_generated']
+                    
+                    for tool in tools:
+                        with st.expander(f"🔧 {tool.get('name', 'Unknown Tool')}", expanded=False):
+                            st.write(f"**Description:** {tool.get('description', 'No description')}")
+                            if tool.get('parameters'):
+                                st.write("**Parameters:**")
+                                for param, details in tool['parameters'].items():
+                                    st.write(f"  • `{param}`: {details}")
+                            if tool.get('endpoint'):
+                                st.write(f"**API Endpoint:** `{tool['endpoint']}`")
+                
+                # Display generated resources
+                if integration_result.get('resources_generated'):
+                    st.subheader("📚 Generated MCP Resources")
+                    resources = integration_result['resources_generated']
+                    
+                    for resource in resources:
+                        with st.expander(f"📚 {resource.get('name', 'Unknown Resource')}", expanded=False):
+                            st.write(f"**Description:** {resource.get('description', 'No description')}")
+                            if resource.get('uri_template'):
+                                st.write(f"**URI Template:** `{resource['uri_template']}`")
+                            if resource.get('mime_types'):
+                                st.write(f"**MIME Types:** {', '.join(resource['mime_types'])}")
+                
+                # Display server structure updates
+                if integration_result.get('server_structure_updates'):
+                    st.subheader("📁 Server Structure Updates")
+                    updates = integration_result['server_structure_updates']
+                    
+                    with st.expander("View server file changes", expanded=False):
+                        for file_path, changes in updates.items():
+                            st.write(f"**{file_path}:**")
+                            for change in changes:
+                                st.write(f"  • {change}")
+                
+                # Display usage examples
+                if integration_result.get('usage_examples'):
+                    st.subheader("💡 Usage Examples")
+                    examples = integration_result['usage_examples']
+                    
+                    with st.expander("View usage examples", expanded=False):
+                        for example in examples:
+                            st.code(example, language="typescript")
+            
+            else:
+                st.error(f"❌ API integration failed: {integration_result.get('error', 'Unknown error')}")
         
         # Show processing summary
         st.header("� Processing Summary")
