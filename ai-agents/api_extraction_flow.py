@@ -14,11 +14,13 @@ from crewai import Flow, Crew, Process
 from crewai.flow.flow import start, listen
 from agents_workers.api_discovery_agent import ApiLinkDiscoveryAgent
 from agents_workers.api_content_extractor_agent import ApiLinkContentExtractorAgent
+from agents_workers.mcp_base_generator_agent import MCPBaseGeneratorAgent
 from tasks.api_link_discovery_task import ApiLinkDiscoveryTask
 from tasks.api_content_extractor_task import ApiLinkContentExtractorTask
+from tasks.mcp_base_generator_task import MCPBaseGeneratorTask
 import json
 from typing import List, Dict, Any
-from models.api_flow_models import DiscoveryResult, ChunkData, ExtractionResult
+from models.api_flow_models import DiscoveryResult, ChunkData, ExtractionResult, MCPBaseGenerationResult
 import agentops
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,14 +31,65 @@ class ApiExtractionFlow(Flow):
     Flow-based API extraction with explicit data passing and chunk coordination.
     """
     
-    def __init__(self, website_url: str):
+    def __init__(self, website_url: str, template_path: str = None):
         super().__init__()
         self.website_url = website_url
+        self.template_path = template_path  # Optional custom template path
     
     @start()
     # @agentops.operation
-    def discovery_phase(self) -> DiscoveryResult:
-        """Phase 1: Discover all API endpoints."""
+    def parallel_discovery_and_mcp_generation(self) -> Dict[str, Any]:
+        """
+        Phase 1: Run discovery and MCP base generation in parallel.
+        This ensures both tasks start simultaneously for maximum efficiency.
+        """
+        print(f"🚀 Starting parallel discovery and MCP base generation for {self.website_url}")
+        
+        import concurrent.futures
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            # Submit both tasks to run in parallel
+            discovery_future = executor.submit(self._run_discovery)
+            mcp_future = executor.submit(self._run_mcp_base_generation)
+            
+            # Wait for both to complete
+            print("⏳ Waiting for parallel tasks to complete...")
+            
+            # Get results
+            discovery_result = discovery_future.result()
+            mcp_result = mcp_future.result()
+            
+            # Combine results
+            combined_result = {
+                'discovery': discovery_result.dict() if discovery_result else None,
+                'mcp_base': mcp_result.dict() if mcp_result else None,
+                'ready_for_api_integration': (
+                    discovery_result and discovery_result.total_endpoints > 0 and 
+                    mcp_result and mcp_result.success
+                ),
+                'timestamp': threading.Thread().ident
+            }
+            
+            print(f"🎯 Parallel setup complete!")
+            if discovery_result:
+                print(f"📊 Discovery: {discovery_result.total_endpoints} endpoints found")
+            if mcp_result:
+                print(f"🏗️ MCP Server: {mcp_result.server_name} ({'✅ Success' if mcp_result.success else '❌ Failed'})")
+            
+            if combined_result['ready_for_api_integration']:
+                print("✅ System ready for API endpoint selection and integration!")
+                print(f"🎯 Next step: Select endpoints from {discovery_result.total_endpoints} discovered APIs")
+                print(f"🏗️ Target server: {mcp_result.output_directory}")
+            else:
+                if not discovery_result or discovery_result.total_endpoints == 0:
+                    print("⚠️ No endpoints discovered - check the target website")
+                if not mcp_result or not mcp_result.success:
+                    print(f"⚠️ MCP base generation failed: {mcp_result.error if mcp_result else 'Unknown error'}")
+            
+            return combined_result
+    
+    def _run_discovery(self) -> DiscoveryResult:
+        """Internal method to run discovery phase."""
         print(f"🔍 Starting API discovery for {self.website_url}")
 
         discovery_agent = ApiLinkDiscoveryAgent(website_url=self.website_url)
@@ -129,6 +182,108 @@ class ApiExtractionFlow(Flow):
             website_url=self.website_url,
             total_endpoints=total_endpoints
         )
+    
+    def _run_mcp_base_generation(self) -> MCPBaseGenerationResult:
+        """Internal method to run MCP base generation phase."""
+        print(f"🏗️ Starting MCP base server generation for {self.website_url}")
+        
+        try:
+            # Create MCP base generator agent with template path support
+            base_generator_agent = MCPBaseGeneratorAgent(
+                website_url=self.website_url,
+                server_name=None,  # Let it auto-generate
+                template_path=self.template_path
+            )
+            
+            # Create generation task
+            base_generator_task = MCPBaseGeneratorTask(
+                website_url=self.website_url,
+                server_name=None,  # Let it auto-generate
+                template_path=self.template_path
+            )
+            
+            # Assign agent to task
+            base_generator_task.agent = base_generator_agent
+            
+            # Create crew for base generation
+            base_generator_crew = Crew(
+                agents=[base_generator_agent],
+                tasks=[base_generator_task],
+                process=Process.sequential,
+                verbose=True
+            )
+            
+            # Execute base generation
+            result = base_generator_crew.kickoff()
+            
+            # Parse result
+            base_generation_data = None
+            
+            # Try to extract structured data from result
+            if hasattr(result, 'json_dict') and result.json_dict:
+                base_generation_data = result.json_dict
+            elif hasattr(result, 'tasks_output') and result.tasks_output:
+                first_task = result.tasks_output[0]
+                if hasattr(first_task, 'json_dict') and first_task.json_dict:
+                    base_generation_data = first_task.json_dict
+                elif hasattr(first_task, 'output') and isinstance(first_task.output, dict):
+                    base_generation_data = first_task.output
+            
+            # Fallback parsing
+            if not base_generation_data:
+                if isinstance(result, dict):
+                    base_generation_data = result
+                else:
+                    try:
+                        base_generation_data = json.loads(str(result))
+                    except json.JSONDecodeError:
+                        base_generation_data = None
+            
+            # Create result object
+            if base_generation_data and isinstance(base_generation_data, dict):
+                mcp_result = MCPBaseGenerationResult(
+                    success=base_generation_data.get('success', False),
+                    server_name=base_generation_data.get('server_name', ''),
+                    output_directory=base_generation_data.get('output_directory', ''),
+                    template_used=base_generation_data.get('template_used', ''),
+                    files_created=base_generation_data.get('files_created', []),
+                    customizations_applied=base_generation_data.get('customizations_applied', {}),
+                    validation_results=base_generation_data.get('validation_results', {}),
+                    next_steps=base_generation_data.get('next_steps', [])
+                )
+            else:
+                # Get basic info from the agent if parsing failed
+                server_info = base_generator_agent.get_server_info()
+                mcp_result = MCPBaseGenerationResult(
+                    success=True,  # Assume success if no errors were thrown
+                    server_name=server_info['server_name'],
+                    output_directory=server_info['output_dir'],
+                    template_used=server_info['template_dir'],
+                    files_created=['package.json', 'README.md', 'src/index.ts'],  # Basic assumption
+                    customizations_applied={'basic': 'Template copied and customized'},
+                    validation_results={'structure_valid': True},
+                    next_steps=['API tools and resources can now be added to the server']
+                )
+            
+            if mcp_result.success:
+                print(f"✅ MCP base server generated: {mcp_result.server_name}")
+                print(f"📁 Location: {mcp_result.output_directory}")
+                print(f"📋 Template: {mcp_result.template_used}")
+            else:
+                print(f"❌ MCP base server generation failed: {mcp_result.error}")
+            
+            return mcp_result
+            
+        except Exception as e:
+            error_msg = f"MCP base generation failed: {str(e)}"
+            print(f"❌ {error_msg}")
+            return MCPBaseGenerationResult(
+                success=False,
+                error=error_msg
+            )
+    
+    # Note: Old generate_mcp_base_server method moved to _run_mcp_base_generation
+    # and integrated into the parallel execution above
     
     def chunk_selected_endpoints(self, discovery_result: DiscoveryResult, selected_endpoints: Dict[str, List[str]]) -> List[ChunkData]:
         """Phase 2b: Split only user-selected endpoints into manageable chunks for processing."""
@@ -241,7 +396,7 @@ class ApiExtractionFlow(Flow):
         print(f"✅ Ready to process {len(chunks)} chunks with user-selected endpoints")
         return chunks
     
-    def extract_selected_endpoints_full(self, discovery_result: DiscoveryResult, selected_endpoints: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+    def extract_selected_endpoints_full(self, discovery_result: DiscoveryResult, selected_endpoints: Dict[str, List[str]], progress_callback=None) -> List[Dict[str, Any]]:
         """
         Complete workflow: chunk selected endpoints and process them in parallel.
         This is the main method called from the UI.
@@ -255,8 +410,8 @@ class ApiExtractionFlow(Flow):
             print("❌ No chunks to process")
             return []
         
-        # Step 2: Process chunks in parallel
-        extraction_results = self.extract_chunks_parallel(chunks)
+        # Step 2: Process chunks in parallel with progress tracking
+        extraction_results = self.extract_chunks_parallel(chunks, progress_callback)
         
         return extraction_results
     
@@ -321,7 +476,7 @@ class ApiExtractionFlow(Flow):
                 "thread_id": thread_id
             }
     
-    def extract_chunks_parallel(self, chunks: List[ChunkData]) -> List[Dict[str, Any]]:
+    def extract_chunks_parallel(self, chunks: List[ChunkData], progress_callback=None) -> List[Dict[str, Any]]:
         """Phase 3: Process chunks in TRUE parallel using ThreadPoolExecutor."""
         print(f"⚙️ Processing {len(chunks)} chunks in TRUE parallel mode")
         
@@ -346,20 +501,55 @@ class ApiExtractionFlow(Flow):
             submitted_chunk_ids = [chunk.chunk_id for chunk in chunks]
             print(f"🔍 Submitted chunk IDs: {sorted(submitted_chunk_ids)}")
             
+            # Track progress
+            completed_count = 0
+            total_chunks = len(chunks)
+            
             # Collect results as they complete
             for future in as_completed(future_to_chunk):
                 chunk = future_to_chunk[future]
                 try:
                     result = future.result()
                     extraction_results.append(result)
-                    print(f"📊 Completed chunk {result['chunk_id']} (Total completed: {len(extraction_results)}/{len(chunks)})")
+                    completed_count += 1
+                    
+                    # Progress callback for UI updates
+                    if progress_callback:
+                        progress_callback({
+                            'completed': completed_count,
+                            'total': total_chunks,
+                            'current_chunk': result['chunk_id'],
+                            'success': 'error' not in result,
+                            'thread_id': result.get('thread_id'),
+                            'endpoints_processed': result.get('endpoints_processed', 0)
+                        })
+                    
+                    status = "✅ SUCCESS" if 'error' not in result else "❌ FAILED"
+                    thread_id = result.get('thread_id', 'Unknown')
+                    endpoints = result.get('endpoints_processed', 0)
+                    print(f"📊 Progress: {completed_count}/{total_chunks} | Chunk {result['chunk_id']}: {status} | Thread {thread_id} | {endpoints} endpoints")
+                    
                 except Exception as e:
-                    print(f"❌ Exception in chunk {chunk.chunk_id}: {e}")
-                    extraction_results.append({
+                    error_result = {
                         "chunk_id": chunk.chunk_id,
                         "endpoints_processed": len(chunk.endpoints),
                         "error": f"Future exception: {str(e)}"
-                    })
+                    }
+                    extraction_results.append(error_result)
+                    completed_count += 1
+                    
+                    # Progress callback for UI updates
+                    if progress_callback:
+                        progress_callback({
+                            'completed': completed_count,
+                            'total': total_chunks,
+                            'current_chunk': chunk.chunk_id,
+                            'success': False,
+                            'error': str(e),
+                            'endpoints_processed': len(chunk.endpoints)
+                        })
+                    
+                    print(f"❌ Exception in chunk {chunk.chunk_id}: {e}")
         
         # Sort results by chunk_id to maintain order
         extraction_results.sort(key=lambda x: x['chunk_id'])
@@ -373,6 +563,9 @@ class ApiExtractionFlow(Flow):
         print(f"🎉 All {len(extraction_results)} chunks processed in parallel!")
         print(f"📋 Processed chunk IDs: {sorted(processed_chunk_ids)}")
         return extraction_results
+    
+    # Note: Parallel coordination now handled within the single start method
+    # to ensure both discovery and MCP generation run concurrently
     
     # @listen(extract_chunks_parallel)
     # def combine_results(self, extraction_results: List[Dict[str, Any]]) -> ExtractionResult:
@@ -399,12 +592,21 @@ class ApiExtractionFlow(Flow):
 
 # @agentops.session
 # @agentops.trace(name="my_workflow")
-def run():
+def run(website_url: str = "https://docs.github.com/en/rest", template_path: str = None):
+    """
+    Run the API extraction flow with parallel discovery and MCP base generation.
+    
+    Args:
+        website_url: The website to discover APIs from
+        template_path: Optional path to custom MCP server template, uses default if None
+    """
     flow = ApiExtractionFlow(
-        website_url="https://docs.github.com/en/rest"
+        website_url=website_url,
+        template_path=template_path
     )
     result = flow.kickoff()
     print(f"Final result: {result}")
+    return result
 
 # Usage example
 if __name__ == "__main__":

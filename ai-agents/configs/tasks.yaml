@@ -33,4 +33,63 @@ api_content_extraction:
   markdown: False
   # output_file: api_link_content_extractor_output.json
 
-  api_content_collection:
+mcp_base_generation:
+  description: >
+    Generate a base MCP server structure for API integration with {website_url}.
+
+    Your task is to:
+    1. Copy the MCP server template structure to create a new server
+    2. Customize package.json with server-specific information  
+    3. Customize README.md with API and server details
+    4. Customize the main server TypeScript file with basic configuration
+    5. Validate that the generated structure is complete and follows standards
+
+    Context:
+    - Website URL: {website_url}
+    - Server Name: {server_name}
+    - Template Path: {template_path}
+
+    Requirements:
+    - Follow MC-PEA project standards for MCP server development
+    - Use MCP SDK stdio transport patterns
+    - Ensure proper TypeScript configuration
+    - Create a solid foundation that can be extended with API-specific tools and resources
+    - Validate the structure meets quality standards
+
+    Expected Output:
+    Provide a JSON response with the following structure:
+    {{
+        "success": true,
+        "server_name": "generated-server-name",
+        "output_directory": "/path/to/generated/server",
+        "template_used": "/path/to/template",
+        "files_created": ["list", "of", "files"],
+        "customizations_applied": {{
+            "package_json": "details",
+            "readme": "details", 
+            "server_file": "details"
+        }},
+        "validation_results": {{
+            "structure_valid": true,
+            "required_files_present": true,
+            "warnings": []
+        }},
+        "next_steps": ["instructions", "for", "api", "integration"]
+    }}
+  expected_output: >
+    JSON response containing:
+    - success: boolean indicating if generation was successful
+    - server_name: the name of the generated server
+    - output_directory: path to the generated server
+    - template_used: path to the template that was used
+    - files_created: list of files that were created/customized
+    - customizations_applied: details of customizations made
+    - validation_results: validation status and any warnings
+    - next_steps: guidance for integrating API-specific functionality
+  agent: >
+    MCPBaseGeneratorAgent
+  async_execution: False
+  # context: api_orchestrator
+  # The following are for test purposes
+  markdown: False
+  # output_file: mcp_base_generator_output.json
