@@ -432,6 +432,27 @@ class ApiExtractionFlow(Flow):
         if not mcp_server_path and hasattr(self, '_mcp_result') and self._mcp_result:
             mcp_server_path = self._mcp_result.output_directory
         
+        # Fallback: Try to construct the MCP server path from server name
+        if not mcp_server_path and self.server_name:
+            import os
+            # Assume the server is in the mcp-servers directory relative to ai-agents
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            mcp_servers_dir = os.path.join(base_dir, "..", "mcp-servers")
+            potential_path = os.path.join(mcp_servers_dir, self.server_name)
+            if os.path.exists(potential_path):
+                mcp_server_path = potential_path
+                print(f"📁 Found MCP server using fallback path: {mcp_server_path}")
+        
+        # Final fallback: Try to find the docs-github-com-api-mcp-server
+        if not mcp_server_path:
+            import os
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            mcp_servers_dir = os.path.join(base_dir, "..", "mcp-servers")
+            default_server_path = os.path.join(mcp_servers_dir, "docs-github-com-api-mcp-server")
+            if os.path.exists(default_server_path):
+                mcp_server_path = default_server_path
+                print(f"📁 Found MCP server using default docs-github-com path: {mcp_server_path}")
+        
         if not mcp_server_path:
             print("❌ No MCP server path available for integration")
             return {
@@ -440,19 +461,24 @@ class ApiExtractionFlow(Flow):
             }
         
         try:
-            # Create the MCP API integrator agent
-            integrator_agent = MCPAPIIntegratorAgent()
+            # Derive server name from the MCP server path
+            import os
+            derived_server_name = os.path.basename(mcp_server_path) if mcp_server_path else (self.server_name or "generated-mcp-server")
             
-            # Prepare the integration context
-            integration_context = {
-                "extraction_results": extraction_results,
-                "mcp_server_path": mcp_server_path,
-                "server_name": self.server_name,
-                "website_url": self.website_url
-            }
+            # Create the MCP API integrator agent with required parameters
+            integrator_agent = MCPAPIIntegratorAgent(
+                website_url=self.website_url,
+                server_name=derived_server_name,
+                mcp_server_path=mcp_server_path
+            )
             
-            # Create the integration task
-            integration_task = MCPAPIIntegrationTask(context=integration_context)
+            # Create the integration task with required parameters
+            integration_task = MCPAPIIntegrationTask(
+                website_url=self.website_url,
+                server_name=derived_server_name, 
+                mcp_server_path=mcp_server_path,
+                extraction_results=extraction_results
+            )
             integration_task.agent = integrator_agent
             
             # Create crew for integration

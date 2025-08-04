@@ -96,13 +96,27 @@ mcp_base_generation:
 
 mcp_api_integration:
   description: >
-    Integrate extracted API usage details into the generated MCP server by analyzing
-    the API extraction results and updating the server structure with appropriate
-    tools and resources. This task automatically processes API documentation,
-    endpoint analysis, and authentication details to generate functional MCP
-    components that can interact with the target API.
+    Integrate extracted API usage details into the generated MCP server at {mcp_server_path} for {website_url}.
+    
+    Task Details:
+    - Target Server: {server_name}
+    - Server Path: {mcp_server_path}  
+    - Website URL: {website_url}
+    - Extraction Results: {total_extraction_chunks} total chunks, {successful_chunks} successful
+    
+    Your responsibilities:
+    1. Analyze the API extraction results to understand endpoint patterns
+    2. Update the MCP server structure to accommodate API tools and resources
+    3. Generate MCP tools for API endpoints (POST, PUT, DELETE operations)
+    4. Generate MCP resources for API data access (GET operations)
+    5. Integrate authentication mechanisms as needed
+    6. Validate the integration meets MC-PEA project standards
+    
+    This task automatically processes API documentation, endpoint analysis, and 
+    authentication details to generate functional MCP components that can interact 
+    with the target API following MCP SDK stdio transport patterns.
   expected_output: >
-    Comprehensive MCP server integration results containing:
+    Comprehensive MCP server integration results for {server_name} at {mcp_server_path} containing:
     - integration_summary: overview of changes made to the server
     - tools_generated: list of MCP tools created for API endpoints
     - resources_generated: list of MCP resources for API data access

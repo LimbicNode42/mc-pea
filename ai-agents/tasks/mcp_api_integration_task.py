@@ -50,8 +50,8 @@ class MCPAPIIntegrationTask(Task):
             **kwargs
         )
         
-        # Store task-specific data for agent access
-        self.website_url = website_url
-        self.server_name = server_name
-        self.mcp_server_path = mcp_server_path
-        self.extraction_results = extraction_results
+        # Store task-specific data for agent access using object.__setattr__ to bypass Pydantic validation
+        object.__setattr__(self, 'website_url', website_url)
+        object.__setattr__(self, 'server_name', server_name)
+        object.__setattr__(self, 'mcp_server_path', mcp_server_path)
+        object.__setattr__(self, 'extraction_results', extraction_results)

@@ -664,6 +664,11 @@ def extract_selected_endpoints():
         # Store the results in session state
         st.session_state.extraction_results = extraction_results
         
+        # Calculate statistics first
+        total_chunks = len(extraction_results) if extraction_results else 0
+        successful_chunks = len([r for r in extraction_results if 'error' not in r]) if extraction_results else 0
+        failed_chunks = len([r for r in extraction_results if 'error' in r]) if extraction_results else 0
+
         # Automatically run API integration after extraction completion
         if extraction_results and successful_chunks > 0:
             with st.status("🔄 Phase 4: Integrating API into MCP Server...", expanded=True) as integration_status:
@@ -691,9 +696,7 @@ def extract_selected_endpoints():
                     integration_status.update(label="❌ API Integration Failed", state="error")
         
         # Calculate enhanced statistics
-        total_chunks = len(extraction_results)
-        successful_chunks = len([r for r in extraction_results if 'error' not in r])
-        failed_chunks = len([r for r in extraction_results if 'error' in r])
+        # (already calculated above)
         
         # Calculate endpoint-level statistics
         total_endpoints_processed = sum(r.get('endpoints_processed', 0) for r in extraction_results)

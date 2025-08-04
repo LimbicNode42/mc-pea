@@ -11,7 +11,7 @@ from langchain_anthropic import ChatAnthropic
 from dotenv import load_dotenv
 import os
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from urllib.parse import urlparse
 from core.agent_workers_config_loader import get_agent_config
 from pydantic import Field
@@ -25,16 +25,40 @@ class MCPAPIIntegratorAgent(Agent):
     
     # Declare custom fields as Pydantic model fields
     website_url: str = Field(description="The website URL for API integration")
-    server_name: str = Field(description="The MCP server name")
-    mcp_server_path: str = Field(description="Path to the generated MCP server")
-    
+    server_name: str = Field(description="The generated server name")
+    mcp_server_path: str = Field(description="Path to the MCP server directory")
+
     def __init__(self, website_url: str, server_name: str, mcp_server_path: str, **kwargs):
         load_dotenv()
         
+        # Generate server name from website URL if not provided
+        if not server_name:
+            parsed = urlparse(website_url)
+            domain = parsed.netloc.replace('www.', '').replace('.', '-')
+            server_name = f"{domain}-api-mcp-server"
+        
+        # Use custom server path if provided, otherwise use default
+        if mcp_server_path:
+            if os.path.isabs(mcp_server_path):
+                server_path = mcp_server_path
+            else:
+                # Relative to current working directory
+                server_path = os.path.abspath(mcp_server_path)
+        else:
+            # Default server path
+            server_path = os.path.join(os.getcwd(), '..', 'mcp-servers', f"{server_name}")
+
+        # Validate server directory exists or can be created
+        os.makedirs(server_path, exist_ok=True)
+
         # Load agent configuration
         config = get_agent_config('mcp_api_integrator_agent')
+        
+        # Add error handling for None config
+        if config is None:
+            raise ValueError("Could not load configuration for 'mcp_api_integrator_agent'. Check that the config file exists and is valid.")
 
-        if "claude" in config.get("llm"):
+        if "claude" in config.get("llm", ""):
             llm = ChatAnthropic(
                 model=config.get("llm"),
                 max_output_tokens=config.get("max_output_tokens"),
@@ -42,7 +66,7 @@ class MCPAPIIntegratorAgent(Agent):
                 max_retries=config.get("max_retry_limit"),
             )
             print("Using Claude LLM for MCP API integration")
-        elif "gemini" in config.get("llm"):
+        elif "gemini" in config.get("llm", ""):
             google_api_key = os.getenv('GOOGLE_API_KEY')
             if not google_api_key:
                 raise ValueError("GOOGLE_API_KEY environment variable is required for Gemini models")
@@ -61,26 +85,105 @@ class MCPAPIIntegratorAgent(Agent):
             )
             print(f"Using Gemini LLM for MCP API integration: {model_name}")
         else:
-            raise ValueError("Unsupported LLM type in configuration")
+            raise ValueError(f"Unsupported LLM type in configuration: {config.get('llm', 'None')}")
         
+        # Initialize parent class with proper agent configuration
         super().__init__(
-            role=config.get('role', 'MCP API Integrator'),
-            goal=config.get('goal', f'Integrate extracted API usage details into MCP server {server_name} for {website_url}'),
-            backstory=config.get('backstory', f"""You are an expert TypeScript developer specializing in Model Context Protocol (MCP) server development.
-            Your job is to take extracted API usage details and seamlessly integrate them into an existing MCP server structure.
-            You understand how to create MCP tools for API endpoints and resources for API data, following MC-PEA project standards.
-            You work with both the server structure and the extracted API data to create a fully functional MCP server."""),
+            role=config.get("role"),
+            goal=config.get("goal"),
+            backstory=config.get("backstory"),
             llm=llm,
-            tools=[self.analyze_extraction_results, self.update_mcp_server_structure, self.generate_api_tools, self.generate_api_resources, self.validate_integration],
+            tools=[],
             respect_context_window=config.get('respect_context_window', True),
             cache=config.get('cache', False),
+            reasoning=config.get('reasoning', True),
+            max_iter=config.get('max_iterations', 20),
+            max_retry_limit=config.get('max_retry_limit', 2),
             verbose=config.get('verbose', True),
+            allow_delegation=config.get('allow_delegation', False),
+            # Pass our custom fields to the parent constructor
             website_url=website_url,
             server_name=server_name,
-            mcp_server_path=mcp_server_path
+            mcp_server_path=server_path,
+            **kwargs
         )
+        
+        # Create tools that have access to instance variables
+        @tool("analyze_extraction_results")
+        def analyze_extraction_results_tool(extraction_results: str = "[]") -> str:
+            """Analyze the API extraction results to understand what tools and resources to create."""
+            return str(self.analyze_extraction_results_wrapper(extraction_results))
+        
+        @tool("update_mcp_server_structure")
+        def update_mcp_server_structure_tool(analysis_result: str = "{}") -> str:
+            """Update the MCP server structure to accommodate the API tools and resources."""
+            return str(self.update_mcp_server_structure_wrapper(analysis_result))
+        
+        @tool("generate_api_tools")
+        def generate_api_tools_tool(analysis_result: str = "{}") -> str:
+            """Generate MCP tools from API endpoints."""
+            return str(self.generate_api_tools_wrapper(analysis_result))
+        
+        @tool("generate_api_resources")
+        def generate_api_resources_tool(analysis_result: str = "{}") -> str:
+            """Generate MCP resources from API endpoints."""
+            return str(self.generate_api_resources_wrapper(analysis_result))
+        
+        @tool("validate_integration")
+        def validate_integration_tool(tools_result: str = "{}", resources_result: str = "{}") -> str:
+            """Validate the integration of tools and resources."""
+            return str(self.validate_integration_wrapper(tools_result, resources_result))
+        
+        # Add tools to the agent
+        self.tools.extend([
+            analyze_extraction_results_tool,
+            update_mcp_server_structure_tool,
+            generate_api_tools_tool,
+            generate_api_resources_tool,
+            validate_integration_tool
+        ])
     
-    @tool
+    def analyze_extraction_results_wrapper(self, extraction_results: str) -> Dict[str, Any]:
+        """Wrapper method for analyze_extraction_results tool."""
+        try:
+            results_list = json.loads(extraction_results) if isinstance(extraction_results, str) else extraction_results
+            return self.analyze_extraction_results(results_list)
+        except Exception as e:
+            return {'error': str(e)}
+    
+    def update_mcp_server_structure_wrapper(self, analysis_result: str) -> Dict[str, Any]:
+        """Wrapper method for update_mcp_server_structure tool."""
+        try:
+            analysis_dict = json.loads(analysis_result) if isinstance(analysis_result, str) else analysis_result
+            return self.update_mcp_server_structure(analysis_dict)
+        except Exception as e:
+            return {'error': str(e)}
+    
+    def generate_api_tools_wrapper(self, analysis_result: str) -> Dict[str, Any]:
+        """Wrapper method for generate_api_tools tool."""
+        try:
+            analysis_dict = json.loads(analysis_result) if isinstance(analysis_result, str) else analysis_result
+            return self.generate_api_tools(analysis_dict)
+        except Exception as e:
+            return {'error': str(e)}
+    
+    def generate_api_resources_wrapper(self, analysis_result: str) -> Dict[str, Any]:
+        """Wrapper method for generate_api_resources tool."""
+        try:
+            analysis_dict = json.loads(analysis_result) if isinstance(analysis_result, str) else analysis_result
+            return self.generate_api_resources(analysis_dict)
+        except Exception as e:
+            return {'error': str(e)}
+    
+    def validate_integration_wrapper(self, tools_result: str, resources_result: str) -> Dict[str, Any]:
+        """Wrapper method for validate_integration tool."""
+        try:
+            tools_dict = json.loads(tools_result) if isinstance(tools_result, str) else tools_result
+            resources_dict = json.loads(resources_result) if isinstance(resources_result, str) else resources_result
+            return self.validate_integration(tools_dict, resources_dict)
+        except Exception as e:
+            return {'error': str(e)}
+    
     def analyze_extraction_results(self, extraction_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Analyze the API extraction results to understand what tools and resources to create.
@@ -92,6 +195,15 @@ class MCPAPIIntegratorAgent(Agent):
             Dict containing analysis of endpoints, categorization, and integration plan
         """
         try:
+            # Defensive coding - ensure extraction_results is valid
+            if not extraction_results or not isinstance(extraction_results, list):
+                print("❌ Invalid or empty extraction_results provided")
+                return {
+                    'error': 'Invalid or empty extraction_results provided',
+                    'total_endpoints': 0,
+                    'analysis_failed': True
+                }
+            
             print(f"🔍 Analyzing {len(extraction_results)} extraction result chunks...")
             
             # Aggregate all endpoints from successful extractions
@@ -100,31 +212,44 @@ class MCPAPIIntegratorAgent(Agent):
             failed_chunks = 0
             
             for result in extraction_results:
+                if not isinstance(result, dict):
+                    failed_chunks += 1
+                    continue
+                    
                 if 'error' not in result and 'data' in result:
                     successful_chunks += 1
                     chunk_data = result['data']
                     
-                    # Extract endpoints from the chunk data
-                    if isinstance(chunk_data, dict) and 'ocs' in chunk_data:
-                        for category in chunk_data['ocs']:
-                            category_name = category.get('cn', 'Unknown')
-                            category_endpoints = category.get('ces', [])
-                            
-                            for endpoint in category_endpoints:
-                                endpoint_info = {
-                                    'category': category_name,
-                                    'name': endpoint.get('en', ''),
-                                    'description': endpoint.get('ed', ''),
-                                    'method': endpoint.get('em', 'GET'),
-                                    'path': endpoint.get('ep', ''),
-                                    'headers': endpoint.get('eh', []),
-                                    'path_params': endpoint.get('epp', []),
-                                    'query_params': endpoint.get('eqp', []),
-                                    'body_params': endpoint.get('ebp', []),
-                                    'response_codes': endpoint.get('erc', {}),
-                                    'examples': endpoint.get('ere', {})
-                                }
-                                all_endpoints.append(endpoint_info)
+                    # Extract endpoints from the chunk data - with defensive coding
+                    if isinstance(chunk_data, dict) and chunk_data.get('ocs'):
+                        ocs_data = chunk_data['ocs']
+                        if isinstance(ocs_data, list):
+                            for category in ocs_data:
+                                if not isinstance(category, dict):
+                                    continue
+                                    
+                                category_name = category.get('cn', 'Unknown')
+                                category_endpoints = category.get('ces', [])
+                                
+                                if isinstance(category_endpoints, list):
+                                    for endpoint in category_endpoints:
+                                        if not isinstance(endpoint, dict):
+                                            continue
+                                            
+                                        endpoint_info = {
+                                            'category': category_name,
+                                            'name': endpoint.get('en', ''),
+                                            'description': endpoint.get('ed', ''),
+                                            'method': endpoint.get('em', 'GET'),
+                                            'path': endpoint.get('ep', ''),
+                                            'headers': endpoint.get('eh', []),
+                                            'path_params': endpoint.get('epp', []),
+                                            'query_params': endpoint.get('eqp', []),
+                                            'body_params': endpoint.get('ebp', []),
+                                            'response_codes': endpoint.get('erc', {}),
+                                            'examples': endpoint.get('ere', {})
+                                        }
+                                        all_endpoints.append(endpoint_info)
                 else:
                     failed_chunks += 1
             
@@ -133,19 +258,29 @@ class MCPAPIIntegratorAgent(Agent):
             resource_candidates = []
             
             for endpoint in all_endpoints:
-                if endpoint['method'] in ['GET']:
+                if not isinstance(endpoint, dict):
+                    continue
+                    
+                endpoint_method = endpoint.get('method', 'GET')
+                if endpoint_method in ['GET']:
                     # GET endpoints can be both tools (for actions) and resources (for data)
                     tool_candidates.append(endpoint)
                     resource_candidates.append(endpoint)
-                elif endpoint['method'] in ['POST', 'PUT', 'PATCH', 'DELETE']:
+                elif endpoint_method in ['POST', 'PUT', 'PATCH', 'DELETE']:
                     # Write operations are primarily tools
                     tool_candidates.append(endpoint)
+            
+            # Build analysis with safe category extraction
+            categories = []
+            for ep in all_endpoints:
+                if isinstance(ep, dict) and ep.get('category'):
+                    categories.append(ep['category'])
             
             analysis = {
                 'total_endpoints': len(all_endpoints),
                 'successful_chunks': successful_chunks,
                 'failed_chunks': failed_chunks,
-                'categories': list(set(ep['category'] for ep in all_endpoints)),
+                'categories': list(set(categories)),
                 'methods_distribution': {},
                 'tool_candidates': len(tool_candidates),
                 'resource_candidates': len(resource_candidates),
@@ -159,7 +294,9 @@ class MCPAPIIntegratorAgent(Agent):
             
             # Calculate method distribution
             for endpoint in all_endpoints:
-                method = endpoint['method']
+                if not isinstance(endpoint, dict):
+                    continue
+                method = endpoint.get('method', 'UNKNOWN')
                 if method in analysis['methods_distribution']:
                     analysis['methods_distribution'][method] += 1
                 else:
@@ -167,7 +304,9 @@ class MCPAPIIntegratorAgent(Agent):
             
             # Group endpoints by category
             for endpoint in all_endpoints:
-                category = endpoint['category']
+                if not isinstance(endpoint, dict):
+                    continue
+                category = endpoint.get('category', 'Unknown')
                 if category not in analysis['endpoints_by_category']:
                     analysis['endpoints_by_category'][category] = []
                 analysis['endpoints_by_category'][category].append(endpoint)
@@ -188,7 +327,6 @@ class MCPAPIIntegratorAgent(Agent):
                 'analysis_failed': True
             }
     
-    @tool
     def update_mcp_server_structure(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update the MCP server structure to accommodate the API tools and resources.
@@ -270,14 +408,12 @@ class MCPAPIIntegratorAgent(Agent):
                 'ready_for_integration': False
             }
     
-    @tool
-    def generate_api_tools(self, analysis_result: Dict[str, Any], endpoints_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def generate_api_tools(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generate MCP tools based on the extracted API endpoints.
         
         Args:
             analysis_result: Analysis of the API endpoints
-            endpoints_data: Detailed endpoint information
             
         Returns:
             Dict containing generated tools information
@@ -285,9 +421,18 @@ class MCPAPIIntegratorAgent(Agent):
         try:
             print(f"🛠️ Generating MCP tools for API endpoints...")
             
+            # Defensive coding - ensure analysis_result is valid
+            if not analysis_result or not isinstance(analysis_result, dict):
+                return {
+                    'error': 'Invalid analysis_result provided',
+                    'success': False,
+                    'tools_generated': 0
+                }
+            
             tools_generated = []
-            priority_categories = analysis_result.get('integration_plan', {}).get('priority_categories', [])
-            max_tools = analysis_result.get('integration_plan', {}).get('tools_to_create', 20)
+            integration_plan = analysis_result.get('integration_plan') or {}
+            priority_categories = integration_plan.get('priority_categories') or []
+            max_tools = integration_plan.get('tools_to_create') or 20
             
             tools_created = 0
             
@@ -296,26 +441,31 @@ class MCPAPIIntegratorAgent(Agent):
                 if tools_created >= max_tools:
                     break
                     
-                category_endpoints = analysis_result.get('endpoints_by_category', {}).get(category, [])
+                endpoints_by_category = analysis_result.get('endpoints_by_category') or {}
+                category_endpoints = endpoints_by_category.get(category) or []
                 
                 for endpoint in category_endpoints[:5]:  # Limit per category
                     if tools_created >= max_tools:
                         break
                     
+                    # Ensure endpoint is valid
+                    if not endpoint or not isinstance(endpoint, dict):
+                        continue
+                    
                     tool_info = {
-                        'name': self._generate_tool_name(endpoint['name'], endpoint['method']),
-                        'description': endpoint['description'] or f"{endpoint['method']} request to {endpoint['path']}",
+                        'name': self._generate_tool_name(endpoint.get('name', ''), endpoint.get('method', 'GET')),
+                        'description': endpoint.get('description', '') or f"{endpoint.get('method', 'GET')} request to {endpoint.get('path', '')}",
                         'category': category,
-                        'method': endpoint['method'],
-                        'path': endpoint['path'],
+                        'method': endpoint.get('method', 'GET'),
+                        'path': endpoint.get('path', ''),
                         'parameters': {
-                            'path': endpoint.get('path_params', []),
-                            'query': endpoint.get('query_params', []),
-                            'body': endpoint.get('body_params', []),
-                            'headers': endpoint.get('headers', [])
+                            'path': endpoint.get('path_params') or [],
+                            'query': endpoint.get('query_params') or [],
+                            'body': endpoint.get('body_params') or [],
+                            'headers': endpoint.get('headers') or []
                         },
-                        'response_codes': endpoint.get('response_codes', {}),
-                        'examples': endpoint.get('examples', {})
+                        'response_codes': endpoint.get('response_codes') or {},
+                        'examples': endpoint.get('examples') or {}
                     }
                     
                     tools_generated.append(tool_info)
@@ -354,14 +504,12 @@ class MCPAPIIntegratorAgent(Agent):
                 'tools_generated': 0
             }
     
-    @tool
-    def generate_api_resources(self, analysis_result: Dict[str, Any], endpoints_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def generate_api_resources(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generate MCP resources based on the extracted API endpoints.
         
         Args:
             analysis_result: Analysis of the API endpoints
-            endpoints_data: Detailed endpoint information
             
         Returns:
             Dict containing generated resources information
@@ -369,9 +517,18 @@ class MCPAPIIntegratorAgent(Agent):
         try:
             print(f"📚 Generating MCP resources for API data...")
             
+            # Defensive coding - ensure analysis_result is valid
+            if not analysis_result or not isinstance(analysis_result, dict):
+                return {
+                    'error': 'Invalid analysis_result provided',
+                    'success': False,
+                    'resources_generated': 0
+                }
+            
             resources_generated = []
-            priority_categories = analysis_result.get('integration_plan', {}).get('priority_categories', [])
-            max_resources = analysis_result.get('integration_plan', {}).get('resources_to_create', 10)
+            integration_plan = analysis_result.get('integration_plan') or {}
+            priority_categories = integration_plan.get('priority_categories') or []
+            max_resources = integration_plan.get('resources_to_create') or 10
             
             resources_created = 0
             
@@ -380,23 +537,28 @@ class MCPAPIIntegratorAgent(Agent):
                 if resources_created >= max_resources:
                     break
                     
-                category_endpoints = analysis_result.get('endpoints_by_category', {}).get(category, [])
+                endpoints_by_category = analysis_result.get('endpoints_by_category') or {}
+                category_endpoints = endpoints_by_category.get(category) or []
                 
                 for endpoint in category_endpoints:
                     if resources_created >= max_resources:
                         break
                     
+                    # Ensure endpoint is valid
+                    if not endpoint or not isinstance(endpoint, dict):
+                        continue
+                    
                     # Focus on GET endpoints for resources
-                    if endpoint['method'] == 'GET':
+                    if endpoint.get('method') == 'GET':
                         resource_info = {
-                            'name': self._generate_resource_name(endpoint['name']),
-                            'description': f"Data resource for {endpoint['description'] or endpoint['path']}",
+                            'name': self._generate_resource_name(endpoint.get('name', '')),
+                            'description': f"Data resource for {endpoint.get('description', '') or endpoint.get('path', '')}",
                             'category': category,
-                            'uri_template': f"api://{self.website_url.replace('https://', '').replace('http://', '')}{endpoint['path']}",
-                            'path': endpoint['path'],
-                            'parameters': endpoint.get('query_params', []),
+                            'uri_template': f"api://{self.website_url.replace('https://', '').replace('http://', '')}{endpoint.get('path', '')}",
+                            'path': endpoint.get('path', ''),
+                            'parameters': endpoint.get('query_params') or [],
                             'mime_type': 'application/json',
-                            'examples': endpoint.get('examples', {})
+                            'examples': endpoint.get('examples') or {}
                         }
                         
                         resources_generated.append(resource_info)
@@ -435,7 +597,6 @@ class MCPAPIIntegratorAgent(Agent):
                 'resources_generated': 0
             }
     
-    @tool
     def validate_integration(self, tools_result: Dict[str, Any], resources_result: Dict[str, Any]) -> Dict[str, Any]:
         """
         Validate the complete API integration into the MCP server.
@@ -450,6 +611,12 @@ class MCPAPIIntegratorAgent(Agent):
         try:
             print(f"✅ Validating complete API integration...")
             
+            # Defensive coding - ensure inputs are valid
+            if not isinstance(tools_result, dict):
+                tools_result = {}
+            if not isinstance(resources_result, dict):
+                resources_result = {}
+            
             validation_result = {
                 'integration_successful': True,
                 'tools_integration': tools_result.get('success', False),
@@ -461,9 +628,14 @@ class MCPAPIIntegratorAgent(Agent):
                 'next_steps': []
             }
             
-            # Combine created files
-            validation_result['files_created'].extend(tools_result.get('files_created', []))
-            validation_result['files_created'].extend(resources_result.get('files_created', []))
+            # Combine created files - safely handle None values
+            tools_files = tools_result.get('files_created')
+            if tools_files and isinstance(tools_files, list):
+                validation_result['files_created'].extend(tools_files)
+                
+            resources_files = resources_result.get('files_created')
+            if resources_files and isinstance(resources_files, list):
+                validation_result['files_created'].extend(resources_files)
             
             # Check if main index.ts needs updating
             index_file = os.path.join(self.mcp_server_path, 'src', 'index.ts')
@@ -541,41 +713,45 @@ class MCPAPIIntegratorAgent(Agent):
     
     def _generate_tool_typescript(self, tool_info: Dict[str, Any]) -> str:
         """Generate TypeScript code for an MCP tool."""
-        tool_name = tool_info['name']
-        description = tool_info['description']
-        method = tool_info['method']
-        path = tool_info['path']
+        # Defensive coding - ensure tool_info is valid
+        if not tool_info or not isinstance(tool_info, dict):
+            return "// Error: Invalid tool_info provided"
+            
+        tool_name = tool_info.get('name', 'unknown_tool')
+        description = tool_info.get('description', 'Generated MCP tool')
+        method = tool_info.get('method', 'GET')
+        path = tool_info.get('path', '')
         
-        # Build parameter schema
+        # Build basic parameter schema
         params_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add parameters from different sources
-        for param_type in ['path', 'query', 'body']:
-            params = tool_info['parameters'].get(param_type, [])
-            for param in params:
-                if isinstance(param, dict) and 'name' in param:
-                    param_name = param['name']
-                    params_schema['properties'][param_name] = {
-                        "type": param.get('type', 'string'),
-                        "description": param.get('description', f"{param_type} parameter")
-                    }
-                    if param.get('required', False):
-                        params_schema['required'].append(param_name)
+        # Add parameters from different sources - with defensive coding
+        parameters = tool_info.get('parameters')
+        if parameters and isinstance(parameters, dict):
+            for param_type in ['path', 'query', 'body']:
+                params = parameters.get(param_type)
+                if params and isinstance(params, list):
+                    for param in params:
+                        if isinstance(param, dict) and param.get('name'):
+                            param_name = param['name']
+                            params_schema['properties'][param_name] = {
+                                "type": param.get('type', 'string'),
+                                "description": param.get('description', f"{param_type} parameter")
+                            }
+                            if param.get('required', False):
+                                params_schema['required'].append(param_name)
         
-        typescript_content = f'''/**
+        return f'''/**
  * MCP Tool: {tool_name}
  * {description}
  * Generated from API endpoint: {method} {path}
  */
 
 import {{ tool }} from '@modelcontextprotocol/sdk';
-import {{ z }} from 'zod';
-
-const {tool_name}Schema = z.object({json.dumps(params_schema, indent=2).replace('"', "'")});
 
 export const {tool_name} = tool(
   {{
@@ -590,8 +766,6 @@ export const {tool_name} = tool(
   async (params) => {{
     try {{
       // TODO: Implement {method} request to {path}
-      // Use the provided parameters to make the API call
-      
       const result = {{
         method: '{method}',
         path: '{path}',
@@ -621,7 +795,6 @@ export const {tool_name} = tool(
   }}
 );
 '''
-        return typescript_content
     
     def _generate_resource_typescript(self, resource_info: Dict[str, Any]) -> str:
         """Generate TypeScript code for an MCP resource."""
@@ -630,7 +803,7 @@ export const {tool_name} = tool(
         uri_template = resource_info['uri_template']
         path = resource_info['path']
         
-        typescript_content = f'''/**
+        return f'''/**
  * MCP Resource: {resource_name}
  * {description}
  * Generated from API endpoint: {path}
@@ -648,8 +821,6 @@ export const {resource_name} = resource(
   async (uri) => {{
     try {{
       // TODO: Implement data fetching for {path}
-      // Parse URI parameters and make appropriate API call
-      
       const data = {{
         uri: uri,
         path: '{path}',
@@ -672,14 +843,3 @@ export const {resource_name} = resource(
   }}
 );
 '''
-        return typescript_content
-    
-    def get_integration_info(self) -> Dict[str, str]:
-        """Get basic information about this integration agent."""
-        return {
-            'agent_type': 'MCP API Integrator',
-            'website_url': self.website_url,
-            'server_name': self.server_name,
-            'mcp_server_path': self.mcp_server_path,
-            'capabilities': 'API tools and resources generation, MCP server integration'
-        }
