@@ -472,6 +472,9 @@ class ApiExtractionFlow(Flow):
                 mcp_server_path=mcp_server_path
             )
             
+            # Set the extraction results for the agent to use
+            integrator_agent.set_extraction_results(extraction_results)
+            
             # Create the integration task with required parameters
             integration_task = MCPAPIIntegrationTask(
                 website_url=self.website_url,

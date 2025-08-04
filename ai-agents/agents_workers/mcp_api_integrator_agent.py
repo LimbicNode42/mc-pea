@@ -108,31 +108,37 @@ class MCPAPIIntegratorAgent(Agent):
             **kwargs
         )
         
+        # Store workflow state - these will be populated during execution
+        self._extraction_results = None
+        self._analysis_result = None
+        self._tools_result = None
+        self._resources_result = None
+        
         # Create tools that have access to instance variables
         @tool("analyze_extraction_results")
-        def analyze_extraction_results_tool(extraction_results: str = "[]") -> str:
+        def analyze_extraction_results_tool(context: str = "{}") -> str:
             """Analyze the API extraction results to understand what tools and resources to create."""
-            return str(self.analyze_extraction_results_wrapper(extraction_results))
+            return str(self.analyze_extraction_results_wrapper(context))
         
         @tool("update_mcp_server_structure")
-        def update_mcp_server_structure_tool(analysis_result: str = "{}") -> str:
+        def update_mcp_server_structure_tool(context: str = "{}") -> str:
             """Update the MCP server structure to accommodate the API tools and resources."""
-            return str(self.update_mcp_server_structure_wrapper(analysis_result))
+            return str(self.update_mcp_server_structure_wrapper(context))
         
         @tool("generate_api_tools")
-        def generate_api_tools_tool(analysis_result: str = "{}") -> str:
+        def generate_api_tools_tool(context: str = "{}") -> str:
             """Generate MCP tools from API endpoints."""
-            return str(self.generate_api_tools_wrapper(analysis_result))
+            return str(self.generate_api_tools_wrapper(context))
         
         @tool("generate_api_resources")
-        def generate_api_resources_tool(analysis_result: str = "{}") -> str:
+        def generate_api_resources_tool(context: str = "{}") -> str:
             """Generate MCP resources from API endpoints."""
-            return str(self.generate_api_resources_wrapper(analysis_result))
+            return str(self.generate_api_resources_wrapper(context))
         
         @tool("validate_integration")
-        def validate_integration_tool(tools_result: str = "{}", resources_result: str = "{}") -> str:
+        def validate_integration_tool(context: str = "{}") -> str:
             """Validate the integration of tools and resources."""
-            return str(self.validate_integration_wrapper(tools_result, resources_result))
+            return str(self.validate_integration_wrapper(context))
         
         # Add tools to the agent
         self.tools.extend([
@@ -143,46 +149,106 @@ class MCPAPIIntegratorAgent(Agent):
             validate_integration_tool
         ])
     
-    def analyze_extraction_results_wrapper(self, extraction_results: str) -> Dict[str, Any]:
+    def analyze_extraction_results_wrapper(self, context: str) -> Dict[str, Any]:
         """Wrapper method for analyze_extraction_results tool."""
         try:
-            results_list = json.loads(extraction_results) if isinstance(extraction_results, str) else extraction_results
-            return self.analyze_extraction_results(results_list)
+            # If no extraction results stored yet, try to get from context
+            if self._extraction_results is None:
+                try:
+                    context_data = json.loads(context) if context != "{}" else {}
+                    extraction_results = context_data.get('extraction_results', [])
+                except:
+                    extraction_results = []
+            else:
+                extraction_results = self._extraction_results
+            
+            result = self.analyze_extraction_results(extraction_results)
+            # Store result for next steps
+            self._analysis_result = result
+            return result
         except Exception as e:
             return {'error': str(e)}
     
-    def update_mcp_server_structure_wrapper(self, analysis_result: str) -> Dict[str, Any]:
+    def update_mcp_server_structure_wrapper(self, context: str) -> Dict[str, Any]:
         """Wrapper method for update_mcp_server_structure tool."""
         try:
-            analysis_dict = json.loads(analysis_result) if isinstance(analysis_result, str) else analysis_result
+            # Use stored analysis result if available, otherwise try context
+            if self._analysis_result is not None:
+                analysis_dict = self._analysis_result
+            else:
+                try:
+                    context_data = json.loads(context) if context != "{}" else {}
+                    analysis_dict = context_data.get('analysis_result', {})
+                except:
+                    analysis_dict = {}
+            
             return self.update_mcp_server_structure(analysis_dict)
         except Exception as e:
             return {'error': str(e)}
     
-    def generate_api_tools_wrapper(self, analysis_result: str) -> Dict[str, Any]:
+    def generate_api_tools_wrapper(self, context: str) -> Dict[str, Any]:
         """Wrapper method for generate_api_tools tool."""
         try:
-            analysis_dict = json.loads(analysis_result) if isinstance(analysis_result, str) else analysis_result
-            return self.generate_api_tools(analysis_dict)
+            # Use stored analysis result if available, otherwise try context
+            if self._analysis_result is not None:
+                analysis_dict = self._analysis_result
+            else:
+                try:
+                    context_data = json.loads(context) if context != "{}" else {}
+                    analysis_dict = context_data.get('analysis_result', {})
+                except:
+                    analysis_dict = {}
+            
+            result = self.generate_api_tools(analysis_dict)
+            # Store result for validation step
+            self._tools_result = result
+            return result
         except Exception as e:
             return {'error': str(e)}
     
-    def generate_api_resources_wrapper(self, analysis_result: str) -> Dict[str, Any]:
+    def generate_api_resources_wrapper(self, context: str) -> Dict[str, Any]:
         """Wrapper method for generate_api_resources tool."""
         try:
-            analysis_dict = json.loads(analysis_result) if isinstance(analysis_result, str) else analysis_result
-            return self.generate_api_resources(analysis_dict)
+            # Use stored analysis result if available, otherwise try context
+            if self._analysis_result is not None:
+                analysis_dict = self._analysis_result
+            else:
+                try:
+                    context_data = json.loads(context) if context != "{}" else {}
+                    analysis_dict = context_data.get('analysis_result', {})
+                except:
+                    analysis_dict = {}
+            
+            result = self.generate_api_resources(analysis_dict)
+            # Store result for validation step
+            self._resources_result = result
+            return result
         except Exception as e:
             return {'error': str(e)}
     
-    def validate_integration_wrapper(self, tools_result: str, resources_result: str) -> Dict[str, Any]:
+    def validate_integration_wrapper(self, context: str) -> Dict[str, Any]:
         """Wrapper method for validate_integration tool."""
         try:
-            tools_dict = json.loads(tools_result) if isinstance(tools_result, str) else tools_result
-            resources_dict = json.loads(resources_result) if isinstance(resources_result, str) else resources_result
+            # Use stored results if available, otherwise try context
+            if self._tools_result is not None and self._resources_result is not None:
+                tools_dict = self._tools_result
+                resources_dict = self._resources_result
+            else:
+                try:
+                    context_data = json.loads(context) if context != "{}" else {}
+                    tools_dict = context_data.get('tools_result', {})
+                    resources_dict = context_data.get('resources_result', {})
+                except:
+                    tools_dict = {}
+                    resources_dict = {}
+            
             return self.validate_integration(tools_dict, resources_dict)
         except Exception as e:
             return {'error': str(e)}
+    
+    def set_extraction_results(self, extraction_results: List[Dict[str, Any]]) -> None:
+        """Set the extraction results for processing."""
+        self._extraction_results = extraction_results
     
     def analyze_extraction_results(self, extraction_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
