@@ -62,7 +62,7 @@ class MCPBaseGeneratorAgent(Agent):
         if "claude" in config.get("llm"):
             llm = ChatAnthropic(
                 model=config.get("llm"),
-                max_output_tokens=config.get("max_output_tokens"),
+                max_tokens=config.get("max_output_tokens"),
                 temperature=config.get("temperature"),
                 max_retries=config.get("max_retry_limit"),
             )

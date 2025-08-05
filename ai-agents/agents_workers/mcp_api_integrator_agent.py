@@ -11,6 +11,7 @@ from langchain_anthropic import ChatAnthropic
 from dotenv import load_dotenv
 import os
 import json
+import time
 from typing import Dict, Any, List
 from urllib.parse import urlparse
 from core.agent_workers_config_loader import get_agent_config
@@ -61,11 +62,14 @@ class MCPAPIIntegratorAgent(Agent):
         if "claude" in config.get("llm", ""):
             llm = ChatAnthropic(
                 model=config.get("llm"),
-                max_output_tokens=config.get("max_output_tokens"),
+                max_tokens=config.get("max_output_tokens"),
                 temperature=config.get("temperature"),
-                max_retries=config.get("max_retry_limit"),
+                max_retries=1,  # Reduced from config to prevent rapid retries
+                default_request_timeout=120,  # Increase timeout
+                # Add rate limiting delay
+                anthropic_api_key=os.getenv('ANTHROPIC_API_KEY'),
             )
-            print("Using Claude LLM for MCP API integration")
+            print("Using Claude LLM for MCP API integration (with rate limiting)")
         elif "gemini" in config.get("llm", ""):
             google_api_key = os.getenv('GOOGLE_API_KEY')
             if not google_api_key:
@@ -113,6 +117,9 @@ class MCPAPIIntegratorAgent(Agent):
         self._analysis_result = None
         self._tools_result = None
         self._resources_result = None
+        self._last_call_time = 0  # For rate limiting
+        # More conservative rate limiting for Claude API
+        self._min_call_interval = float(os.getenv('MCP_INTEGRATOR_RATE_LIMIT', '3.0'))  # Configurable via env var
         
         # Create tools that have access to instance variables
         @tool("analyze_extraction_results")
@@ -149,9 +156,53 @@ class MCPAPIIntegratorAgent(Agent):
             validate_integration_tool
         ])
     
-    def analyze_extraction_results_wrapper(self, context: str) -> Dict[str, Any]:
+    def _apply_rate_limiting(self):
+        """Apply rate limiting delay between LLM calls to prevent rate limit errors."""
+        current_time = time.time()
+        time_since_last_call = current_time - self._last_call_time
+        
+        if time_since_last_call < self._min_call_interval:
+            delay = self._min_call_interval - time_since_last_call
+            print(f"⏱️ Rate limiting: waiting {delay:.1f}s before next API call")
+            time.sleep(delay)
+        
+        self._last_call_time = time.time()
+    
+    def _handle_api_error(self, e: Exception, operation: str) -> Dict[str, Any]:
+        """Handle API errors with specific rate limit detection and recovery."""
+        error_str = str(e).lower()
+        
+        if 'rate limit' in error_str or '429' in error_str or 'too many requests' in error_str:
+            print(f"⚠️ Rate limit hit during {operation}. Implementing backoff...")
+            # Exponential backoff for rate limits
+            backoff_time = 10.0  # Start with 10 seconds
+            time.sleep(backoff_time)
+            
+            return {
+                'error': f'Rate limit encountered during {operation}. Tried recovery with {backoff_time}s backoff.',
+                'error_type': 'rate_limit',
+                'recoverable': True,
+                'suggested_action': 'Retry after delay'
+            }
+        elif 'timeout' in error_str or 'connection' in error_str:
+            return {
+                'error': f'Connection/timeout error during {operation}: {str(e)}',
+                'error_type': 'connection',
+                'recoverable': True,
+                'suggested_action': 'Check network connection and retry'
+            }
+        else:
+            return {
+                'error': f'Error during {operation}: {str(e)}',
+                'error_type': 'general',
+                'recoverable': False
+            }
+    
+    def analyze_extraction_results_wrapper(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Wrapper method for analyze_extraction_results tool."""
         try:
+            self._apply_rate_limiting()  # Add rate limiting
+            
             # If no extraction results stored yet, try to get from context
             if self._extraction_results is None:
                 try:
@@ -167,11 +218,13 @@ class MCPAPIIntegratorAgent(Agent):
             self._analysis_result = result
             return result
         except Exception as e:
-            return {'error': str(e)}
+            return self._handle_api_error(e, "extraction analysis")
     
-    def update_mcp_server_structure_wrapper(self, context: str) -> Dict[str, Any]:
+    def update_mcp_server_structure_wrapper(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Wrapper method for update_mcp_server_structure tool."""
         try:
+            self._apply_rate_limiting()  # Add rate limiting
+            
             # Use stored analysis result if available, otherwise try context
             if self._analysis_result is not None:
                 analysis_dict = self._analysis_result
@@ -184,11 +237,13 @@ class MCPAPIIntegratorAgent(Agent):
             
             return self.update_mcp_server_structure(analysis_dict)
         except Exception as e:
-            return {'error': str(e)}
+            return self._handle_api_error(e, "server structure update")
     
-    def generate_api_tools_wrapper(self, context: str) -> Dict[str, Any]:
+    def generate_api_tools_wrapper(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Wrapper method for generate_api_tools tool."""
         try:
+            self._apply_rate_limiting()  # Add rate limiting
+            
             # Use stored analysis result if available, otherwise try context
             if self._analysis_result is not None:
                 analysis_dict = self._analysis_result
@@ -204,11 +259,13 @@ class MCPAPIIntegratorAgent(Agent):
             self._tools_result = result
             return result
         except Exception as e:
-            return {'error': str(e)}
+            return self._handle_api_error(e, "API tools generation")
     
-    def generate_api_resources_wrapper(self, context: str) -> Dict[str, Any]:
+    def generate_api_resources_wrapper(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Wrapper method for generate_api_resources tool."""
         try:
+            self._apply_rate_limiting()  # Add rate limiting
+            
             # Use stored analysis result if available, otherwise try context
             if self._analysis_result is not None:
                 analysis_dict = self._analysis_result
@@ -224,11 +281,13 @@ class MCPAPIIntegratorAgent(Agent):
             self._resources_result = result
             return result
         except Exception as e:
-            return {'error': str(e)}
+            return self._handle_api_error(e, "API resources generation")
     
-    def validate_integration_wrapper(self, context: str) -> Dict[str, Any]:
+    def validate_integration_wrapper(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Wrapper method for validate_integration tool."""
         try:
+            self._apply_rate_limiting()  # Add rate limiting
+            
             # Use stored results if available, otherwise try context
             if self._tools_result is not None and self._resources_result is not None:
                 tools_dict = self._tools_result
@@ -244,7 +303,7 @@ class MCPAPIIntegratorAgent(Agent):
             
             return self.validate_integration(tools_dict, resources_dict)
         except Exception as e:
-            return {'error': str(e)}
+            return self._handle_api_error(e, "integration validation")
     
     def set_extraction_results(self, extraction_results: List[Dict[str, Any]]) -> None:
         """Set the extraction results for processing."""
