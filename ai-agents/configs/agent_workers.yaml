@@ -68,8 +68,8 @@ mcp_api_integrator_agent:
   temperature: 0.3
   cache: False
   respect_context_window: True
-  reasoning: True
-  reasoning_effort: high
+  reasoning: False
+  reasoning_effort: low
   max_iterations: 20
   max_retry_limit: 1
   verbose: True
