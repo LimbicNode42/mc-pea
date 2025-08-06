@@ -17,6 +17,7 @@ import re
 from typing import Dict, Any, List
 from urllib.parse import urlparse
 from core.agent_workers_config_loader import get_agent_config
+from pydantic import Field
 
 
 class MCPAPIIntegratorAgent(Agent):
@@ -24,13 +25,14 @@ class MCPAPIIntegratorAgent(Agent):
     Agent responsible for integrating extracted API details into the MCP server.
     Updates the generated MCP server with tools and resources based on API extraction results.
     """
+    
+    # Declare custom fields as Pydantic model fields
+    website_url: str = Field(description="The website URL for API integration")
+    server_name: str = Field(description="The generated server name")
+    mcp_server_path: str = Field(description="Path to the MCP server directory")
 
-    def __init__(self, website_url: str = None, server_name: str = None, mcp_server_path: str = None, **kwargs):
+    def __init__(self, website_url: str, server_name: str, mcp_server_path: str, **kwargs):
         load_dotenv()
-        
-        # Set default values if not provided
-        if website_url is None:
-            website_url = "https://api.example.com"
         
         # Generate server name from website URL if not provided
         if not server_name:
@@ -55,87 +57,129 @@ class MCPAPIIntegratorAgent(Agent):
         # Load agent configuration
         config = get_agent_config('mcp_api_integrator_agent')
         
-        # Add error handling for None config with detailed debugging
+        # Add error handling for None config
         if config is None:
             raise ValueError("Could not load configuration for 'mcp_api_integrator_agent'. Check that the config file exists and is valid.")
-        
-        # Add defensive coding for missing config values
-        llm_config = config.get("llm", "")
-        if not llm_config:
-            raise ValueError("No LLM configuration found in agent config")
 
-        if "claude" in llm_config:
+        if "claude" in config.get("llm", ""):
             llm = ChatAnthropic(
-                model=config.get("llm", "claude-sonnet-4"),
-                max_tokens=config.get("max_output_tokens", 8000),
-                temperature=config.get("temperature", 0.2),
+                model=config.get("llm"),
+                max_tokens=config.get("max_output_tokens"),
+                temperature=config.get("temperature"),
                 max_retries=1,  # Reduced from config to prevent rapid retries
                 default_request_timeout=120,  # Increase timeout
+                # Add rate limiting delay
                 anthropic_api_key=os.getenv('ANTHROPIC_API_KEY'),
             )
             print("Using Claude LLM for MCP API integration (with rate limiting)")
-        elif "gemini" in llm_config:
+        elif "gemini" in config.get("llm", ""):
             google_api_key = os.getenv('GOOGLE_API_KEY')
             if not google_api_key:
                 raise ValueError("GOOGLE_API_KEY environment variable is required for Gemini models")
             
             # Extract just the model name (remove the provider prefix)
-            model_name = config.get("llm", "gemini-2.5-flash").replace("gemini/", "")
+            model_name = config.get("llm").replace("gemini/", "")
             
             # Use CrewAI's LLM class for Gemini models
             llm = LLM(
                 model=f"gemini/{model_name}",
                 api_key=google_api_key,
-                max_tokens=config.get("max_input_tokens", 3000000),
-                max_completion_tokens=config.get("max_output_tokens", 1000000),
-                temperature=config.get("temperature", 0.2),
-                reasoning_effort=config.get("reasoning_effort", "medium"),
+                max_tokens=config.get("max_input_tokens"),
+                max_completion_tokens=config.get("max_output_tokens"),
+                temperature=config.get("temperature"),
+                reasoning_effort=config.get("reasoning_effort"),
             )
             print(f"Using Gemini LLM for MCP API integration: {model_name}")
         else:
-            raise ValueError(f"Unsupported LLM type in configuration: {llm_config}")
+            raise ValueError(f"Unsupported LLM type in configuration: {config.get('llm', 'None')}")
+        
+        # Store instance variables
+        self.website_url = website_url
+        self.server_name = server_name
+        self.mcp_server_path = server_path
         
         # Create concrete tools that provide actual functionality
         @tool("read_file")
         def read_file_tool(file_path: str) -> str:
             """Read the contents of a file."""
-            return str(self.read_file_method(file_path))
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+            except Exception as e:
+                return f"Error reading file {file_path}: {str(e)}"
         
         @tool("write_file")
         def write_file_tool(file_path: str, content: str) -> str:
             """Write content to a file."""
-            return str(self.write_file_method(file_path, content))
+            try:
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                return f"Successfully wrote to {file_path}"
+            except Exception as e:
+                return f"Error writing file {file_path}: {str(e)}"
         
         @tool("copy_template")
         def copy_template_tool(template_path: str, destination_path: str) -> str:
             """Copy template files to destination."""
-            return str(self.copy_template_method(template_path, destination_path))
+            try:
+                if os.path.exists(destination_path):
+                    shutil.rmtree(destination_path)
+                shutil.copytree(template_path, destination_path)
+                return f"Successfully copied template from {template_path} to {destination_path}"
+            except Exception as e:
+                return f"Error copying template: {str(e)}"
         
         @tool("list_directory")
         def list_directory_tool(dir_path: str) -> str:
             """List contents of a directory."""
-            return str(self.list_directory_method(dir_path))
+            try:
+                if not os.path.exists(dir_path):
+                    return f"Directory {dir_path} does not exist"
+                items = os.listdir(dir_path)
+                return json.dumps(items)
+            except Exception as e:
+                return f"Error listing directory {dir_path}: {str(e)}"
         
         @tool("generate_typescript_tool")
         def generate_typescript_tool_tool(tool_name: str, endpoint_data: str) -> str:
             """Generate TypeScript code for an MCP tool based on API endpoint data."""
-            return str(self.generate_typescript_tool_method(tool_name, endpoint_data))
+            try:
+                endpoint = json.loads(endpoint_data)
+                return self._generate_tool_typescript_code(tool_name, endpoint)
+            except Exception as e:
+                return f"Error generating TypeScript tool: {str(e)}"
         
         @tool("generate_typescript_resource")
         def generate_typescript_resource_tool(resource_name: str, endpoint_data: str) -> str:
             """Generate TypeScript code for an MCP resource based on API endpoint data."""
-            return str(self.generate_typescript_resource_method(resource_name, endpoint_data))
+            try:
+                endpoint = json.loads(endpoint_data)
+                return self._generate_resource_typescript_code(resource_name, endpoint)
+            except Exception as e:
+                return f"Error generating TypeScript resource: {str(e)}"
         
         @tool("validate_typescript")
         def validate_typescript_tool(file_path: str) -> str:
             """Validate TypeScript file syntax."""
-            return str(self.validate_typescript_method(file_path))
+            try:
+                # Simple validation - check if file can be read and has basic TS structure
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Basic syntax checks
+                if 'server.registerTool' in content or 'server.registerResource' in content:
+                    return f"TypeScript file {file_path} appears valid"
+                else:
+                    return f"Warning: {file_path} may not contain proper MCP registrations"
+            except Exception as e:
+                return f"Error validating TypeScript file {file_path}: {str(e)}"
         
         # Initialize parent class with proper agent configuration
         super().__init__(
-            role=config.get("role", "MCP API Integrator"),
-            goal=config.get("goal", "Integrate API extraction results into MCP server"),
-            backstory=config.get("backstory", "Expert TypeScript developer for MCP servers"),
+            role=config.get("role"),
+            goal=config.get("goal"),
+            backstory=config.get("backstory"),
             llm=llm,
             tools=[
                 read_file_tool,
@@ -148,157 +192,18 @@ class MCPAPIIntegratorAgent(Agent):
             ],
             respect_context_window=config.get('respect_context_window', True),
             cache=config.get('cache', False),
-            reasoning=config.get('reasoning', False),
-            max_iter=config.get('max_iterations', 10),
-            max_retry_limit=config.get('max_retry_limit', 1),
+            reasoning=config.get('reasoning', True),
+            max_iter=config.get('max_iterations', 20),
+            max_retry_limit=config.get('max_retry_limit', 2),
             verbose=config.get('verbose', True),
             allow_delegation=config.get('allow_delegation', False),
             **kwargs
         )
         
-        # Store instance variables after super().__init__() to avoid Pydantic issues
-        object.__setattr__(self, 'website_url', website_url)
-        object.__setattr__(self, 'server_name', server_name)
-        object.__setattr__(self, 'mcp_server_path', server_path)
-        
         # Store workflow state
-        object.__setattr__(self, '_extraction_results', None)
-        object.__setattr__(self, '_last_call_time', 0)  # For rate limiting
-        object.__setattr__(self, '_min_call_interval', float(os.getenv('MCP_INTEGRATOR_RATE_LIMIT', '2.0')))
-    
-    def read_file_method(self, file_path: str) -> Dict[str, Any]:
-        """Read the contents of a file."""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return {
-                "success": True,
-                "content": content,
-                "file_path": file_path
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error reading file {file_path}: {str(e)}"
-            }
-    
-    def write_file_method(self, file_path: str, content: str) -> Dict[str, Any]:
-        """Write content to a file."""
-        try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            return {
-                "success": True,
-                "message": f"Successfully wrote to {file_path}",
-                "file_path": file_path
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error writing file {file_path}: {str(e)}"
-            }
-    
-    def copy_template_method(self, template_path: str, destination_path: str) -> Dict[str, Any]:
-        """Copy template files to destination."""
-        try:
-            if os.path.exists(destination_path):
-                shutil.rmtree(destination_path)
-            shutil.copytree(template_path, destination_path)
-            return {
-                "success": True,
-                "message": f"Successfully copied template from {template_path} to {destination_path}",
-                "template_path": template_path,
-                "destination_path": destination_path
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error copying template: {str(e)}"
-            }
-    
-    def list_directory_method(self, dir_path: str) -> Dict[str, Any]:
-        """List contents of a directory."""
-        try:
-            if not os.path.exists(dir_path):
-                return {
-                    "success": False,
-                    "error": f"Directory {dir_path} does not exist"
-                }
-            items = os.listdir(dir_path)
-            return {
-                "success": True,
-                "items": items,
-                "directory": dir_path
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error listing directory {dir_path}: {str(e)}"
-            }
-    
-    def generate_typescript_tool_method(self, tool_name: str, endpoint_data: str) -> Dict[str, Any]:
-        """Generate TypeScript code for an MCP tool based on API endpoint data."""
-        try:
-            endpoint = json.loads(endpoint_data)
-            # Use the advanced TypeScript generation method
-            code = self._generate_tool_typescript_code(tool_name, endpoint)
-            return {
-                "success": True,
-                "typescript_code": code,
-                "tool_name": tool_name
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error generating TypeScript tool: {str(e)}"
-            }
-    
-    def generate_typescript_resource_method(self, resource_name: str, endpoint_data: str) -> Dict[str, Any]:
-        """Generate TypeScript code for an MCP resource based on API endpoint data."""
-        try:
-            endpoint = json.loads(endpoint_data)
-            # Use the advanced TypeScript generation method
-            code = self._generate_resource_typescript_code(resource_name, endpoint)
-            return {
-                "success": True,
-                "typescript_code": code,
-                "resource_name": resource_name
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error generating TypeScript resource: {str(e)}"
-            }
-    
-    def validate_typescript_method(self, file_path: str) -> Dict[str, Any]:
-        """Validate TypeScript file syntax."""
-        try:
-            # Simple validation - check if file can be read and has basic TS structure
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Basic syntax checks
-            has_tool_registration = 'server.registerTool' in content
-            has_resource_registration = 'server.registerResource' in content
-            
-            if has_tool_registration or has_resource_registration:
-                return {
-                    "success": True,
-                    "message": f"TypeScript file {file_path} appears valid",
-                    "has_tools": has_tool_registration,
-                    "has_resources": has_resource_registration
-                }
-            else:
-                return {
-                    "success": False,
-                    "warning": f"Warning: {file_path} may not contain proper MCP registrations"
-                }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Error validating TypeScript file {file_path}: {str(e)}"
-            }
+        self._extraction_results = None
+        self._last_call_time = 0  # For rate limiting
+        self._min_call_interval = float(os.getenv('MCP_INTEGRATOR_RATE_LIMIT', '2.0'))
     
     def _apply_rate_limiting(self):
         """Apply rate limiting delay between LLM calls to prevent rate limit errors."""

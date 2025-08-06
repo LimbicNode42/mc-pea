@@ -15,7 +15,6 @@ import json
 from typing import Dict, Any, Optional
 from urllib.parse import urlparse
 from core.agent_workers_config_loader import get_agent_config
-from pydantic import Field
 
 
 class MCPBaseGeneratorAgent(Agent):
@@ -23,12 +22,6 @@ class MCPBaseGeneratorAgent(Agent):
     Agent responsible for generating the base MCP server structure.
     Creates the foundational TypeScript MCP server that can later be populated with API tools and resources.
     """
-    
-    # Declare custom fields as Pydantic model fields
-    website_url: str = Field(description="The website URL for API integration")
-    server_name: str = Field(description="The generated server name")
-    template_dir: str = Field(description="Path to the template directory")
-    output_dir: str = Field(description="Output directory for the generated server")
     
     def __init__(self, website_url: str, server_name: str = None, template_path: str = None, **kwargs):
         load_dotenv()
@@ -103,13 +96,14 @@ class MCPBaseGeneratorAgent(Agent):
             max_retry_limit=config.get('max_retry_limit', 2),
             verbose=config.get('verbose', True),
             allow_delegation=config.get('allow_delegation', False),
-            # Pass our custom fields to the parent constructor
-            website_url=website_url,
-            server_name=server_name,
-            template_dir=template_dir,
-            output_dir=output_dir,
             **kwargs
         )
+        
+        # Store instance variables after super().__init__() to avoid Pydantic issues
+        object.__setattr__(self, 'website_url', website_url)
+        object.__setattr__(self, 'server_name', server_name)
+        object.__setattr__(self, 'template_dir', template_dir)
+        object.__setattr__(self, 'output_dir', output_dir)
         
         # Create tools that have access to instance variables
         @tool("copy_template_structure")

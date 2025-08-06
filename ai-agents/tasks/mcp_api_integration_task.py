@@ -17,6 +17,10 @@ class MCPAPIIntegrationTask(Task):
         # Load configuration from centralized config file
         task_loader = TaskConfigLoader()
         config_data = task_loader.get_task_config("mcp_api_integration")
+        
+        # Add defensive coding for None or empty config
+        if not config_data:
+            raise ValueError("Could not load configuration for 'mcp_api_integration'. Check that the config file exists and has this task defined.")
           
         # Initialize the CrewAI Task with the loaded configuration
         # Format description and expected_output with provided parameters
@@ -42,15 +46,13 @@ class MCPAPIIntegrationTask(Task):
         super().__init__(
             description=description,
             expected_output=expected_output,
-            # guardrail=validate_blog_content,
-            async_execution=config_data.get("async_execution"),
-            # output_json=MCPAPIIntegrationOutput,
-            markdown=config_data.get("markdown"),
+            async_execution=config_data.get("async_execution", False),
+            markdown=config_data.get("markdown", False),
             output_file=config_data.get("output_file"),
             **kwargs
         )
         
-        # Store task-specific data for agent access using object.__setattr__ to bypass Pydantic validation
+        # Store task-specific data for agent access using object.__setattr__ to avoid Pydantic validation
         object.__setattr__(self, 'website_url', website_url)
         object.__setattr__(self, 'server_name', server_name)
         object.__setattr__(self, 'mcp_server_path', mcp_server_path)
