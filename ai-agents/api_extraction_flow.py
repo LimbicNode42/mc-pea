@@ -15,7 +15,7 @@ from crewai.flow.flow import start, listen
 from agents_workers.api_discovery_agent import ApiLinkDiscoveryAgent
 from agents_workers.api_content_extractor_agent import ApiLinkContentExtractorAgent
 from agents_workers.mcp_base_generator_agent import MCPBaseGeneratorAgent
-from agents_workers.mcp_api_integrator_agent import MCPAPIIntegratorAgent
+from agents_workers.mcp_api_integrator_agent_with_knowledge import MCPAPIIntegratorAgentWithKnowledge
 from tasks.api_link_discovery_task import ApiLinkDiscoveryTask
 from tasks.api_content_extractor_task import ApiLinkContentExtractorTask
 from tasks.mcp_base_generator_task import MCPBaseGeneratorTask
@@ -466,7 +466,7 @@ class ApiExtractionFlow(Flow):
             derived_server_name = os.path.basename(mcp_server_path) if mcp_server_path else (self.server_name or "generated-mcp-server")
             
             # Create the MCP API integrator agent with required parameters
-            integrator_agent = MCPAPIIntegratorAgent(
+            integrator_agent = MCPAPIIntegratorAgentWithKnowledge(
                 website_url=self.website_url,
                 server_name=derived_server_name,
                 mcp_server_path=mcp_server_path

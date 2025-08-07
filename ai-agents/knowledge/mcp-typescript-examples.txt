@@ -1,0 +1,462 @@
+MCP TypeScript Code Examples
+
+This document provides comprehensive examples of MCP tool and resource implementations using TypeScript and the MCP SDK.
+
+Tool Implementation Examples
+
+Basic Tool Pattern
+
+// Tool definition with JSON Schema
+export const toolDefinitions = {
+  echo: {
+    name: 'echo',
+    description: 'Echo back the input text',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        text: {
+          type: 'string',
+          description: 'Text to echo back'
+        }
+      },
+      required: ['text']
+    }
+  }
+};
+
+// Tool handler implementation
+export const toolHandlers = {
+  echo: async (args: any, sessionId: string) => {
+    return {
+      content: [{
+        type: 'text' as const,
+        text: Echo from session ${sessionId}: ${args.text}
+      }]
+    };
+  }
+};
+
+API Integration Tool Pattern
+
+// GET endpoint tool
+export const getApiDataTool = {
+  name: 'get_api_data',
+  description: 'Fetch data from API endpoint',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      endpoint: {
+        type: 'string',
+        description: 'API endpoint path'
+      },
+      query_params: {
+        type: 'object',
+        description: 'Query parameters for the request',
+        additionalProperties: true
+      }
+    },
+    required: ['endpoint']
+  }
+};
+
+// Handler with API call and error handling
+export const getApiDataHandler = async (args: any, sessionId: string) => {
+  try {
+    const baseUrl = process.env.API_BASE_URL;
+    const url = new URL(args.endpoint, baseUrl);
+
+    // Add query parameters
+    if (args.query_params) {
+      Object.entries(args.query_params).forEach(([key, value]) => {
+        url.searchParams.append(key, String(value));
+      });
+    }
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': Bearer ${process.env.API_TOKEN},
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(API request failed: ${response.status} ${response.statusText});
+    }
+
+    const data = await response.json();
+
+    return {
+      content: [{
+        type: 'text' as const,
+        text: JSON.stringify(data, null, 2)
+      }]
+    };
+  } catch (error: any) {
+    return {
+      content: [{
+        type: 'text' as const,
+        text: Error fetching API data: ${error.message}
+      }],
+      isError: true
+    };
+  }
+};
+
+POST/PUT Tool Pattern
+
+// POST/PUT endpoint tool
+export const postApiDataTool = {
+  name: 'post_api_data',
+  description: 'Send data to API endpoint',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      endpoint: {
+        type: 'string',
+        description: 'API endpoint path'
+      },
+      method: {
+        type: 'string',
+        enum: ['POST', 'PUT', 'PATCH'],
+        description: 'HTTP method to use'
+      },
+      body: {
+        type: 'object',
+        description: 'Request body data',
+        additionalProperties: true
+      },
+      headers: {
+        type: 'object',
+        description: 'Additional headers',
+        additionalProperties: { type: 'string' }
+      }
+    },
+    required: ['endpoint', 'method', 'body']
+  }
+};
+
+export const postApiDataHandler = async (args: any, sessionId: string) => {
+  try {
+    const baseUrl = process.env.API_BASE_URL;
+    const url = new URL(args.endpoint, baseUrl);
+
+    const requestHeaders: Record<string, string> = {
+      'Authorization': Bearer ${process.env.API_TOKEN},
+      'Content-Type': 'application/json',
+      ...args.headers
+    };
+
+    const response = await fetch(url.toString(), {
+      method: args.method,
+      headers: requestHeaders,
+      body: JSON.stringify(args.body)
+    });
+
+    if (!response.ok) {
+      throw new Error(API request failed: ${response.status} ${response.statusText});
+    }
+
+    const data = await response.json();
+
+    return {
+      content: [{
+        type: 'text' as const,
+        text: JSON.stringify(data, null, 2)
+      }]
+    };
+  } catch (error: any) {
+    return {
+      content: [{
+        type: 'text' as const,
+        text: Error posting API data: ${error.message}
+      }],
+      isError: true
+    };
+  }
+};
+
+Parameter Validation Tool
+
+// Tool with complex parameter validation
+export const advancedSearchTool = {
+  name: 'advanced_search',
+  description: 'Perform advanced search with filters',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Search query string',
+        minLength: 1
+      },
+      filters: {
+        type: 'object',
+        properties: {
+          category: {
+            type: 'string',
+            enum: ['all', 'users', 'repos', 'issues', 'code']
+          },
+          sort: {
+            type: 'string',
+            enum: ['created', 'updated', 'name', 'relevance']
+          },
+          order: {
+            type: 'string',
+            enum: ['asc', 'desc']
+          },
+          per_page: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100
+          },
+          page: {
+            type: 'integer',
+            minimum: 1
+          }
+        },
+        additionalProperties: false
+      }
+    },
+    required: ['query']
+  }
+};
+
+export const advancedSearchHandler = async (args: any, sessionId: string) => {
+  try {
+    // Validate and set defaults
+    const query = args.query;
+    const filters = args.filters || {};
+    const category = filters.category || 'all';
+    const sort = filters.sort || 'relevance';
+    const order = filters.order || 'desc';
+    const perPage = Math.min(filters.per_page || 30, 100);
+    const page = Math.max(filters.page || 1, 1);
+
+    // Build search URL with parameters
+    const searchUrl = new URL('/search', process.env.API_BASE_URL);
+    searchUrl.searchParams.append('q', query);
+    searchUrl.searchParams.append('type', category);
+    searchUrl.searchParams.append('sort', sort);
+    searchUrl.searchParams.append('order', order);
+    searchUrl.searchParams.append('per_page', perPage.toString());
+    searchUrl.searchParams.append('page', page.toString());
+
+    const response = await fetch(searchUrl.toString(), {
+      headers: {
+        'Authorization': Bearer ${process.env.API_TOKEN},
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(Search failed: ${response.status} ${response.statusText});
+    }
+
+    const data = await response.json();
+
+    return {
+      content: [{
+        type: 'text' as const,
+        text: JSON.stringify({
+          total_count: data.total_count,
+          items: data.items?.slice(0, 10), // Limit items for readability
+          search_params: { query, category, sort, order, perPage, page }
+        }, null, 2)
+      }]
+    };
+  } catch (error: any) {
+    return {
+      content: [{
+        type: 'text' as const,
+        text: Search error: ${error.message}
+      }],
+      isError: true
+    };
+  }
+};
+
+Resource Implementation Examples
+
+Static Resource Pattern
+
+// Static resource definition
+export const staticResourceDefinitions = {
+  server_status: {
+    uri: 'server://status',
+    name: 'Server Status',
+    description: 'Current server status and metrics',
+    mimeType: 'application/json'
+  }
+};
+
+// Static resource handler
+export const staticResourceHandlers = {
+  'server://status': async (sessionId: string) => {
+    return {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      sessionId
+    };
+  }
+};
+
+Template Resource Pattern
+
+// Template resource definition (with parameters)
+export const templateResourceDefinitions = {
+  user_profile: {
+    uri: 'user://{user_id}/profile',
+    name: 'User Profile',
+    description: 'Get user profile information',
+    mimeType: 'application/json'
+  }
+};
+
+// Template resource handler
+export const templateResourceHandlers = {
+  'user://{user_id}/profile': async (uri: URL, sessionId: string) => {
+    const userId = uri.pathname.split('/')[1]; // Extract user_id from path
+
+    try {
+      const response = await fetch(${process.env.API_BASE_URL}/users/${userId}, {
+        headers: {
+          'Authorization': Bearer ${process.env.API_TOKEN},
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(Failed to fetch user ${userId}: ${response.status});
+      }
+
+      const userData = await response.json();
+
+      return {
+        id: userData.id,
+        username: userData.login,
+        name: userData.name,
+        email: userData.email,
+        created_at: userData.created_at,
+        updated_at: userData.updated_at,
+        public_repos: userData.public_repos,
+        followers: userData.followers,
+        following: userData.following
+      };
+    } catch (error: any) {
+      throw new Error(Error fetching user profile: ${error.message});
+    }
+  }
+};
+
+List Resource Pattern
+
+// List resource definition
+export const listResourceDefinitions = {
+  api_endpoints: {
+    uri: 'api://endpoints',
+    name: 'API Endpoints',
+    description: 'List of available API endpoints',
+    mimeType: 'application/json'
+  }
+};
+
+// List resource handler
+export const listResourceHandlers = {
+  'api://endpoints': async (sessionId: string) => {
+    return {
+      endpoints: [
+        {
+          path: '/users',
+          method: 'GET',
+          description: 'List users',
+          parameters: ['per_page', 'page']
+        },
+        {
+          path: '/users/{user_id}',
+          method: 'GET',
+          description: 'Get user by ID',
+          parameters: ['user_id']
+        },
+        {
+          path: '/repos',
+          method: 'GET',
+          description: 'List repositories',
+          parameters: ['type', 'sort', 'per_page', 'page']
+        }
+      ],
+      total_endpoints: 3,
+      last_updated: new Date().toISOString()
+    };
+  }
+};
+
+Integration Patterns
+
+Combined Tool and Resource Registration
+
+// Complete integration example
+export const toolDefinitions = {
+  ...getApiDataTool,
+  ...postApiDataTool,
+  ...advancedSearchTool
+};
+
+export const toolHandlers = {
+  get_api_data: getApiDataHandler,
+  post_api_data: postApiDataHandler,
+  advanced_search: advancedSearchHandler
+};
+
+export const resourceDefinitions = {
+  ...staticResourceDefinitions,
+  ...templateResourceDefinitions,
+  ...listResourceDefinitions
+};
+
+export const resourceHandlers = {
+  ...staticResourceHandlers,
+  ...templateResourceHandlers,
+  ...listResourceHandlers
+};
+
+Environment Configuration Pattern
+
+// Environment variable validation and defaults
+const requiredEnvVars = ['API_BASE_URL', 'API_TOKEN'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error(Missing required environment variables: ${missingVars.join(', ')});
+  process.exit(1);
+}
+
+export const config = {
+  apiBaseUrl: process.env.API_BASE_URL!,
+  apiToken: process.env.API_TOKEN!,
+  port: parseInt(process.env.PORT || '3000'),
+  nodeEnv: process.env.NODE_ENV || 'development'
+};
+
+Testing Patterns
+
+Tool Testing Example
+
+// Test tool handler directly
+describe('API Tools', () => {
+  test('get_api_data should fetch data successfully', async () => {
+    const mockArgs = {
+      endpoint: '/test-endpoint',
+      query_params: { limit: 10 }
+    };
+
+    const result = await getApiDataHandler(mockArgs, 'test-session');
+
+    expect(result.content).toBeDefined();
+    expect(result.content[0].type).toBe('text');
+    expect(result.isError).toBeFalsy();
+  });
+});
+
+This knowledge base provides comprehensive examples for generating MCP TypeScript code that follows the SDK patterns and protocol requirements.
